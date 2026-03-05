@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_autograder';
 $plugin->release = '2.0.0 (MOODLE 401+)';
-$plugin->version =  2026013002;
+$plugin->version =  2026013003;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->supported = [401, 405];
