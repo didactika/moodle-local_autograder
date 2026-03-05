@@ -58,6 +58,7 @@ function xmldb_local_autograder_upgrade($oldversion) {
             if ($dbman->field_exists($table, new xmldb_field('datetograde')) &&
                 !$dbman->field_exists($table, new xmldb_field('processingdelayseconds'))) {
                 $dbman->rename_field($table, new xmldb_field('datetograde', XMLDB_TYPE_INTEGER, '10'), 'processingdelayseconds');
+                $DB->execute("UPDATE {local_autograder} SET processingdelayseconds = processingdelayseconds * 86400");
             }
         }
         $xmldbfile = new xmldb_file($xmlfile);
