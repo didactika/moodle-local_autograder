@@ -23,7 +23,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-class restore_local_autograder_plugin extends restore_local_plugin {
+class restore_local_autograder_plugin extends restore_local_plugin
+{
 
     /** @var array Stores autograder records to insert after execute */
     protected $pendingrecords = [];
@@ -33,7 +34,8 @@ class restore_local_autograder_plugin extends restore_local_plugin {
      *
      * @return restore_path_element[]
      */
-    protected function define_module_plugin_structure() {
+    protected function define_module_plugin_structure()
+    {
         if (!get_config('local_autograder', 'enable')) return;
 
         $paths = [];
@@ -46,23 +48,35 @@ class restore_local_autograder_plugin extends restore_local_plugin {
     }
 
     /**
-     * Process each local_autograder record from the backup.
-     *
-     * @param stdClass $data
+     * Collect each local_autograder record from the backup for deferred processing.
+     * @param array|stdClass $data
      */
-    public function process_local_autograder($data) {
-        global $DB;
-
-        $data = (object)$data;
-
-        mtrace("[autograder][restore][".date('H:i:s')."] Procesando record");
-
-        $newcmid = $this->get_mappingid('course_module', $data->cmid);
-        if ($newcmid) {
-            $data->cmid = $newcmid;
-            unset($data->id);
-            $DB->insert_record('local_autograder', $data);
-        }
+    public function process_local_autograder($data)
+    {
+        $this->pendingrecords[] = (object)$data;
     }
 
+    /**
+     * Called after the parent module has been fully restored and all mappings
+     * are guaranteed to exist. Insert the collected autograder records now.
+     */
+    public function after_restore_module()
+    {
+        global $DB;
+
+        foreach ($this->pendingrecords as $data) {
+            $newcmid = $this->get_mappingid('course_module', $data->cmid);
+            if (!$newcmid) {
+                $newcmid = $this->task->get_moduleid();
+            }
+            if ($newcmid) {
+                $data->cmid = $newcmid;
+                $data->courseid = $this->task->get_courseid();
+                unset($data->id);
+                $DB->insert_record('local_autograder', $data);
+            }
+        }
+
+        $this->pendingrecords = [];
+    }
 }
