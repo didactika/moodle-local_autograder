@@ -30,7 +30,4 @@ $plugin->version =  2026013003;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_STABLE;
 $plugin->supported = [401, 405];
-$plugin->dependencies = [
-    'local_eventbus' => 2026012300
-];
 
