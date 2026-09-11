@@ -47,7 +47,7 @@ abstract class module_adapter {
     private static bool $writing = false;
 
     /** @var \stdClass The course module record. */
-    protected \stdClass $cm;
+    protected \cm_info|\stdClass $cm;
 
     /** @var \stdClass The autograder configuration row for it. */
     protected \stdClass $config;
@@ -55,10 +55,10 @@ abstract class module_adapter {
     /**
      * Binds an adapter to one course module and its autograder configuration.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param \stdClass $config
      */
-    final public function __construct(\stdClass $cm, \stdClass $config) {
+    final public function __construct(\cm_info|\stdClass $cm, \stdClass $config) {
         $this->cm = $cm;
         $this->config = $config;
     }
@@ -66,11 +66,11 @@ abstract class module_adapter {
     /**
      * The adapter that knows about this course module's activity type.
      *
-     * @param \stdClass $cm A course module record with `modname`.
+     * @param \cm_info|\stdClass $cm A course module record with `modname`.
      * @param \stdClass $config Its `local_autograder_config` row.
      * @return self
      */
-    public static function for_cm(\stdClass $cm, \stdClass $config): self {
+    public static function for_cm(\cm_info|\stdClass $cm, \stdClass $config): self {
         $classname = __NAMESPACE__ . '\\' . $cm->modname . '_adapter';
 
         if (class_exists($classname)) {

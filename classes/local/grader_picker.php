@@ -82,10 +82,10 @@ final class grader_picker {
      * `local/autograder:gradeonbehalf` and the module's own real grading
      * capability, in its context, and has not opted out.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return array<int, \stdClass> Candidate users keyed by id.
      */
-    private static function candidates_for(\stdClass $cm): array {
+    private static function candidates_for(\cm_info|\stdClass $cm): array {
         $modulecontext = \context_module::instance($cm->id);
         $gradecapability = self::grade_capability_for($cm->modname);
 
@@ -119,12 +119,12 @@ final class grader_picker {
      * a course misconfigured with no shared group is not reason to grade
      * nobody.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param int $studentid
      * @param array<int, \stdClass> $candidates
      * @return array<int, \stdClass>
      */
-    private static function narrow_by_groups(\stdClass $cm, int $studentid, array $candidates): array {
+    private static function narrow_by_groups(\cm_info|\stdClass $cm, int $studentid, array $candidates): array {
         if (empty($candidates)) {
             return $candidates;
         }
@@ -196,10 +196,10 @@ final class grader_picker {
      * required of the fallback grader — they stand in exactly because the
      * course has nobody who holds it.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return int|null
      */
-    private static function fallback_grader(\stdClass $cm): ?int {
+    private static function fallback_grader(\cm_info|\stdClass $cm): ?int {
         $fallbackid = (int) get_config('local_autograder', 'fallback_grader');
 
         if ($fallbackid <= 0 || self::has_opted_out($fallbackid)) {
@@ -284,11 +284,11 @@ final class grader_picker {
      *
      * Used to keep teachers out of the set of students autograder watches.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param int $userid
      * @return bool
      */
-    public static function grades_this_module(\stdClass $cm, int $userid): bool {
+    public static function grades_this_module(\cm_info|\stdClass $cm, int $userid): bool {
         return has_capability(
             self::grade_capability_for($cm->modname),
             \context_module::instance((int) $cm->id),

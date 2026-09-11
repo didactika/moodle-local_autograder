@@ -167,14 +167,14 @@ final class autograder_section {
      *
      * @param \MoodleQuickForm $mform
      * @param string $grademethod What the activity is graded by right now.
-     * @param \stdClass|null $cm Null for a brand new activity.
+     * @param \cm_info|\stdClass|null $cm Null for a brand new activity.
      * @param \stdClass|false $config
      * @param string $typefield The module's own grade-type selector.
      */
     private static function add_grade_elements(
         \MoodleQuickForm $mform,
         string $grademethod,
-        ?\stdClass $cm,
+        \cm_info|\stdClass|null $cm,
         $config,
         string $typefield,
     ): void {
@@ -196,6 +196,21 @@ final class autograder_section {
         $mform->hideIf('autograder_grade_point', $typefield, 'neq', 'point');
         $mform->disabledIf('autograder_grade_point', 'autograder_enabled');
 
+        // Says the range out loud instead of leaving the teacher to find it
+        // by being refused. It is what the activity is graded out of *now*;
+        // one changed in this same save is caught by validate().
+        $maximum = $cm ? eligibility::maximum_grade($cm) : null;
+
+        if ($maximum !== null) {
+            $mform->addElement(
+                'static',
+                'autograder_grade_point_range',
+                '',
+                get_string('form:grade_range', 'local_autograder', format_float($maximum, -1)),
+            );
+            $mform->hideIf('autograder_grade_point_range', $typefield, 'neq', 'point');
+        }
+
         self::add_scale_elements($mform, $grademethod, $cm, $config, $typefield);
 
         if ($cm && ($grademethod === 'rubric' || $grademethod === 'guide')) {
@@ -212,12 +227,12 @@ final class autograder_section {
      * be no criteria to show yet at this point.
      *
      * @param \MoodleQuickForm $mform
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param \stdClass|false $config
      */
     private static function add_advanced_grading_notice(
         \MoodleQuickForm $mform,
-        \stdClass $cm,
+        \cm_info|\stdClass $cm,
         $config,
     ): void {
         if (!advanced_grading::is_defined($cm)) {
@@ -259,14 +274,14 @@ final class autograder_section {
      *
      * @param \MoodleQuickForm $mform
      * @param string $grademethod
-     * @param \stdClass|null $cm
+     * @param \cm_info|\stdClass|null $cm
      * @param \stdClass|false $config
      * @param string $typefield
      */
     private static function add_scale_elements(
         \MoodleQuickForm $mform,
         string $grademethod,
-        ?\stdClass $cm,
+        \cm_info|\stdClass|null $cm,
         $config,
         string $typefield,
     ): void {
@@ -354,6 +369,10 @@ final class autograder_section {
             $errors['autograder_enabled'] = get_string('form:error_not_graded', 'local_autograder');
         }
 
+        if ($gradetype === 'point' && $modname) {
+            $errors += self::validate_point_grade($data, $modname);
+        }
+
         if ($gradetype === 'scale' && $modname) {
             $scaleid = (int) (self::submitted_grade_field($data, $modname)['modgrade_scale'] ?? 0);
             $field = "autograder_grade_scale_{$scaleid}";
@@ -363,10 +382,97 @@ final class autograder_section {
             }
         }
 
+        $errors += self::validate_delay($data);
+
+        return $errors;
+    }
+
+    /**
+     * Checks the grade to assign against the maximum this very form is about
+     * to save.
+     *
+     * The maximum is read from the module's own grade element rather than from
+     * the stored grade item, because a teacher can lower the maximum and set
+     * the autograder grade in the same save: checking the old maximum would
+     * wave through a grade the activity will not accept a moment later.
+     *
+     * @param array $data The submitted form data.
+     * @param string $modname
+     * @return array<string, string>
+     */
+    private static function validate_point_grade(array $data, string $modname): array {
+        $field = 'autograder_grade_point';
+        $raw = $data[$field] ?? null;
+
+        if ($raw === null || trim((string) $raw) === '') {
+            return [$field => get_string('form:error_grade_required', 'local_autograder')];
+        }
+
+        if (!is_numeric($raw)) {
+            return [$field => get_string('form:error_numeric', 'local_autograder')];
+        }
+
+        $grade = (float) $raw;
+        $maximum = (float) (self::submitted_grade_field($data, $modname)['modgrade_point'] ?? 0);
+
+        if ($grade < 0) {
+            return [$field => get_string('form:error_grade_negative', 'local_autograder')];
+        }
+
+        if ($maximum > 0 && $grade > $maximum) {
+            return [
+                $field => get_string(
+                    'form:error_grade_above_max',
+                    'local_autograder',
+                    format_float($maximum, -1)
+                ),
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Checks the wait, which has to be a whole number of each unit and has to
+     * add up to something.
+     *
+     * A delay of zero is a legitimate choice — grade the moment the student is
+     * due — so what is refused is not zero but a negative or fractional one.
+     *
+     * @param array $data The submitted form data.
+     * @return array<string, string>
+     */
+    private static function validate_delay(array $data): array {
+        $errors = [];
+
         foreach (['autograder_days', 'autograder_hours', 'autograder_minutes'] as $name) {
-            if (isset($data[$name]) && (int) $data[$name] < 0) {
+            $raw = $data[$name] ?? 0;
+
+            if (trim((string) $raw) === '') {
+                continue;
+            }
+
+            if (!is_numeric($raw) || (float) $raw != (int) $raw) {
+                $errors[$name] = get_string('form:error_whole_number', 'local_autograder');
+
+                continue;
+            }
+
+            if ((int) $raw < 0) {
                 $errors[$name] = get_string('form:error_negative_time', 'local_autograder');
             }
+        }
+
+        if (!empty($errors)) {
+            return $errors;
+        }
+
+        if ((int) ($data['autograder_hours'] ?? 0) > 23) {
+            $errors['autograder_hours'] = get_string('form:error_hours_range', 'local_autograder');
+        }
+
+        if ((int) ($data['autograder_minutes'] ?? 0) > 59) {
+            $errors['autograder_minutes'] = get_string('form:error_minutes_range', 'local_autograder');
         }
 
         return $errors;
@@ -512,7 +618,7 @@ final class autograder_section {
      * @param string $grademethod
      * @return float|null
      */
-    private static function submitted_grade_value(\stdClass $data, string $grademethod, \stdClass $cm): ?float {
+    private static function submitted_grade_value(\stdClass $data, string $grademethod, \cm_info|\stdClass $cm): ?float {
         if ($grademethod !== 'scale') {
             return isset($data->autograder_grade_point) ? (float) $data->autograder_grade_point : null;
         }
@@ -528,10 +634,10 @@ final class autograder_section {
     /**
      * A scale's items, id => text, as a select would need them.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return array<int, string>
      */
-    private static function scale_items(\stdClass $cm): array {
+    private static function scale_items(\cm_info|\stdClass $cm): array {
         $scaleid = self::current_scale_id($cm);
 
         return $scaleid === null ? [] : self::scale_items_of($scaleid);
@@ -541,10 +647,10 @@ final class autograder_section {
      * The scale this activity is graded by right now, or null when it is not
      * graded by one.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return int|null
      */
-    private static function current_scale_id(\stdClass $cm): ?int {
+    private static function current_scale_id(\cm_info|\stdClass $cm): ?int {
         $gradeitem = \grade_item::fetch([
             'itemtype' => 'mod',
             'itemmodule' => $cm->modname,

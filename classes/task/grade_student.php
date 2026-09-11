@@ -113,13 +113,13 @@ class grade_student extends \core\task\adhoc_task {
      * Posts the grade, as the teacher chosen for this student.
      *
      * @param \stdClass $decision
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param \stdClass $config
      * @param module_adapter $adapter
      */
     private function grade(
         \stdClass $decision,
-        \stdClass $cm,
+        \cm_info|\stdClass $cm,
         \stdClass $config,
         module_adapter $adapter,
     ): void {
@@ -175,11 +175,11 @@ class grade_student extends \core\task\adhoc_task {
      * Records that this one could not be graded, and why.
      *
      * @param \stdClass $decision
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param string $reason
      * @param string $detail
      */
-    private function fail(\stdClass $decision, \stdClass $cm, string $reason, string $detail = ''): void {
+    private function fail(\stdClass $decision, \cm_info|\stdClass $cm, string $reason, string $detail = ''): void {
         decision_repository::settle($decision, decision_repository::STATUS_FAILED, $reason);
 
         grade_log_repository::record(

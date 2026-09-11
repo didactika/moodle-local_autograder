@@ -74,22 +74,32 @@ if (!advanced_grading::is_defined($cm)) {
     );
 }
 
-$criteria = advanced_grading::criteria($cm);
+$instance = advanced_grading::template_instance($cm);
+
+if ($instance === null) {
+    redirect(
+        $returnurl,
+        get_string('advanced:not_advanced', 'local_autograder'),
+        null,
+        \core\output\notification::NOTIFY_WARNING,
+    );
+}
+
 $config = config_repository::get_for_cm($cm->id);
 $filling = advanced_grading::decode($config ? $config->advancedgrading : null);
 
-$form = new advanced_grading_form(
-    $PAGE->url,
-    ['criteria' => $criteria],
-);
-$form->set_data(advanced_grading_form::values_from_filling($criteria, $filling, $cm->id));
+$form = new advanced_grading_form($PAGE->url, ['gradinginstance' => $instance]);
+$form->set_data((object) [
+    'cmid' => $cm->id,
+    // Already the shape the grading element reads and submits, so what was
+    // stored last time comes back marked on the form as it was left.
+    'advancedgrading' => ['criteria' => $filling],
+]);
 
 if ($form->is_cancelled()) {
     redirect($returnurl);
 } else if ($data = $form->get_data()) {
-    $encoded = advanced_grading::encode(
-        advanced_grading_form::filling_from_submission($criteria, $data)
-    );
+    $encoded = advanced_grading::encode((array) ($data->advancedgrading['criteria'] ?? []));
 
     $saved = config_repository::upsert_for_cm(
         $cm->id,
@@ -124,5 +134,16 @@ if ($form->is_cancelled()) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('advanced:heading', 'local_autograder'));
 echo html_writer::tag('p', get_string('advanced:intro', 'local_autograder', format_string($cm->name)));
+
+$definitionurl = advanced_grading::definition_url($cm);
+
+if ($definitionurl !== null) {
+    echo html_writer::tag(
+        'p',
+        get_string('advanced:edit_definition', 'local_autograder', $definitionurl->out()),
+        ['class' => 'text-muted'],
+    );
+}
+
 $form->display();
 echo $OUTPUT->footer();

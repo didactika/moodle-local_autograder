@@ -25,14 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['advanced:define_first'] = "Définissez d'abord la grille ou le guide d'évaluation de cette activité, puis revenez indiquer quels niveaux autograder doit cocher.";
-$string['advanced:error_score_range'] = 'Doit être compris entre 0 et {$a}.';
+$string['advanced:edit_definition'] = 'Pour modifier la grille d\'évaluation elle-même, <a href="{$a}">modifiez sa définition</a>.';
 $string['advanced:heading'] = 'Niveaux cochés par autograder';
-$string['advanced:intro'] = "Choisissez ce qu'autograder coche sur chaque critère de <strong>{$a}</strong>. Il note exactement comme si un enseignant les avait cochés à la main, donc Moodle calcule lui-même la note obtenue.";
-$string['advanced:level'] = 'Niveau';
+$string['advanced:intro'] = 'Remplissez ceci exactement comme vous le feriez en notant à la main un étudiant de <strong>{$a}</strong>. Autograder coche ce que vous choisissez ici, et Moodle en déduit la note comme il le fait toujours.';
+$string['advanced:marks'] = 'Ce que coche autograder';
 $string['advanced:not_advanced'] = "Cette activité n'est notée ni par une grille ni par un guide d'évaluation.";
-$string['advanced:remark'] = 'Commentaire (facultatif)';
+$string['advanced:save'] = 'Enregistrer ce que coche autograder';
 $string['advanced:saved'] = "Ce qu'autograder cochera a été enregistré.";
-$string['advanced:score'] = 'Score (sur {$a})';
 $string['autograder:configure'] = 'Activer ou désactiver autograder sur une activité';
 $string['autograder:gradeonbehalf'] = 'Être éligible pour que autograder pose des notes en votre nom';
 $string['autograder:manage'] = "Gérer les réglages d'autograder au niveau du site";
@@ -53,11 +52,18 @@ $string['form:advanced_unset'] = "Choisissez <a href=\"{\$a}\">ce qu'autograder 
 $string['form:days_to_complete'] = 'Jours';
 $string['form:enabled'] = 'Activer autograder';
 $string['form:enabled_help'] = "Si activé, un étudiant qui termine cette activité est noté automatiquement, le délai configuré après son échéance, avec la note indiquée ci-dessous — sauf si quelqu'un le note à la main avant.";
+$string['form:error_grade_above_max'] = 'Cette activité est notée sur {$a} : la note ne peut pas être supérieure.';
+$string['form:error_grade_negative'] = 'La note ne peut pas être négative.';
+$string['form:error_grade_required'] = 'Indiquez la note qu\'autograder doit attribuer.';
+$string['form:error_hours_range'] = 'Indiquez de 0 à 23 heures. Au-delà, utilisez le champ des jours.';
+$string['form:error_minutes_range'] = 'Indiquez de 0 à 59 minutes. Au-delà, utilisez le champ des heures.';
 $string['form:error_negative_time'] = 'Ne peut pas être négatif.';
 $string['form:error_not_graded'] = "Autograder a besoin que cette activité soit notée. Choisissez un type de note autre que « Aucune ».";
 $string['form:error_numeric'] = 'Doit être un nombre.';
 $string['form:error_scale_unset'] = "Choisissez l'élément de barème qu'autograder doit attribuer.";
+$string['form:error_whole_number'] = 'Indiquez un nombre entier.';
 $string['form:grade'] = 'Note à attribuer';
+$string['form:grade_range'] = 'Cette activité est notée sur {$a}.';
 $string['form:heading'] = 'Autograder';
 $string['form:hours_to_complete'] = 'Heures';
 $string['form:minutes_to_complete'] = 'Minutes';
@@ -65,7 +71,6 @@ $string['form:time_to_complete'] = "Délai d'attente avant la notation";
 $string['form:time_to_complete_help'] = "Combien de temps attendre, après la date d'échéance, avant de noter.";
 $string['modules:intro'] = "Seuls les types d'activité activés ici peuvent avoir autograder configuré sur l'une de leurs instances.";
 $string['pluginname'] = 'Autograder';
-
 $string['preference:optout'] = "Ne pas laisser autograder noter en mon nom";
 $string['preference:optout_help'] = "Si coché, autograder ne vous choisira jamais comme l'enseignant qui note un étudiant, même si vous y seriez sinon éligible.";
 $string['preference:saved'] = 'Préférence enregistrée.';

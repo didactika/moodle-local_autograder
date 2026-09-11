@@ -127,7 +127,7 @@ final class eligibility {
      * enabled in that case (outcomes-only, "no grade", or an advanced-grading
      * method this plugin does not simulate).
      *
-     * @param \stdClass $cm A course-module record (or `cm_info`) with
+     * @param \cm_info|\stdClass $cm A course-module record (or `cm_info`) with
      *                      `modname`, `instance` and `course`.
      * @return string|null One of "point", "scale", "rubric", "guide", or null.
      */
@@ -168,7 +168,7 @@ final class eligibility {
      * The active advanced-grading method for a module, if it has an area and
      * one is actually selected.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return string|null "rubric", "guide", or null.
      */
     private static function advanced_grademethod_for($cm): ?string {
@@ -188,6 +188,26 @@ final class eligibility {
         }
 
         return null;
+    }
+
+    /**
+     * What this activity is graded out of, for a point-graded activity.
+     *
+     * @param \cm_info|\stdClass $cm
+     * @return float|null Null when the activity is not graded by points.
+     */
+    public static function maximum_grade($cm): ?float {
+        global $CFG;
+
+        require_once($CFG->libdir . '/gradelib.php');
+
+        $gradeitem = self::grade_item_for($cm);
+
+        if (!$gradeitem || (int) $gradeitem->gradetype !== GRADE_TYPE_VALUE) {
+            return null;
+        }
+
+        return (float) $gradeitem->grademax;
     }
 
     /**
@@ -214,7 +234,7 @@ final class eligibility {
     /**
      * The grade_item behind a course module's activity grade.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return \grade_item|null
      */
     private static function grade_item_for($cm): ?\grade_item {

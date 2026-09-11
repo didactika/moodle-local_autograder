@@ -130,13 +130,13 @@ final class decision_repository {
      * Creates or refreshes the decision for one student, and makes sure a
      * task is waiting at the right moment for it.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param \stdClass $config
      * @param int $userid
      * @return \stdClass|null The decision, or null when there is nothing to
      *                        grade for this student.
      */
-    public static function ensure(\stdClass $cm, \stdClass $config, int $userid): ?\stdClass {
+    public static function ensure(\cm_info|\stdClass $cm, \stdClass $config, int $userid): ?\stdClass {
         global $DB;
 
         $existing = self::for_cm_user((int) $cm->id, $userid);

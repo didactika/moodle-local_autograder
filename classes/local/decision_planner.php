@@ -37,14 +37,14 @@ final class decision_planner {
     /**
      * What autograder should do about one student in one activity, right now.
      *
-     * @param \stdClass $cm The course module.
+     * @param \cm_info|\stdClass $cm The course module.
      * @param \stdClass $config Its autograder configuration.
      * @param int $userid The student.
      * @return array{baselineduedate: int, duedatereason: string, scheduledgradetime: int}|null
      *         Null when there is nothing to grade: the student has neither
      *         completed nor submitted.
      */
-    public static function plan(\stdClass $cm, \stdClass $config, int $userid): ?array {
+    public static function plan(\cm_info|\stdClass $cm, \stdClass $config, int $userid): ?array {
         $adapter = module_adapter::for_cm($cm, $config);
 
         $result = due_date_calculator::calculate(
@@ -75,11 +75,11 @@ final class decision_planner {
      * student who ticks a box and unticks it has undone it, and the decision
      * that followed must go with it.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param int $userid
      * @return int|null
      */
-    public static function completed_at(\stdClass $cm, int $userid): ?int {
+    public static function completed_at(\cm_info|\stdClass $cm, int $userid): ?int {
         global $CFG;
 
         require_once($CFG->libdir . '/completionlib.php');
@@ -103,11 +103,11 @@ final class decision_planner {
     /**
      * The groups this student belongs to in the activity's course.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param int $userid
      * @return int[]
      */
-    public static function group_ids(\stdClass $cm, int $userid): array {
+    public static function group_ids(\cm_info|\stdClass $cm, int $userid): array {
         $groups = groups_get_all_groups($cm->course, $userid);
 
         return array_map('intval', array_keys($groups));
@@ -120,11 +120,11 @@ final class decision_planner {
      * the grade is actually due — so this is checked again at grading time,
      * never assumed from when the decision was made.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param int $userid
      * @return bool
      */
-    public static function is_still_enrolled(\stdClass $cm, int $userid): bool {
+    public static function is_still_enrolled(\cm_info|\stdClass $cm, int $userid): bool {
         return is_enrolled(\context_course::instance($cm->course), $userid, '', true);
     }
 }

@@ -25,14 +25,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['advanced:define_first'] = 'Define this activity\'s rubric or marking guide first, then come back to say which levels autograder should mark.';
-$string['advanced:error_score_range'] = 'Must be between 0 and {$a}.';
+$string['advanced:edit_definition'] = 'To change the rubric or marking guide itself, <a href="{$a}">edit its definition</a>.';
 $string['advanced:heading'] = 'Levels autograder marks';
-$string['advanced:intro'] = 'Choose what autograder marks on each criterion of <strong>{$a}</strong>. It grades exactly as if a teacher had marked these by hand, so Moodle works the resulting grade out itself.';
-$string['advanced:level'] = 'Level';
+$string['advanced:intro'] = 'Fill this in exactly as you would when grading a student of <strong>{$a}</strong> by hand. Autograder marks what you choose here, and Moodle works the grade out from it the same way it always does.';
+$string['advanced:marks'] = 'What autograder marks';
 $string['advanced:not_advanced'] = 'This activity is not graded by a rubric or a marking guide.';
-$string['advanced:remark'] = 'Comment (optional)';
+$string['advanced:save'] = 'Save what autograder marks';
 $string['advanced:saved'] = 'Saved what autograder will mark.';
-$string['advanced:score'] = 'Score (out of {$a})';
 $string['autograder:configure'] = 'Turn autograder on or off for an activity';
 $string['autograder:gradeonbehalf'] = 'Be eligible to have autograder post grades on your behalf';
 $string['autograder:manage'] = 'Manage autograder site-wide settings';
@@ -53,11 +52,18 @@ $string['form:advanced_unset'] = 'Choose <a href="{$a}">what autograder marks</a
 $string['form:days_to_complete'] = 'Days';
 $string['form:enabled'] = 'Enable autograder';
 $string['form:enabled_help'] = 'When enabled, a student who completes this activity is graded automatically, the configured time after it was due, with the grade set below — unless someone grades them by hand first.';
+$string['form:error_grade_above_max'] = 'This activity is graded out of {$a}, so the grade cannot be higher than that.';
+$string['form:error_grade_negative'] = 'The grade cannot be negative.';
+$string['form:error_grade_required'] = 'Enter the grade autograder should give.';
+$string['form:error_hours_range'] = 'Enter 0 to 23 hours. Use the days field for anything longer.';
+$string['form:error_minutes_range'] = 'Enter 0 to 59 minutes. Use the hours field for anything longer.';
 $string['form:error_negative_time'] = 'Cannot be negative.';
 $string['form:error_not_graded'] = 'Autograder needs this activity to be graded. Choose a grade type other than "None".';
 $string['form:error_numeric'] = 'Must be a number.';
 $string['form:error_scale_unset'] = 'Choose which scale item autograder should assign.';
+$string['form:error_whole_number'] = 'Enter a whole number.';
 $string['form:grade'] = 'Grade to assign';
+$string['form:grade_range'] = 'This activity is graded out of {$a}.';
 $string['form:heading'] = 'Autograder';
 $string['form:hours_to_complete'] = 'Hours';
 $string['form:minutes_to_complete'] = 'Minutes';

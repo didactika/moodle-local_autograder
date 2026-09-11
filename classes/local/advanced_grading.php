@@ -36,10 +36,10 @@ final class advanced_grading {
      * The grading controller for a course module's advanced-grading area, or
      * null when it has none or none is active.
      *
-     * @param \stdClass $cm A course module record with `modname` and `id`.
+     * @param \cm_info|\stdClass $cm A course module record with `modname` and `id`.
      * @return \gradingform_controller|null
      */
-    public static function controller(\stdClass $cm): ?\gradingform_controller {
+    public static function controller(\cm_info|\stdClass $cm): ?\gradingform_controller {
         global $CFG;
 
         require_once($CFG->dirroot . '/grade/grading/lib.php');
@@ -64,10 +64,10 @@ final class advanced_grading {
      * page. Until that is done and marked ready there is nothing for
      * autograder to be configured against.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return bool
      */
-    public static function is_defined(\stdClass $cm): bool {
+    public static function is_defined(\cm_info|\stdClass $cm): bool {
         $controller = self::controller($cm);
 
         return $controller !== null && $controller->is_form_defined() && $controller->is_form_available();
@@ -77,10 +77,10 @@ final class advanced_grading {
      * Where Moodle's own page for defining this activity's rubric or guide
      * lives, so the teacher can be pointed at it.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return \moodle_url|null
      */
-    public static function definition_url(\stdClass $cm): ?\moodle_url {
+    public static function definition_url(\cm_info|\stdClass $cm): ?\moodle_url {
         $area = eligibility::advanced_grading_area($cm->modname);
 
         if ($area === null) {
@@ -95,6 +95,49 @@ final class advanced_grading {
     }
 
     /**
+     * A grading instance to hand to core's own `grading` form element, so the
+     * teacher fills the real rubric or marking guide rather than a stand-in.
+     *
+     * Deliberately **not** persisted. Core's `get_or_create_instance()` writes
+     * a row to `grading_instances` for a real act of grading a real student;
+     * here nobody is being graded, the answer is stored in this plugin's own
+     * configuration, and a row per page view would be litter. The renderers
+     * only ever read the definition off the controller and the value off the
+     * form element, so an unsaved instance draws exactly the same form.
+     *
+     * @param \cm_info|\stdClass $cm
+     * @return \gradingform_instance|null Null when there is no definition yet.
+     */
+    public static function template_instance(\cm_info|\stdClass $cm): ?\gradingform_instance {
+        global $USER;
+
+        $controller = self::controller($cm);
+
+        if ($controller === null || !$controller->is_form_defined()) {
+            return null;
+        }
+
+        $method = eligibility::grademethod_for($cm);
+        $class = 'gradingform_' . $method . '_instance';
+
+        if (($method !== 'rubric' && $method !== 'guide') || !class_exists($class)) {
+            return null;
+        }
+
+        return new $class($controller, (object) [
+            'id' => null,
+            'definitionid' => $controller->get_definition()->id,
+            'raterid' => (int) $USER->id,
+            'itemid' => null,
+            'status' => \gradingform_instance::INSTANCE_STATUS_INCOMPLETE,
+            'feedback' => null,
+            'feedbackformat' => FORMAT_MOODLE,
+            'rawgrade' => null,
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
      * The criteria of this activity's rubric or guide, normalised so the form
      * does not care which of the two it is drawing.
      *
@@ -102,10 +145,10 @@ final class advanced_grading {
      * ['definition' => string, 'score' => float]], 'maxscore' => float|null]`:
      * a rubric fills `levels`, a guide fills `maxscore`.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @return array<int, array>
      */
-    public static function criteria(\stdClass $cm): array {
+    public static function criteria(\cm_info|\stdClass $cm): array {
         $controller = self::controller($cm);
 
         if ($controller === null || !$controller->is_form_defined()) {
@@ -218,11 +261,11 @@ final class advanced_grading {
      * filling pointing at a level that no longer exists, which would grade
      * wrongly or not at all.
      *
-     * @param \stdClass $cm
+     * @param \cm_info|\stdClass $cm
      * @param string|null $json
      * @return bool
      */
-    public static function filling_is_current(\stdClass $cm, ?string $json): bool {
+    public static function filling_is_current(\cm_info|\stdClass $cm, ?string $json): bool {
         $criteria = self::criteria($cm);
         $filling = self::decode($json);
 
