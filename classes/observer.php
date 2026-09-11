@@ -19,7 +19,9 @@ namespace local_autograder;
 use local_autograder\local\config_repository;
 use local_autograder\local\decision_repository;
 use local_autograder\local\eligibility;
+use local_autograder\local\grade_log_repository;
 use local_autograder\local\module\module_adapter;
+use local_autograder\task\catch_up_module;
 use local_autograder\task\recalculate_module;
 
 /**
@@ -153,16 +155,31 @@ class observer {
         $cmid = (int) $event->contextinstanceid;
 
         decision_repository::delete_for_cm($cmid);
+        grade_log_repository::delete_for_cm($cmid);
         config_repository::delete_for_cm($cmid);
     }
 
     /**
-     * A course was reset, which takes its completions and submissions with it.
+     * A course was reset, which takes its completions, submissions and the
+     * students who made them with it.
+     *
+     * Core offers local plugins no `reset_userdata` callback, so this event is
+     * the hook. Everything is cleared and then worked out again from what the
+     * course actually holds now, rather than trying to guess from the reset
+     * options which decisions survived: a reset that turns out to have changed
+     * nothing relevant costs one sweep, not a student's grade.
      *
      * @param \core\event\base $event
      */
     public static function course_reset(\core\event\base $event): void {
-        decision_repository::delete_for_course((int) $event->courseid);
+        $courseid = (int) $event->courseid;
+
+        decision_repository::delete_for_course($courseid);
+        grade_log_repository::delete_for_course($courseid);
+
+        foreach (config_repository::enabled_for_course($courseid) as $config) {
+            self::queue_catch_up((int) $config->cmid);
+        }
     }
 
     /**
@@ -230,6 +247,18 @@ class observer {
         $task->set_custom_data((object) ['cmid' => $cmid]);
 
         // Deduplicated: a burst of edits to one activity earns one pass.
+        \core\task\manager::queue_adhoc_task($task, true);
+    }
+
+    /**
+     * Asks for one activity's students to be looked at from scratch.
+     *
+     * @param int $cmid
+     */
+    private static function queue_catch_up(int $cmid): void {
+        $task = new catch_up_module();
+        $task->set_custom_data((object) ['cmid' => $cmid]);
+
         \core\task\manager::queue_adhoc_task($task, true);
     }
 

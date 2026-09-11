@@ -16,6 +16,8 @@
 
 namespace local_autograder\local\module;
 
+use local_autograder\local\advanced_grading;
+
 /**
  * What autograder needs to know about one activity type: when it closes, what
  * exceptions move that date for a given student, and how to post a grade to
@@ -236,13 +238,20 @@ abstract class module_adapter {
      * @return array|null Null when this activity is not advanced-graded.
      */
     protected function configured_advanced_grading(): ?array {
-        if (empty($this->config->advancedgrading)) {
+        if (!in_array($this->config->grademethod, ['rubric', 'guide'], true)) {
             return null;
         }
 
-        $decoded = json_decode($this->config->advancedgrading, true);
+        // A rubric edited since autograder was told what to mark — or one that
+        // came in through a restore, which renumbers every criterion — leaves
+        // a filling pointing at criteria that no longer exist. Handing that to
+        // the grading form would put a wrong number in the gradebook, so this
+        // stops and says so instead, which the teacher can act on.
+        if (!advanced_grading::filling_is_current($this->cm, $this->config->advancedgrading)) {
+            throw new \moodle_exception('error:advancedgradingstale', 'local_autograder');
+        }
 
-        return is_array($decoded) ? $decoded : null;
+        return ['criteria' => advanced_grading::decode($this->config->advancedgrading)];
     }
 
     /**

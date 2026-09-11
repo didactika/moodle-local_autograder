@@ -164,6 +164,48 @@ final class observer_test extends \advanced_testcase {
     }
 
     /**
+     * Resetting the course clears the decisions and the history it built on
+     * the work the reset just removed, and asks for the activity to be looked
+     * at again from scratch.
+     */
+    public function test_resetting_the_course_clears_and_re_derives(): void {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $this->submit();
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+        \local_autograder\local\grade_log_repository::record(
+            $decision,
+            \local_autograder\local\grade_log_repository::OUTCOME_CANCELLED,
+            'test'
+        );
+
+        $DB->delete_records_select(
+            'task_adhoc',
+            $DB->sql_like('classname', ':c'),
+            ['c' => '%catch_up_module%']
+        );
+
+        reset_course_userdata((object) [
+            'id' => $this->course->id,
+            'reset_start_date' => 0,
+            'reset_assign_submissions' => 1,
+        ]);
+
+        $this->assertFalse($DB->record_exists('local_autograder_decision', ['courseid' => $this->course->id]));
+        $this->assertFalse($DB->record_exists('local_autograder_grade_log', ['courseid' => $this->course->id]));
+        $this->assertTrue(
+            $DB->record_exists('local_autograder_config', ['cmid' => $this->cm->id]),
+            'A reset clears the students\' work, not the teacher\'s settings.'
+        );
+        $this->assertNotEmpty(
+            $DB->get_records_select('task_adhoc', $DB->sql_like('classname', ':c'), ['c' => '%catch_up_module%']),
+            'Whatever survived the reset has to be looked at again.'
+        );
+    }
+
+    /**
      * A student who never engaged is never scheduled, whatever else happens
      * in the course.
      */

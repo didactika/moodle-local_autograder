@@ -91,6 +91,28 @@ final class grade_log_repository {
     }
 
     /**
+     * Removes an activity's whole grading log.
+     *
+     * @param int $cmid
+     */
+    public static function delete_for_cm(int $cmid): void {
+        global $DB;
+
+        $DB->delete_records('local_autograder_grade_log', ['cmid' => $cmid]);
+    }
+
+    /**
+     * Removes a course's whole grading log.
+     *
+     * @param int $courseid
+     */
+    public static function delete_for_course(int $courseid): void {
+        global $DB;
+
+        $DB->delete_records('local_autograder_grade_log', ['courseid' => $courseid]);
+    }
+
+    /**
      * Deletes log rows older than the given instant — what the retention
      * task walks (plan.md §9).
      *
