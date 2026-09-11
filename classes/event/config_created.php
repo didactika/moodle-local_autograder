@@ -14,19 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_autograder\event;
+
 /**
- * Plugin version and other meta-data are defined here.
+ * Autograder was configured for a course module for the first time.
+ *
+ * `other` carries: `grademethod`, `gradevalue`, `delayseconds`, `enabled`.
  *
  * @package     local_autograder
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class config_created extends config_event_base {
+    /**
+     * @inheritDoc
+     */
+    protected function crud_letter(): string {
+        return 'c';
+    }
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * @return string
+     */
+    public static function get_name(): string {
+        return get_string('event:config_created', 'local_autograder');
+    }
 
-$plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
-$plugin->version = 2026091100;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->supported = [405, 502];
+    /**
+     * @return string
+     */
+    public function get_description(): string {
+        return "The user with id '{$this->userid}' configured autograder for the course module " .
+            "with id '{$this->contextinstanceid}'.";
+    }
+}

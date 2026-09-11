@@ -15,56 +15,71 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin strings are defined here.
+ * English language strings.
  *
  * @package     local_autograder
- * @category    string
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-    $string['pluginname'] = 'Local Autograder';
+$string['pluginname'] = 'Autograder';
 
-    $string['form:heading'] = 'Automatic Grading';
-    $string['form:enabled'] = 'Enable automatic grading for this activity';
-    $string['form:grade'] = 'Automatic grade to assign';
-    $string['form:error_numeric'] = 'Enter only integer numeric value';
-    $string['form:error_max_grade'] = 'The automatic grading score cannot be higher than the maximum score';
-    $string['form:days_to_complete'] = 'Days to wait before automatic grading';
-    $string['form:hours_to_complete'] = 'Hours to wait before automatic grading';
-    $string['form:minutes_to_complete'] = 'Minutes to wait before automatic grading';
-    $string['form:time_to_complete'] = 'Time to wait before grading';
-    $string['form:enabled_help'] = 'Enable/disable automatic grading for this activity. If enabled, the automatic grade will be assigned after the configured time.';
-    $string['form:grade_help'] = 'Integer numeric grade that will be automatically assigned when the configured time ends.';
-    $string['form:time_to_complete_help'] = 'Sets the period (days or hours or minutes) after which automatic grading will be applied.';
-    $string['form:error_days_range'] = 'Days must be between 0 and 100.';
-    $string['form:error_hours_range'] = 'Hours must be between 0 and 24.';
-    $string['form:error_minutes_range'] = 'Minutes must be between 0 and 60.';
-    $string['form:error_all_time_zero'] = 'At least one of days, hours, or minutes must be greater than 0.';
-    $string['form:error_completion_tracking'] = 'Automatic grading is enabled, set completion tracking';
-    $string['form:error_type_grade'] = 'Automatic grading is enabled, only score type is accepted';
+// Settings.
+$string['settings:generaltab'] = 'General';
+$string['settings:modulestab'] = 'Autogradable activities';
+$string['settings:retentiontab'] = 'Retention';
+$string['setting:tiebreak'] = 'Tie-break rule';
+$string['setting:tiebreak_desc'] = 'When more than one teacher qualifies to grade a student, which one is chosen.';
+$string['setting:tiebreak_lowest_userid'] = 'The one with the lowest user ID';
+$string['setting:tiebreak_last_course_access'] = 'The one who accessed the course most recently';
+$string['setting:default_grade'] = 'Default grade';
+$string['setting:default_grade_desc'] = 'Suggested grade when autograder is first enabled on an activity.';
+$string['setting:default_days'] = 'Default delay (days)';
+$string['setting:default_time_desc'] = 'How long to wait, after the due date, before grading — split across days, hours and minutes.';
+$string['setting:default_hours'] = 'Default delay (hours)';
+$string['setting:default_minutes'] = 'Default delay (minutes)';
+$string['setting:fallback_grader'] = 'Fallback grader';
+$string['setting:fallback_grader_desc'] = 'Used only when no teacher in the course itself is eligible to grade a student (see the "gradeonbehalf" capability). Only users who could plausibly grade something are offered.';
+$string['setting:fallback_grader_none'] = 'None';
+$string['setting:fallback_grader_placeholder'] = 'Search for a user…';
+$string['setting:fallback_grader_ineligible'] = 'That user does not hold a grading capability and cannot be set as the fallback grader.';
+$string['setting:modules_heading'] = 'Choose which activity types can have autograder configured on the <a href="{$a->url}">autogradable activities page</a>.';
+$string['setting:retentiondays'] = 'Retention (days)';
+$string['setting:retentiondays_desc'] = 'How long a finished decision and its grading log are kept before being purged.';
 
-    $string['settings:enable'] = 'Enable autograder plugin';
-    $string['settings:enableDescription'] = 'Default value: Yes';
+// The autogradable-activities page.
+$string['modules:intro'] = 'Only activity types checked here can have autograder configured on one of their instances.';
+$string['modules:saved'] = 'Saved.';
 
-    $string['setting:days_to_completeTitle'] = 'Days to wait before automatic grading';
-    $string['setting:days_to_completeHelper'] = 'Number of days the system must wait before automatic grading.';
+// The module settings form section.
+$string['form:heading'] = 'Autograder';
+$string['form:enabled'] = 'Enable autograder';
+$string['form:enabled_help'] = 'When enabled, a student who completes this activity is graded automatically, the configured time after it was due, with the grade set below — unless someone grades them by hand first.';
+$string['form:grade'] = 'Grade to assign';
+$string['form:days_to_complete'] = 'Days';
+$string['form:hours_to_complete'] = 'Hours';
+$string['form:minutes_to_complete'] = 'Minutes';
+$string['form:time_to_complete_help'] = 'How long to wait, after the due date, before grading.';
+$string['form:error_numeric'] = 'Must be a number.';
+$string['form:error_negative_time'] = 'Cannot be negative.';
+$string['form:error_completion_tracking'] = 'Autograder needs completion tracking enabled on this activity.';
 
-    $string['setting:hours_to_completeTitle'] = 'Hours to wait before automatic grading';
-    $string['setting:hours_to_completeHelper'] = 'Number of hours allowed (in addition to days) that the system must wait before automatic grading.';
+// The "do not grade in my name" user preference.
+$string['preference:optout'] = 'Do not let autograder grade in my name';
+$string['preference:optout_help'] = 'When checked, autograder will never choose you as the teacher who grades a student, even where you would otherwise qualify.';
+$string['preference:saved'] = 'Preference saved.';
 
-    $string['setting:minutes_to_completeTitle'] = 'Minutes to wait before automatic grading';
-    $string['setting:minutes_to_completeHelper'] = 'Number of minutes allowed (in addition to days and hours) that the system must wait before automatic grading.';
+// Events.
+$string['event:config_created'] = 'Autograder configuration created';
+$string['event:config_updated'] = 'Autograder configuration updated';
+$string['event:config_deleted'] = 'Autograder configuration deleted';
 
-    $string['setting:default_gradeTitle'] = 'Automatic grade to assign';
-    $string['setting:default_gradeHelper'] = 'Default grade to assign if no specific grade is provided. Enter only integer numeric value';
+// Capabilities.
+$string['autograder:gradeonbehalf'] = 'Be eligible to have autograder post grades on your behalf';
+$string['autograder:configure'] = 'Turn autograder on or off for an activity';
+$string['autograder:manage'] = 'Manage autograder site-wide settings';
+$string['autograder:viewreport'] = 'View the autograder report for a course';
 
-    $string['event:autograder_created'] = 'Autograder Created';
-    $string['event:autograder_updated'] = 'Autograder Updated';
-
-    $string['form:error_completion_tracking'] = 'To enable the autograder, you must activate completion tracking in the "Activity completion" section.';
-    $string['form:error_type_grade'] = 'The autograder only works with activities configured with grading by "Score" (not scales or no grading).';
+$string['privacy:metadata'] = 'Autograder keeps, per student, whether and when they are due to be graded automatically, and a log of every grading attempt.';

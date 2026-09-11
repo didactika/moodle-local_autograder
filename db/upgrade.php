@@ -15,110 +15,130 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Upgrade steps are defined here.
  *
  * @package     local_autograder
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Runs every upgrade step this plugin has ever needed.
+ *
+ * @param int $oldversion The version being upgraded from.
+ * @return bool Always true.
+ */
 function xmldb_local_autograder_upgrade($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager();
-    $table = new xmldb_table('local_autograder');
-    $table_event = new xmldb_table('local_autograder_event_data');
-    $xmlfile = __DIR__ . '/install.xml';
 
-    if ($oldversion < 2024121301) {
-        $taskname = '\local_autograder\task\review_pending_autograde';
-        $task = $DB->get_record('task_scheduled', ['classname' => $taskname]);
-        if ($task) {
-            $task->disabled = 1;
-            $DB->update_record('task_scheduled', $task);
-        }
-    }
+    if ($oldversion < 2026091100) {
+        upgrade_local_autograder_from_v2($dbman);
+        upgrade_local_autograder_create_missing_tables($dbman);
 
-    if ($oldversion < 2025102704) {
-        if ($dbman->table_exists($table_event)) {
-            $dbman->drop_table($table_event);
-        }
-        if ($dbman->table_exists($table)) {
-            if ($dbman->field_exists($table, new xmldb_field('isautograded')) &&
-                !$dbman->field_exists($table, new xmldb_field('enable'))) {
-                $dbman->rename_field($table, new xmldb_field('isautograded', XMLDB_TYPE_INTEGER, '1'), 'enable');
-            }
-
-            if ($dbman->field_exists($table, new xmldb_field('autogradergrade')) &&
-                !$dbman->field_exists($table, new xmldb_field('gradetoassign'))) {
-                $dbman->rename_field($table, new xmldb_field('autogradergrade', XMLDB_TYPE_INTEGER, '10'), 'gradetoassign');
-            }
-
-            if ($dbman->field_exists($table, new xmldb_field('datetograde')) &&
-                !$dbman->field_exists($table, new xmldb_field('processingdelayseconds'))) {
-                $dbman->rename_field($table, new xmldb_field('datetograde', XMLDB_TYPE_INTEGER, '10'), 'processingdelayseconds');
-                $DB->execute("UPDATE {local_autograder} SET processingdelayseconds = processingdelayseconds * 86400");
-            }
-        }
-        $xmldbfile = new xmldb_file($xmlfile);
-        $xmldbfile->loadXMLStructure();
-        $xmlstructure = $xmldbfile->getStructure();
-        $xmldbtable = $xmlstructure->getTable('local_autograder');
-
-        if (!$dbman->table_exists($table)) {
-            $dbman->install_one_table_from_xmldb_file($xmlfile, 'local_autograder');
-        } else {
-            foreach ($xmldbtable->getFields() as $field) {
-                if (!$dbman->field_exists($table, $field)) {
-                    $dbman->add_field($table, $field);
-                }
-            }
-
-            $existingfields = $DB->get_columns($table->getName());
-            foreach (array_keys($existingfields) as $existingfieldname) {
-                $found = false;
-                foreach ($xmldbtable->getFields() as $field) {
-                    if ($field->getName() === $existingfieldname) {
-                        $found = true;
-                        break;
-                    }
-                }
-                if (!$found) {
-                    $dbman->drop_field($table, new xmldb_field($existingfieldname));
-                }
-            }
-
-            foreach ($xmldbtable->getKeys() as $key) {
-
-                if ($key->getType() === XMLDB_KEY_PRIMARY) {
-                    continue;
-                }
-
-                $indexType = ($key->getType() === XMLDB_KEY_UNIQUE || $key->getType() === XMLDB_KEY_FOREIGN_UNIQUE)
-                    ? XMLDB_INDEX_UNIQUE
-                    : XMLDB_INDEX_NOTUNIQUE;
-
-                $index = new xmldb_index(
-                    'tmp_index',
-                    $indexType,
-                    $key->getFields()
-                );
-
-                if (!$dbman->find_index_name($table, $index)) {
-                    $dbman->add_key($table, $key);
-                }
-            }
-
-
-
-
-        }
-
-        upgrade_plugin_savepoint(true, 2025102704, 'local', 'autograder');
+        upgrade_plugin_savepoint(true, 2026091100, 'local', 'autograder');
     }
 
     return true;
+}
+
+/**
+ * Turns the v2 `local_autograder` table into `local_autograder_config`.
+ *
+ * A site that never had v2 installed has no `local_autograder` table at all —
+ * this is a straight no-op for it, and
+ * {@see upgrade_local_autograder_create_missing_tables()} builds the config
+ * table (among the others) from install.xml instead.
+ *
+ * @param database_manager $dbman
+ */
+function upgrade_local_autograder_from_v2(database_manager $dbman): void {
+    global $DB;
+
+    $oldtable = new xmldb_table('local_autograder');
+
+    if (!$dbman->table_exists($oldtable)) {
+        return;
+    }
+
+    $newtable = new xmldb_table('local_autograder_config');
+
+    if ($dbman->table_exists($newtable)) {
+        // A previous, partial run of this same step already renamed it.
+        return;
+    }
+
+    $dbman->rename_table($oldtable, 'local_autograder_config');
+    $table = new xmldb_table('local_autograder_config');
+
+    $renames = [
+        'enable' => ['enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0'],
+        'gradetoassign' => ['gradevalue', XMLDB_TYPE_NUMBER, '10, 5', null, null, null, null],
+        'processingdelayseconds' => ['delayseconds', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'],
+    ];
+
+    foreach ($renames as $oldname => [$newname, $type, $precision, $unsigned, $notnull, $sequence, $default]) {
+        $oldfield = new xmldb_field($oldname, $type, $precision, $unsigned, $notnull, $sequence, $default);
+
+        if ($dbman->field_exists($table, $oldfield) && !$dbman->field_exists($table, new xmldb_field($newname))) {
+            $dbman->rename_field($table, $oldfield, $newname);
+        }
+    }
+
+    $grademethod = new xmldb_field('grademethod', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, 'point');
+
+    if (!$dbman->field_exists($table, $grademethod)) {
+        // Every v2 row was point grading — it is the only method v2 ever offered.
+        $dbman->add_field($table, $grademethod);
+    }
+
+    $advancedgrading = new xmldb_field('advancedgrading', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+    if (!$dbman->field_exists($table, $advancedgrading)) {
+        $dbman->add_field($table, $advancedgrading);
+    }
+
+    if (!$dbman->field_exists($table, new xmldb_field('usermodified'))) {
+        $dbman->add_field($table, new xmldb_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'));
+        $DB->execute("UPDATE {local_autograder_config} SET usermodified = 2"); // 2 = the primary admin account.
+    }
+
+    $courseidindex = new xmldb_index('courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
+
+    if (!$dbman->index_exists($table, $courseidindex)) {
+        $dbman->add_index($table, $courseidindex);
+    }
+
+    // v2 never enforced one row per cmid at the database level — it only ever
+    // wrote one because its own code always looked cmid up first.
+    $cmidunique = new xmldb_key('uq_locautog_config_cmid', XMLDB_KEY_UNIQUE, ['cmid']);
+
+    if (!$dbman->find_key_name($table, $cmidunique)) {
+        $dbman->add_key($table, $cmidunique);
+    }
+}
+
+/**
+ * Creates whichever of the three tables `install.xml` now declares are still
+ * missing — `local_autograder_config` on a site with no v2 history at all,
+ * and always `local_autograder_decision`/`local_autograder_grade_log`, which
+ * v2 never had.
+ *
+ * @param database_manager $dbman
+ */
+function upgrade_local_autograder_create_missing_tables(database_manager $dbman): void {
+    $xmlfile = __DIR__ . '/install.xml';
+
+    foreach (['local_autograder_config', 'local_autograder_decision', 'local_autograder_grade_log'] as $name) {
+        $table = new xmldb_table($name);
+
+        if ($dbman->table_exists($table)) {
+            continue;
+        }
+
+        $dbman->install_one_table_from_xmldb_file($xmlfile, $name);
+    }
 }

@@ -15,56 +15,71 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin strings are defined here.
+ * Spanish language strings.
  *
  * @package     local_autograder
- * @category    string
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Local Autograder';
+$string['pluginname'] = 'Autograder';
 
-$string['form:heading'] = 'Calificación Automática';
-$string['form:enabled'] = 'Activar la calificación automática para esta actividad';
-$string['form:grade'] = 'Nota automática a asignar';
-$string['form:error_numeric'] = 'Ingrese solo valor numérico entero';
-$string['form:error_max_grade'] = 'La puntuación de calificación automática no puede ser superior a la puntuación máxima';
-$string['form:days_to_complete'] = 'Días de espera para autocalificación';
-$string['form:hours_to_complete'] = 'Horas de espera para autocalificación';
-$string['form:minutes_to_complete'] = 'Minutos de espera para autocalificación';
-$string['form:time_to_complete'] = 'Tiempo de espera para calificar';
-$string['form:enabled_help'] = 'Activa/desactiva la calificación automática para esta actividad. Si está activado, se asignará la nota automática tras el tiempo configurado.';
-$string['form:grade_help'] = 'Nota numérica entera que se asignará automáticamente cuando finalice el tiempo establecido.';
-$string['form:time_to_complete_help'] = 'Establece el plazo (días o horas o minutos) tras el cual se aplicará la calificación automática.';
-$string['form:error_days_range'] = 'Los días deben estar entre 0 y 100.';
-$string['form:error_hours_range'] = 'Las horas deben estar entre 0 y 24.';
-$string['form:error_minutes_range'] = 'Los minutos deben estar entre 0 y 60.';
-$string['form:error_all_time_zero'] = 'Al menos uno de días, horas o minutos debe ser mayor que 0.';
-$string['form:error_completion_tracking'] = 'La calificación automática está habilitada, establezca el seguimiento de finalización';
-$string['form:error_type_grade'] = 'La calificación automática está habilitada, solo se acepta el tipo de puntuación';
+// Ajustes.
+$string['settings:generaltab'] = 'General';
+$string['settings:modulestab'] = 'Actividades autocalificables';
+$string['settings:retentiontab'] = 'Retención';
+$string['setting:tiebreak'] = 'Regla de desempate';
+$string['setting:tiebreak_desc'] = 'Cuando más de un docente puede calificar a un alumno, cuál de ellos se elige.';
+$string['setting:tiebreak_lowest_userid'] = 'El de menor ID de usuario';
+$string['setting:tiebreak_last_course_access'] = 'El que accedió al curso más recientemente';
+$string['setting:default_grade'] = 'Nota por defecto';
+$string['setting:default_grade_desc'] = 'Nota sugerida al activar autograder por primera vez en una actividad.';
+$string['setting:default_days'] = 'Espera por defecto (días)';
+$string['setting:default_time_desc'] = 'Cuánto esperar, tras la fecha de vencimiento, antes de calificar — repartido en días, horas y minutos.';
+$string['setting:default_hours'] = 'Espera por defecto (horas)';
+$string['setting:default_minutes'] = 'Espera por defecto (minutos)';
+$string['setting:fallback_grader'] = 'Calificador de respaldo';
+$string['setting:fallback_grader_desc'] = 'Se usa solo cuando ningún docente del propio curso puede calificar a un alumno (ver la capacidad "gradeonbehalf"). Solo se ofrecen usuarios que plausiblemente podrían calificar algo.';
+$string['setting:fallback_grader_none'] = 'Ninguno';
+$string['setting:fallback_grader_placeholder'] = 'Buscar un usuario…';
+$string['setting:fallback_grader_ineligible'] = 'Ese usuario no tiene ninguna capacidad de calificación y no puede configurarse como calificador de respaldo.';
+$string['setting:modules_heading'] = 'Elige qué tipos de actividad pueden configurar autograder en la <a href="{$a->url}">página de actividades autocalificables</a>.';
+$string['setting:retentiondays'] = 'Retención (días)';
+$string['setting:retentiondays_desc'] = 'Cuánto se conserva una decisión terminada y su registro de calificación antes de purgarse.';
 
-$string['settings:enable'] = 'Habilitar plugin autograder';
-$string['settings:enableDescription'] = 'Valor por defecto: Sí';
+// Página de actividades autocalificables.
+$string['modules:intro'] = 'Solo los tipos de actividad marcados aquí pueden tener autograder configurado en alguna de sus instancias.';
+$string['modules:saved'] = 'Guardado.';
 
-$string['setting:days_to_completeTitle'] = 'Días de espera para autocalificación';
-$string['setting:days_to_completeHelper'] = 'Cantidad de días permitidos que debe esperar el sistema antes de la calificación automática.';
+// Sección en el formulario de ajustes de la actividad.
+$string['form:heading'] = 'Autograder';
+$string['form:enabled'] = 'Activar autograder';
+$string['form:enabled_help'] = 'Si se activa, un alumno que complete esta actividad se calificará automáticamente, el tiempo configurado después de su vencimiento, con la nota indicada abajo — salvo que alguien lo califique a mano antes.';
+$string['form:grade'] = 'Nota a asignar';
+$string['form:days_to_complete'] = 'Días';
+$string['form:hours_to_complete'] = 'Horas';
+$string['form:minutes_to_complete'] = 'Minutos';
+$string['form:time_to_complete_help'] = 'Cuánto esperar, tras la fecha de vencimiento, antes de calificar.';
+$string['form:error_numeric'] = 'Debe ser un número.';
+$string['form:error_negative_time'] = 'No puede ser negativo.';
+$string['form:error_completion_tracking'] = 'Autograder necesita que el seguimiento de finalización esté activado en esta actividad.';
 
-$string['setting:hours_to_completeTitle'] = 'Horas de espera para autocalificación';
-$string['setting:hours_to_completeHelper'] = 'Cantidad de horas permitidas (además de los días) que debe esperar el sistema antes de la calificación automática.';
+// Preferencia "no calificar en mi nombre".
+$string['preference:optout'] = 'No permitir que autograder califique en mi nombre';
+$string['preference:optout_help'] = 'Si se marca, autograder nunca te elegirá como el docente que califica a un alumno, aunque de otro modo cumplieras los requisitos.';
+$string['preference:saved'] = 'Preferencia guardada.';
 
-$string['setting:minutes_to_completeTitle'] = 'Minutos de espera para autocalificación';
-$string['setting:minutes_to_completeHelper'] = 'Cantidad de minutos permitidos (además de días y horas) que debe esperar el sistema antes de la calificación automática.';
+// Eventos.
+$string['event:config_created'] = 'Configuración de autograder creada';
+$string['event:config_updated'] = 'Configuración de autograder actualizada';
+$string['event:config_deleted'] = 'Configuración de autograder eliminada';
 
-$string['setting:default_gradeTitle'] = 'Nota automática a asignar';
-$string['setting:default_gradeHelper'] = 'Nota predeterminada a asignar si no se especifica una nota concreta. Ingrese solo valor numérico entero';
+// Capacidades.
+$string['autograder:gradeonbehalf'] = 'Ser elegible para que autograder ponga notas en tu nombre';
+$string['autograder:configure'] = 'Activar o desactivar autograder en una actividad';
+$string['autograder:manage'] = 'Gestionar los ajustes de autograder a nivel de sitio';
+$string['autograder:viewreport'] = 'Ver el informe de autograder de un curso';
 
-$string['event:autograder_created'] = 'Autocalificador Creado';
-$string['event:autograder_updated'] = 'Autocalificador Actualizado';
-
-$string['form:error_completion_tracking'] = 'Para habilitar el autocalificador, debe activar el rastreo de finalización en la sección "Finalización de actividad".';
-$string['form:error_type_grade'] = 'El autocalificador solo funciona con actividades configuradas con calificación por "Puntuación" (no escalas ni sin calificación).';
+$string['privacy:metadata'] = 'Autograder guarda, por alumno, si y cuándo debe calificarse automáticamente, y un registro de cada intento de calificación.';

@@ -15,73 +15,92 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Library callbacks Moodle calls into directly (as opposed to `db/events.php`
+ * observers or `db/hooks.php` hook callbacks).
  *
  * @package     local_autograder
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/classes/form/autograder_form.php');
 
+use local_autograder\form\autograder_section;
 
 /**
- * Callback to add elements to the course module settings form after saving.
+ * Adds the autograder section to a supported activity's settings form.
+ *
+ * @param moodleform_mod $formwrapper
+ * @param MoodleQuickForm $mform
+ */
+function local_autograder_coursemodule_standard_elements($formwrapper, $mform) {
+    autograder_section::add_elements($formwrapper, $mform);
+}
+
+/**
+ * Validates the autograder section of a submitted activity settings form.
+ *
+ * @param array $data
+ * @param array $files
+ * @return array<string, string> Field name => error message.
+ */
+function local_autograder_coursemodule_validation($data, $files) {
+    return autograder_section::validate($data);
+}
+
+/**
+ * Saves the autograder section once the activity itself has been saved.
  *
  * @param stdClass $data
- * @return stdClass
- * @throws dml_exception
+ * @return stdClass The same data, unmodified — Moodle expects it back.
  */
 function local_autograder_coursemodule_edit_post_actions($data) {
-    if (!get_config('local_autograder', 'enable')) {
-        return $data;
-    }
-    return \local_autograder\activity_save::coursemodule_edit_post_actions($data);
+    autograder_section::save($data);
+
+    return $data;
 }
 
 /**
- * Get autograder configuration from the mdl_local_autograder table
- * for a specific module context.
+ * Adds the "do not grade in my name" preference to a user's Preferences page.
  *
- * @param context_module $context
+ * @param navigation_node $parentnode The "Preferences" node being built.
+ * @param stdClass $user The user whose preferences these are.
+ * @param context $usercontext
+ * @param stdClass $course
+ * @param context $coursecontext
+ */
+function local_autograder_extend_navigation_user_settings($parentnode, $user, $usercontext, $course, $coursecontext) {
+    // Shown unconditionally: `local/autograder:gradeonbehalf` is granted per
+    // module context, so there is no single context here that could answer
+    // "could this user ever be graded on behalf of anyone" cheaply and
+    // correctly. Offering the toggle to a teacher it never applies to is a
+    // harmless no-op, not a wrong answer.
+    $parentnode->add(
+        get_string('preference:optout', 'local_autograder'),
+        new moodle_url('/local/autograder/optout.php', ['userid' => $user->id]),
+        navigation_node::TYPE_SETTING,
+    );
+}
+
+/**
+ * Declares this plugin's own user preference.
+ *
  * @return array
  */
-function local_autograder_get_cm_config(context_module $context): array {
-    global $DB;
-    if (!get_config('local_autograder', 'enable')) return [];
-    $record = $DB->get_record('local_autograder', ['cmid' => $context->instanceid]);
-    if (!$record) {
-        return [
-            'id' => 0,
-            'cmid' => 0,
-            'enabled' => false,
-            'grade_to_assign' => null,
-            'processing_delay_seconds' => 0,
-        ];
-    }
-    if (!(bool)$record->enable) return [];
-
+function local_autograder_user_preferences() {
     return [
-        'id' => $record->id,
-        'cmid' => $record->cmid,
-        'enabled' => (bool)$record->enable,
-        'grade_to_assign' => $record->gradetoassign,
-        'processing_delay_seconds' => $record->processingdelayseconds,
+        'local_autograder_optout' => [
+            'type' => PARAM_BOOL,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => false,
+            'permissioncallback' => static function (int $userid): bool {
+                global $USER;
+
+                return $userid === (int) $USER->id || has_capability(
+                    'moodle/user:editprofile',
+                    \context_user::instance($userid),
+                );
+            },
+        ],
     ];
 }
-
-
-function local_autograder_grade_to_save($data){
-    if (!get_config('local_autograder', 'enable')) return;
-    if($data->modulename == 'forum'){
-        return $data->grade_forum;
-    }else{
-        return $data->grade;
-    }
-}
-
-

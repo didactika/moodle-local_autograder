@@ -15,57 +15,65 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin strings are defined here.
+ * French language strings.
  *
  * @package     local_autograder
- * @category    string
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-    $string['pluginname'] = 'Local Autograder';
+$string['pluginname'] = 'Autograder';
 
-    $string['form:heading'] = 'Notation Automatique';
-    $string['form:enabled'] = 'Activer la notation automatique pour cette activité';
-    $string['form:grade'] = 'Note automatique à attribuer';
-    $string['form:error_numeric'] = 'Entrez uniquement une valeur numérique entière';
-    $string['form:error_max_grade'] = 'La note automatique ne peut pas être supérieure à la note maximale';
-    $string['form:days_to_complete'] = 'Jours d’attente avant la notation automatique';
-    $string['form:hours_to_complete'] = 'Heures d’attente avant la notation automatique';
-    $string['form:minutes_to_complete'] = 'Minutes d’attente avant la notation automatique';
-    $string['form:time_to_complete'] = 'Temps d’attente avant la notation';
-    $string['form:enabled_help'] = 'Active/désactive la notation automatique pour cette activité. Si activée, la note automatique sera attribuée après le temps configuré.';
-    $string['form:grade_help'] = 'Note numérique entière qui sera automatiquement attribuée lorsque le temps configuré est écoulé.';
-    $string['form:time_to_complete_help'] = 'Définit la période (jours ou heures ou minutes) après laquelle la notation automatique sera appliquée.';
-    $string['form:error_days_range'] = 'Les jours doivent être compris entre 0 et 100.';
-    $string['form:error_hours_range'] = 'Les heures doivent être comprises entre 0 et 24.';
-    $string['form:error_minutes_range'] = 'Les minutes doivent être comprises entre 0 et 60.';
-    $string['form:error_all_time_zero'] = 'Au moins un des jours, heures ou minutes doit être supérieur à 0.';
-    $string['form:error_completion_tracking'] = 'La notation automatique est activée, configurez le suivi d’achèvement';
-    $string['form:error_type_grade'] = 'La notation automatique est activée, seul le type score est accepté';
+$string['settings:generaltab'] = 'Général';
+$string['settings:modulestab'] = 'Activités autocorrigeables';
+$string['settings:retentiontab'] = 'Rétention';
+$string['setting:tiebreak'] = 'Règle de départage';
+$string['setting:tiebreak_desc'] = "Quand plusieurs enseignants peuvent noter un étudiant, lequel est choisi.";
+$string['setting:tiebreak_lowest_userid'] = "Celui dont l'ID utilisateur est le plus bas";
+$string['setting:tiebreak_last_course_access'] = "Celui qui a accédé au cours le plus récemment";
+$string['setting:default_grade'] = 'Note par défaut';
+$string['setting:default_grade_desc'] = "Note suggérée lors de la première activation d'autograder sur une activité.";
+$string['setting:default_days'] = 'Délai par défaut (jours)';
+$string['setting:default_time_desc'] = "Combien de temps attendre, après la date d'échéance, avant de noter — réparti en jours, heures et minutes.";
+$string['setting:default_hours'] = 'Délai par défaut (heures)';
+$string['setting:default_minutes'] = 'Délai par défaut (minutes)';
+$string['setting:fallback_grader'] = 'Correcteur de secours';
+$string['setting:fallback_grader_desc'] = "Utilisé seulement quand aucun enseignant du cours lui-même n'est éligible pour noter un étudiant (voir la capacité « gradeonbehalf »). Seuls les utilisateurs pouvant plausiblement noter quelque chose sont proposés.";
+$string['setting:fallback_grader_none'] = 'Aucun';
+$string['setting:fallback_grader_placeholder'] = 'Rechercher un utilisateur…';
+$string['setting:fallback_grader_ineligible'] = "Cet utilisateur ne détient aucune capacité de notation et ne peut pas être défini comme correcteur de secours.";
+$string['setting:modules_heading'] = "Choisissez quels types d'activité peuvent avoir autograder configuré sur la <a href=\"{\$a->url}\">page des activités autocorrigeables</a>.";
+$string['setting:retentiondays'] = 'Rétention (jours)';
+$string['setting:retentiondays_desc'] = 'Combien de temps une décision terminée et son journal de notation sont conservés avant purge.';
 
-    $string['settings:enable'] = 'Activer le plugin autograder';
-    $string['settings:enableDescription'] = 'Valeur par défaut : Oui';
+$string['modules:intro'] = "Seuls les types d'activité cochés ici peuvent avoir autograder configuré sur l'une de leurs instances.";
+$string['modules:saved'] = 'Enregistré.';
 
-    $string['setting:days_to_completeTitle'] = 'Jours d’attente avant la notation automatique';
-    $string['setting:days_to_completeHelper'] = 'Nombre de jours que le système doit attendre avant la notation automatique.';
+$string['form:heading'] = 'Autograder';
+$string['form:enabled'] = 'Activer autograder';
+$string['form:enabled_help'] = "Si activé, un étudiant qui termine cette activité est noté automatiquement, le délai configuré après son échéance, avec la note indiquée ci-dessous — sauf si quelqu'un le note à la main avant.";
+$string['form:grade'] = 'Note à attribuer';
+$string['form:days_to_complete'] = 'Jours';
+$string['form:hours_to_complete'] = 'Heures';
+$string['form:minutes_to_complete'] = 'Minutes';
+$string['form:time_to_complete_help'] = "Combien de temps attendre, après la date d'échéance, avant de noter.";
+$string['form:error_numeric'] = 'Doit être un nombre.';
+$string['form:error_negative_time'] = 'Ne peut pas être négatif.';
+$string['form:error_completion_tracking'] = "Autograder nécessite que le suivi d'achèvement soit activé sur cette activité.";
 
-    $string['setting:hours_to_completeTitle'] = 'Heures d’attente avant la notation automatique';
-    $string['setting:hours_to_completeHelper'] = 'Nombre d’heures autorisées (en plus des jours) que le système doit attendre avant la notation automatique.';
+$string['preference:optout'] = "Ne pas laisser autograder noter en mon nom";
+$string['preference:optout_help'] = "Si coché, autograder ne vous choisira jamais comme l'enseignant qui note un étudiant, même si vous y seriez sinon éligible.";
+$string['preference:saved'] = 'Préférence enregistrée.';
 
-    $string['setting:minutes_to_completeTitle'] = 'Minutes d’attente avant la notation automatique';
-    $string['setting:minutes_to_completeHelper'] = 'Nombre de minutes autorisées (en plus des jours et des heures) que le système doit attendre avant la notation automatique.';
+$string['event:config_created'] = "Configuration d'autograder créée";
+$string['event:config_updated'] = "Configuration d'autograder mise à jour";
+$string['event:config_deleted'] = "Configuration d'autograder supprimée";
 
-    $string['setting:default_gradeTitle'] = 'Note automatique à attribuer';
-    $string['setting:default_gradeHelper'] = 'Note par défaut à attribuer si aucune note spécifique n’est fournie. Entrez uniquement une valeur numérique entière';
+$string['autograder:gradeonbehalf'] = 'Être éligible pour que autograder pose des notes en votre nom';
+$string['autograder:configure'] = 'Activer ou désactiver autograder sur une activité';
+$string['autograder:manage'] = "Gérer les réglages d'autograder au niveau du site";
+$string['autograder:viewreport'] = "Voir le rapport d'autograder d'un cours";
 
-    $string['event:autograder_created'] = 'Autograder Créé';
-    $string['event:autograder_updated'] = 'Autograder Mis à Jour';
-
-    $string['form:error_completion_tracking'] = 'Pour activer l\'autograder, vous devez activer le suivi d’achèvement dans la section "Achèvement de l’activité".';
-    $string['form:error_type_grade'] = 'L\'autograder fonctionne uniquement avec des activités configurées avec une notation par "Score" (pas d’échelles ni sans notation).';
-
+$string['privacy:metadata'] = "Autograder conserve, par étudiant, s'il doit être noté automatiquement et quand, ainsi qu'un journal de chaque tentative de notation.";

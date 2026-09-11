@@ -1,1 +1,6 @@
 .idea/
+
+# The v2 plugin, congelado como referencia de reglas de negocio — no se copia
+# sin revisar. Ver docs-refactor/autograder-local/plan.md.
+old/
+
