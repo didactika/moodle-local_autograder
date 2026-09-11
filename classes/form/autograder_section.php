@@ -98,7 +98,7 @@ final class autograder_section {
         $mform->addHelpButton('autograder_enabled', 'form:enabled', 'local_autograder');
         $mform->setDefault('autograder_enabled', $config ? $config->enabled : 0);
 
-        self::add_grade_elements($mform, $grademethod, $cm, $config, $typefield);
+        self::add_grade_elements($mform, $modname, $grademethod, $cm, $config, $typefield);
         self::add_delay_elements($mform, $config);
 
         foreach (['autograder_days', 'autograder_hours', 'autograder_minutes'] as $name) {
@@ -166,6 +166,7 @@ final class autograder_section {
      * caught by {@see validate()} rather than silently given the wrong item.
      *
      * @param \MoodleQuickForm $mform
+     * @param string $modname
      * @param string $grademethod What the activity is graded by right now.
      * @param \cm_info|\stdClass|null $cm Null for a brand new activity.
      * @param \stdClass|false $config
@@ -173,6 +174,7 @@ final class autograder_section {
      */
     private static function add_grade_elements(
         \MoodleQuickForm $mform,
+        string $modname,
         string $grademethod,
         \cm_info|\stdClass|null $cm,
         $config,
