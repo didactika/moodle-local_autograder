@@ -67,6 +67,25 @@ final class eligibility {
     }
 
     /**
+     * Allows or disallows one module type from having autograder configured,
+     * site-wide.
+     *
+     * @param string $modname
+     * @param bool $enabled
+     */
+    public static function set_module_type_enabled(string $modname, bool $enabled): void {
+        $current = self::enabled_module_types();
+
+        if ($enabled) {
+            $current[] = $modname;
+        } else {
+            $current = array_diff($current, [$modname]);
+        }
+
+        set_config('enabled_modules', implode(',', array_unique($current)), 'local_autograder');
+    }
+
+    /**
      * Every installed module type that could ever be offered on the site
      * settings page — anything gradeable, whether or not it is one of the
      * types currently enabled.
@@ -98,6 +117,15 @@ final class eligibility {
      * @return string|null One of "point", "scale", "rubric", "guide", or null.
      */
     public static function grademethod_for($cm): ?string {
+        global $CFG;
+
+        // Neither the grade subsystem (grade_item and friends) nor the
+        // advanced-grading one is part of Moodle's normal bootstrap — unlike
+        // most of the module edit form's own code path, a task or an event
+        // observer has no guarantee either is already loaded.
+        require_once($CFG->libdir . '/gradelib.php');
+        require_once($CFG->dirroot . '/grade/grading/lib.php');
+
         $advanced = self::advanced_grademethod_for($cm);
 
         if ($advanced !== null) {
@@ -133,6 +161,8 @@ final class eligibility {
             return null;
         }
 
+        // Its file is required by grademethod_for(), the only caller of this
+        // private method.
         ['component' => $component, 'area' => $area] = self::ADVANCED_GRADING_AREAS[$cm->modname];
         $context = \context_module::instance($cm->id);
         $manager = get_grading_manager($context, $component, $area);

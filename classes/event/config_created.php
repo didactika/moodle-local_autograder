@@ -27,21 +27,21 @@ namespace local_autograder\event;
  */
 class config_created extends config_event_base {
     /**
-     * @inheritDoc
+     * The letter core files this kind of event under.
      */
     protected function crud_letter(): string {
         return 'c';
     }
 
     /**
-     * @return string
+     * The event's own display name.
      */
     public static function get_name(): string {
         return get_string('event:config_created', 'local_autograder');
     }
 
     /**
-     * @return string
+     * A human-readable account of what happened.
      */
     public function get_description(): string {
         return "The user with id '{$this->userid}' configured autograder for the course module " .

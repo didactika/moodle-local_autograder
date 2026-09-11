@@ -104,6 +104,8 @@ final class due_date_calculator {
     }
 
     /**
+     * Packs a due date and its reason into the shape callers expect.
+     *
      * @param int $baselineduedate
      * @param string $reason
      * @return array{baselineduedate: int, duedatereason: string}

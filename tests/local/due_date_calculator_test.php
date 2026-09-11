@@ -24,6 +24,8 @@
 namespace local_autograder\local;
 
 /**
+ * Exercises the four grading rules directly, one behaviour per test.
+ *
  * @package local_autograder
  * @copyright 2026 Acción Docente SDR <ct.accion.docente@funiber.org>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

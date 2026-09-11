@@ -112,8 +112,8 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
         $dbman->add_index($table, $courseidindex);
     }
 
-    // v2 never enforced one row per cmid at the database level — it only ever
-    // wrote one because its own code always looked cmid up first.
+    // The old plugin never enforced one row per cmid at the database level —
+    // it only ever wrote one because its own code always looked cmid up first.
     $cmidunique = new xmldb_key('uq_locautog_config_cmid', XMLDB_KEY_UNIQUE, ['cmid']);
 
     if (!$dbman->find_key_name($table, $cmidunique)) {

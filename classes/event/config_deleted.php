@@ -26,21 +26,21 @@ namespace local_autograder\event;
  */
 class config_deleted extends config_event_base {
     /**
-     * @inheritDoc
+     * The letter core files this kind of event under.
      */
     protected function crud_letter(): string {
         return 'd';
     }
 
     /**
-     * @return string
+     * The event's own display name.
      */
     public static function get_name(): string {
         return get_string('event:config_deleted', 'local_autograder');
     }
 
     /**
-     * @return string
+     * A human-readable account of what happened.
      */
     public function get_description(): string {
         return "The autograder configuration of the course module with id '{$this->contextinstanceid}' was deleted.";

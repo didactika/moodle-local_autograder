@@ -34,6 +34,9 @@ namespace local_autograder\local;
  */
 class fallback_grader_setting extends \admin_setting {
     /**
+     * Fixes the default at "no fallback grader" (user id 0) — there is no
+     * sensible non-zero default to pick on its caller's behalf.
+     *
      * @param string $name
      * @param string $visiblename
      * @param string $description

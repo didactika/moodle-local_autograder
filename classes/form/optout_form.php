@@ -30,7 +30,7 @@ require_once($CFG->libdir . '/formslib.php');
  */
 class optout_form extends \moodleform {
     /**
-     * @inheritDoc
+     * Builds the form: one checkbox.
      */
     protected function definition() {
         $mform = $this->_form;

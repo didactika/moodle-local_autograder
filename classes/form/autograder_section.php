@@ -21,8 +21,6 @@ use local_autograder\event\config_updated;
 use local_autograder\local\config_repository;
 use local_autograder\local\eligibility;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The autograder section on an activity's own settings form.
  *
@@ -267,6 +265,8 @@ final class autograder_section {
     }
 
     /**
+     * Splits a delay in seconds into days, hours and minutes.
+     *
      * @param int $seconds
      * @return array{0: int, 1: int, 2: int} Days, hours, minutes.
      */
@@ -281,6 +281,8 @@ final class autograder_section {
     }
 
     /**
+     * Composes days, hours and minutes back into a delay in seconds.
+     *
      * @param int $days
      * @param int $hours
      * @param int $minutes

@@ -27,7 +27,7 @@ namespace local_autograder\event;
  */
 abstract class config_event_base extends \core\event\base {
     /**
-     * @inheritDoc
+     * Describes what kind of event this is.
      */
     protected function init(): void {
         $this->data['crud'] = $this->crud_letter();
@@ -43,14 +43,16 @@ abstract class config_event_base extends \core\event\base {
     abstract protected function crud_letter(): string;
 
     /**
-     * @inheritDoc
+     * Where the module this configuration belongs to is edited.
      */
     public function get_url(): \moodle_url {
         return new \moodle_url('/course/modedit.php', ['update' => $this->contextinstanceid]);
     }
 
     /**
-     * @inheritDoc
+     * Checks the event carries what it must before it is fired.
+     *
+     * @throws \coding_exception When the context is not a module context.
      */
     protected function validate_data(): void {
         parent::validate_data();
