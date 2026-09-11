@@ -39,6 +39,21 @@ final class eligibility {
     ];
 
     /**
+     * Which grade item of a module type is the one for the activity as a
+     * whole, where that is not the first.
+     *
+     * Forum is the case that matters: its item 0 is the rating of individual
+     * posts and item 1 is the grade for the forum itself. Autograder grades
+     * the activity, so it must look at item 1 — reading item 0 would both
+     * report the wrong grading method and, later, write over post ratings.
+     *
+     * @var array<string, int>
+     */
+    private const GRADE_ITEMNUMBERS = [
+        'forum' => 1,
+    ];
+
+    /**
      * Whether a module type is one the site allows autograder on at all.
      *
      * @param string $modname The module type, e.g. "assign".
@@ -176,6 +191,27 @@ final class eligibility {
     }
 
     /**
+     * Which grade item of this module type carries the activity's own grade.
+     *
+     * @param string $modname
+     * @return int
+     */
+    public static function grade_itemnumber(string $modname): int {
+        return self::GRADE_ITEMNUMBERS[$modname] ?? 0;
+    }
+
+    /**
+     * Where this module type keeps its advanced-grading area, or null when it
+     * has none.
+     *
+     * @param string $modname
+     * @return array{component: string, area: string}|null
+     */
+    public static function advanced_grading_area(string $modname): ?array {
+        return self::ADVANCED_GRADING_AREAS[$modname] ?? null;
+    }
+
+    /**
      * The grade_item behind a course module's activity grade.
      *
      * @param \stdClass $cm
@@ -186,6 +222,7 @@ final class eligibility {
             'itemtype' => 'mod',
             'itemmodule' => $cm->modname,
             'iteminstance' => $cm->instance,
+            'itemnumber' => self::grade_itemnumber($cm->modname),
             'courseid' => $cm->course,
         ]);
 

@@ -17,7 +17,9 @@
 namespace local_autograder\form;
 
 use local_autograder\event\config_created;
+use local_autograder\event\config_deleted;
 use local_autograder\event\config_updated;
+use local_autograder\local\advanced_grading;
 use local_autograder\local\config_repository;
 use local_autograder\local\eligibility;
 
@@ -86,64 +88,212 @@ final class autograder_section {
             $config = false;
         }
 
+        $typefield = self::grade_type_field($modname);
+
         $mform->addElement('header', 'autogradersection', get_string('form:heading', 'local_autograder'));
 
         $mform->addElement('advcheckbox', 'autograder_enabled', get_string('form:enabled', 'local_autograder'));
         $mform->addHelpButton('autograder_enabled', 'form:enabled', 'local_autograder');
         $mform->setDefault('autograder_enabled', $config ? $config->enabled : 0);
 
-        self::add_grade_elements($mform, $grademethod, $cm, $config);
+        self::add_grade_elements($mform, $grademethod, $cm, $config, $typefield);
         self::add_delay_elements($mform, $config);
 
-        $mform->disabledIf('autograder_days', 'autograder_enabled');
-        $mform->disabledIf('autograder_hours', 'autograder_enabled');
-        $mform->disabledIf('autograder_minutes', 'autograder_enabled');
+        foreach (['autograder_days', 'autograder_hours', 'autograder_minutes'] as $name) {
+            $mform->disabledIf($name, 'autograder_enabled');
+        }
+
+        // Nothing here can mean anything for an activity that is not graded,
+        // so the whole section greys out the moment "None" is picked — left
+        // visible rather than hidden, so it is obvious *why* it cannot be used.
+        foreach (self::element_names() as $name) {
+            $mform->disabledIf($name, $typefield, 'eq', 'none');
+        }
     }
 
     /**
-     * The grade-to-assign field, shaped by `$grademethod`.
+     * The fixed elements this section adds.
      *
-     * Rubric/guide are deliberately not built here yet — they need the
-     * activity's grading-form definition rendered as a real grading panel
-     * (Fase 4), not a single input. Until then a rubric/guide activity simply
-     * offers no autograder section (`eligibility::grademethod_for()` still
-     * reports it, so this only affects what the form shows, not eligibility
-     * elsewhere).
+     * The scale pickers are not here: there is one per scale and they are
+     * already hidden unless the activity is graded by that very scale, so
+     * "None" never leaves one on screen.
+     *
+     * @return string[]
+     */
+    private static function element_names(): array {
+        return [
+            'autograder_enabled',
+            'autograder_grade_point',
+            'autograder_days',
+            'autograder_hours',
+            'autograder_minutes',
+        ];
+    }
+
+    /**
+     * The name of the grade-type selector on this module's own form.
+     *
+     * Modules do not agree on it: assign calls its grade field `grade`, forum
+     * calls its `grade_forum`. `component_gradeitems` is what core itself asks
+     * (see `moodleform_mod::standard_grading_coursemodule_elements()`), so ask
+     * it rather than guessing.
+     *
+     * @param string $modname
+     * @return string e.g. "grade[modgrade_type]".
+     */
+    private static function grade_type_field(string $modname): string {
+        $gradefield = \core_grades\component_gradeitems::get_field_name_for_itemnumber(
+            "mod_{$modname}",
+            eligibility::grade_itemnumber($modname),
+            'grade',
+        );
+
+        return "{$gradefield}[modgrade_type]";
+    }
+
+    /**
+     * The grade-to-assign fields.
+     *
+     * Both a number (for point grading) and a scale picker are built, and
+     * core's own `hideIf` machinery shows whichever matches the grade type
+     * the teacher currently has selected — so flipping that selector swaps
+     * the field live, without a save and without any JavaScript of ours.
+     *
+     * The scale picker lists the items of the scale in effect when the form
+     * was built. A teacher who changes *which* scale in the same edit is
+     * caught by {@see validate()} rather than silently given the wrong item.
      *
      * @param \MoodleQuickForm $mform
-     * @param string $grademethod
-     * @param \stdClass|null $cm Null for a brand new activity — never reached
-     *                           by the "scale" branch, since add_elements()
-     *                           only ever passes "point" in that case.
+     * @param string $grademethod What the activity is graded by right now.
+     * @param \stdClass|null $cm Null for a brand new activity.
      * @param \stdClass|false $config
+     * @param string $typefield The module's own grade-type selector.
      */
     private static function add_grade_elements(
         \MoodleQuickForm $mform,
         string $grademethod,
         ?\stdClass $cm,
         $config,
+        string $typefield,
     ): void {
-        if ($grademethod === 'scale') {
-            $scaleitems = self::scale_items($cm);
+        $mform->addElement('text', 'autograder_grade_point', get_string('form:grade', 'local_autograder'));
+        $mform->setType('autograder_grade_point', PARAM_FLOAT);
+        $mform->setDefault(
+            'autograder_grade_point',
+            ($config && $grademethod !== 'scale')
+                ? $config->gradevalue
+                : get_config('local_autograder', 'default_grade'),
+        );
+        $mform->addRule(
+            'autograder_grade_point',
+            get_string('form:error_numeric', 'local_autograder'),
+            'numeric',
+            null,
+            'client',
+        );
+        $mform->hideIf('autograder_grade_point', $typefield, 'neq', 'point');
+        $mform->disabledIf('autograder_grade_point', 'autograder_enabled');
 
-            $mform->addElement(
-                'select',
-                'autograder_grade',
-                get_string('form:grade', 'local_autograder'),
-                $scaleitems,
-            );
-            $mform->setDefault('autograder_grade', $config ? (int) $config->gradevalue : array_key_first($scaleitems));
-        } else {
-            $mform->addElement('text', 'autograder_grade', get_string('form:grade', 'local_autograder'));
-            $mform->setType('autograder_grade', PARAM_FLOAT);
-            $mform->setDefault(
-                'autograder_grade',
-                $config ? $config->gradevalue : get_config('local_autograder', 'default_grade'),
-            );
-            $mform->addRule('autograder_grade', get_string('form:error_numeric', 'local_autograder'), 'numeric', null, 'client');
+        self::add_scale_elements($mform, $grademethod, $cm, $config, $typefield);
+
+        if ($cm && ($grademethod === 'rubric' || $grademethod === 'guide')) {
+            self::add_advanced_grading_notice($mform, $cm, $config);
+        }
+    }
+
+    /**
+     * For a rubric or marking guide, a line saying where to set which levels
+     * autograder marks — and whether that has been done.
+     *
+     * It cannot be set here: choosing "Rubric" does not create a rubric, and
+     * the definition is written afterwards on Moodle's own page, so there may
+     * be no criteria to show yet at this point.
+     *
+     * @param \MoodleQuickForm $mform
+     * @param \stdClass $cm
+     * @param \stdClass|false $config
+     */
+    private static function add_advanced_grading_notice(
+        \MoodleQuickForm $mform,
+        \stdClass $cm,
+        $config,
+    ): void {
+        if (!advanced_grading::is_defined($cm)) {
+            $url = advanced_grading::definition_url($cm);
+            $message = $url === null
+                ? get_string('form:advanced_undefined', 'local_autograder')
+                : get_string('form:advanced_define_first', 'local_autograder', $url->out());
+
+            $mform->addElement('static', 'autograder_advanced_notice', '', $message);
+
+            return;
         }
 
-        $mform->disabledIf('autograder_grade', 'autograder_enabled');
+        $set = $config && advanced_grading::filling_is_current($cm, $config->advancedgrading);
+        $url = new \moodle_url('/local/autograder/advanced.php', ['cmid' => $cm->id]);
+
+        $mform->addElement(
+            'static',
+            'autograder_advanced_notice',
+            '',
+            get_string(
+                $set ? 'form:advanced_set' : 'form:advanced_unset',
+                'local_autograder',
+                $url->out(),
+            ),
+        );
+    }
+
+    /**
+     * One scale picker per scale the course offers, each shown only when the
+     * teacher has that very scale selected on the activity itself.
+     *
+     * A single picker could not work: which items to list depends on which
+     * scale is chosen in the module's own selector, and that is a live
+     * client-side choice. Building one per scale and letting core's `hideIf`
+     * reveal the right one keeps the whole thing live — pick "Scale", pick
+     * which scale, and the matching list of items appears — with no
+     * JavaScript of ours and nothing to save first.
+     *
+     * @param \MoodleQuickForm $mform
+     * @param string $grademethod
+     * @param \stdClass|null $cm
+     * @param \stdClass|false $config
+     * @param string $typefield
+     */
+    private static function add_scale_elements(
+        \MoodleQuickForm $mform,
+        string $grademethod,
+        ?\stdClass $cm,
+        $config,
+        string $typefield,
+    ): void {
+        $scalefield = str_replace('[modgrade_type]', '[modgrade_scale]', $typefield);
+        $courseid = $cm->course ?? 0;
+        $current = ($config && $grademethod === 'scale') ? (int) $config->gradevalue : null;
+        $selectedscale = $cm ? self::current_scale_id($cm) : null;
+
+        foreach (get_scales_menu($courseid) as $scaleid => $scalename) {
+            $items = self::scale_items_of($scaleid);
+
+            if (empty($items)) {
+                continue;
+            }
+
+            $name = "autograder_grade_scale_{$scaleid}";
+            $mform->addElement('select', $name, get_string('form:grade', 'local_autograder'), $items);
+
+            if ($current !== null && $scaleid === $selectedscale) {
+                $mform->setDefault($name, $current);
+            }
+
+            // Hidden unless the activity is graded by a scale *and* by this
+            // one. Several hideIf conditions on an element are OR-ed, which is
+            // exactly "hide when either does not match".
+            $mform->hideIf($name, $typefield, 'neq', 'scale');
+            $mform->hideIf($name, $scalefield, 'neq', (string) $scaleid);
+            $mform->disabledIf($name, 'autograder_enabled');
+        }
     }
 
     /**
@@ -179,6 +329,12 @@ final class autograder_section {
     /**
      * Validates the section's own fields.
      *
+     * Completion tracking is deliberately *not* required. Where an activity
+     * tracks completion autograder counts from the completion; where it does
+     * not, it counts from the moment the student handed the activity in
+     * (plan.md §4) — so demanding completion here would refuse perfectly
+     * gradeable activities.
+     *
      * @param array $data
      * @return array<string, string> Field name => error message.
      */
@@ -189,8 +345,20 @@ final class autograder_section {
             return $errors;
         }
 
-        if (empty($data['completion']) || (int) $data['completion'] === COMPLETION_TRACKING_NONE) {
-            $errors['autograder_enabled'] = get_string('form:error_completion_tracking', 'local_autograder');
+        $modname = $data['modulename'] ?? null;
+        $gradetype = $modname ? self::submitted_grade_type($data, $modname) : null;
+
+        if ($gradetype === 'none') {
+            $errors['autograder_enabled'] = get_string('form:error_not_graded', 'local_autograder');
+        }
+
+        if ($gradetype === 'scale' && $modname) {
+            $scaleid = (int) (self::submitted_grade_field($data, $modname)['modgrade_scale'] ?? 0);
+            $field = "autograder_grade_scale_{$scaleid}";
+
+            if ($scaleid > 0 && empty($data[$field])) {
+                $errors[$field] = get_string('form:error_scale_unset', 'local_autograder');
+            }
         }
 
         foreach (['autograder_days', 'autograder_hours', 'autograder_minutes'] as $name) {
@@ -200,6 +368,37 @@ final class autograder_section {
         }
 
         return $errors;
+    }
+
+    /**
+     * The grade type the teacher has just chosen on the form, which is not
+     * necessarily the one the activity is saved with.
+     *
+     * @param array $data The submitted form data.
+     * @param string $modname
+     * @return string|null "none", "point", "scale", or null when this module's
+     *                     form carries no grade-type selector.
+     */
+    private static function submitted_grade_type(array $data, string $modname): ?string {
+        return self::submitted_grade_field($data, $modname)['modgrade_type'] ?? null;
+    }
+
+    /**
+     * The module's own grade element as submitted — `modgrade_type`,
+     * `modgrade_point`, `modgrade_scale`.
+     *
+     * @param array $data The submitted form data.
+     * @param string $modname
+     * @return array Empty when this module's form carries no such element.
+     */
+    private static function submitted_grade_field(array $data, string $modname): array {
+        $gradefield = \core_grades\component_gradeitems::get_field_name_for_itemnumber(
+            "mod_{$modname}",
+            eligibility::grade_itemnumber($modname),
+            'grade',
+        );
+
+        return (isset($data[$gradefield]) && is_array($data[$gradefield])) ? $data[$gradefield] : [];
     }
 
     /**
@@ -216,11 +415,23 @@ final class autograder_section {
         }
 
         $cm = get_coursemodule_from_id($modname, $cmid, 0, false, MUST_EXIST);
+
+        // Re-derived from the grade item that exists *now* — the teacher may
+        // have changed the grading method in this very save, and for a brand
+        // new activity there was nothing to read when the form was built.
         $grademethod = eligibility::grademethod_for($cm);
 
-        if ($grademethod === null || $grademethod === 'rubric' || $grademethod === 'guide') {
-            // See add_grade_elements(): the section is not offered for these
-            // yet, so there is nothing of ours in $data to save.
+        if ($grademethod === null) {
+            // The activity ended up not graded at all; drop any configuration
+            // it used to have rather than leave one that can never fire.
+            if (config_repository::get_for_cm($cmid)) {
+                config_repository::delete_for_cm($cmid);
+                config_deleted::create([
+                    'objectid' => $cmid,
+                    'context' => \context_module::instance($cmid),
+                ])->trigger();
+            }
+
             return;
         }
 
@@ -231,13 +442,17 @@ final class autograder_section {
             (int) ($data->autograder_minutes ?? 0),
         );
 
+        $advanced = ($grademethod === 'rubric' || $grademethod === 'guide');
+
         $config = config_repository::upsert_for_cm(
             $cmid,
             (int) $data->course,
             !empty($data->autograder_enabled),
             $grademethod,
-            isset($data->autograder_grade) ? (float) $data->autograder_grade : null,
-            null,
+            $advanced ? null : self::submitted_grade_value($data, $grademethod, $cm),
+            // The per-criterion filling is set on its own page, not here, so
+            // carry whatever is already stored rather than wiping it.
+            $advanced && $existing ? $existing->advancedgrading : null,
             $delayseconds,
             (int) $data->userid ?? 0,
         );
@@ -257,30 +472,78 @@ final class autograder_section {
     }
 
     /**
+     * The grade to store, read from whichever field belongs to the method the
+     * activity actually ended up with.
+     *
+     * @param \stdClass $data
+     * @param string $grademethod
+     * @return float|null
+     */
+    private static function submitted_grade_value(\stdClass $data, string $grademethod, \stdClass $cm): ?float {
+        if ($grademethod !== 'scale') {
+            return isset($data->autograder_grade_point) ? (float) $data->autograder_grade_point : null;
+        }
+
+        // Read the picker belonging to the scale the activity actually ended
+        // up with — the form shows one per scale (see add_scale_elements()).
+        $scaleid = self::current_scale_id($cm);
+        $field = "autograder_grade_scale_{$scaleid}";
+
+        return isset($data->{$field}) ? (float) $data->{$field} : null;
+    }
+
+    /**
      * A scale's items, id => text, as a select would need them.
      *
      * @param \stdClass $cm
      * @return array<int, string>
      */
     private static function scale_items(\stdClass $cm): array {
-        global $DB;
+        $scaleid = self::current_scale_id($cm);
 
+        return $scaleid === null ? [] : self::scale_items_of($scaleid);
+    }
+
+    /**
+     * The scale this activity is graded by right now, or null when it is not
+     * graded by one.
+     *
+     * @param \stdClass $cm
+     * @return int|null
+     */
+    private static function current_scale_id(\stdClass $cm): ?int {
         $gradeitem = \grade_item::fetch([
             'itemtype' => 'mod',
             'itemmodule' => $cm->modname,
             'iteminstance' => $cm->instance,
+            'itemnumber' => eligibility::grade_itemnumber($cm->modname),
             'courseid' => $cm->course,
         ]);
 
-        if (!$gradeitem || !$gradeitem->scaleid) {
+        return ($gradeitem && $gradeitem->scaleid) ? (int) $gradeitem->scaleid : null;
+    }
+
+    /**
+     * One scale's items, as a select needs them.
+     *
+     * Keyed from 1, because a scale grade in Moodle *is* the item's position.
+     *
+     * @param int $scaleid
+     * @return array<int, string>
+     */
+    private static function scale_items_of(int $scaleid): array {
+        global $DB;
+
+        $scale = $DB->get_record('scale', ['id' => $scaleid]);
+
+        if (!$scale) {
             return [];
         }
 
-        $scale = $DB->get_record('scale', ['id' => $gradeitem->scaleid], '*', MUST_EXIST);
         $items = [];
 
         foreach (explode(',', $scale->scale) as $index => $label) {
-            $items[$index + 1] = trim($label);
+            $items[$index + 1] = format_string(trim($label));
         }
 
         return $items;

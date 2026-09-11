@@ -95,6 +95,21 @@ abstract class module_adapter {
     abstract public function close_date(): ?int;
 
     /**
+     * When this student handed the activity in, or null when they have not —
+     * or when the activity has no notion of handing anything in.
+     *
+     * What autograder counts from where an activity does not track completion
+     * (plan.md §4): a student who submitted has done the thing, whether or not
+     * anyone asked Moodle to tick a completion box for it.
+     *
+     * @param int $userid
+     * @return int|null
+     */
+    public function submitted_at(int $userid): ?int {
+        return null;
+    }
+
+    /**
      * The closing instant an exception grants this student personally, or
      * null when no user-level exception applies.
      *
@@ -184,6 +199,9 @@ abstract class module_adapter {
             'itemtype' => 'mod',
             'itemmodule' => $this->cm->modname,
             'iteminstance' => $this->cm->instance,
+            // Forum's activity grade is item 1; item 0 is post ratings, which
+            // autograder must not touch. See eligibility::grade_itemnumber().
+            'itemnumber' => \local_autograder\local\eligibility::grade_itemnumber($this->cm->modname),
             'courseid' => $this->cm->course,
         ]);
 

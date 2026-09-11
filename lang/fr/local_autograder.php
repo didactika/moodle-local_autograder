@@ -24,6 +24,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['advanced:define_first'] = "Définissez d'abord la grille ou le guide d'évaluation de cette activité, puis revenez indiquer quels niveaux autograder doit cocher.";
+$string['advanced:error_score_range'] = 'Doit être compris entre 0 et {$a}.';
+$string['advanced:heading'] = 'Niveaux cochés par autograder';
+$string['advanced:intro'] = "Choisissez ce qu'autograder coche sur chaque critère de <strong>{$a}</strong>. Il note exactement comme si un enseignant les avait cochés à la main, donc Moodle calcule lui-même la note obtenue.";
+$string['advanced:level'] = 'Niveau';
+$string['advanced:not_advanced'] = "Cette activité n'est notée ni par une grille ni par un guide d'évaluation.";
+$string['advanced:remark'] = 'Commentaire (facultatif)';
+$string['advanced:saved'] = "Ce qu'autograder cochera a été enregistré.";
+$string['advanced:score'] = 'Score (sur {$a})';
 $string['autograder:configure'] = 'Activer ou désactiver autograder sur une activité';
 $string['autograder:gradeonbehalf'] = 'Être éligible pour que autograder pose des notes en votre nom';
 $string['autograder:manage'] = "Gérer les réglages d'autograder au niveau du site";
@@ -33,12 +42,17 @@ $string['error:nogradeitem'] = "Cette activité n'a aucun élément de note où 
 $string['event:config_created'] = "Configuration d'autograder créée";
 $string['event:config_deleted'] = "Configuration d'autograder supprimée";
 $string['event:config_updated'] = "Configuration d'autograder mise à jour";
+$string['form:advanced_define_first'] = "Cette activité est notée par une grille ou un guide, mais aucun n'est encore défini. <a href=\"{\$a}\">Définissez-le d'abord</a>, puis choisissez ce qu'autograder coche.";
+$string['form:advanced_set'] = "Autograder sait quoi cocher sur cette grille ou ce guide. <a href=\"{\$a}\">Le modifier</a>.";
+$string['form:advanced_undefined'] = "Cette activité est notée par une grille ou un guide qu'autograder ne peut pas lire.";
+$string['form:advanced_unset'] = "Choisissez <a href=\"{\$a}\">ce qu'autograder coche</a> sur cette grille ou ce guide — sans cela il n'a rien pour noter.";
 $string['form:days_to_complete'] = 'Jours';
 $string['form:enabled'] = 'Activer autograder';
 $string['form:enabled_help'] = "Si activé, un étudiant qui termine cette activité est noté automatiquement, le délai configuré après son échéance, avec la note indiquée ci-dessous — sauf si quelqu'un le note à la main avant.";
-$string['form:error_completion_tracking'] = "Autograder nécessite que le suivi d'achèvement soit activé sur cette activité.";
 $string['form:error_negative_time'] = 'Ne peut pas être négatif.';
+$string['form:error_not_graded'] = "Autograder a besoin que cette activité soit notée. Choisissez un type de note autre que « Aucune ».";
 $string['form:error_numeric'] = 'Doit être un nombre.';
+$string['form:error_scale_unset'] = "Choisissez l'élément de barème qu'autograder doit attribuer.";
 $string['form:grade'] = 'Note à attribuer';
 $string['form:heading'] = 'Autograder';
 $string['form:hours_to_complete'] = 'Heures';

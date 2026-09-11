@@ -49,6 +49,31 @@ class forum_adapter extends module_adapter {
     }
 
     /**
+     * When the student last posted in this forum.
+     *
+     * A forum has no submit button; contributing to it *is* the hand-in, and
+     * the last post is the point at which their contribution stands as it is.
+     *
+     * @param int $userid
+     * @return int|null
+     */
+    public function submitted_at(int $userid): ?int {
+        global $DB;
+
+        $posted = $DB->get_field_sql(
+            "SELECT p.created
+               FROM {forum_posts} p
+               JOIN {forum_discussions} d ON d.id = p.discussion
+              WHERE d.forum = :forum AND p.userid = :userid
+           ORDER BY p.created DESC",
+            ['forum' => $this->cm->instance, 'userid' => $userid],
+            IGNORE_MULTIPLE
+        );
+
+        return $posted ? (int) $posted : null;
+    }
+
+    /**
      * Forum has no per-user exception table.
      *
      * @param int $userid

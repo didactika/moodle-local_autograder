@@ -40,6 +40,34 @@ class quiz_adapter extends module_adapter {
     }
 
     /**
+     * When the student last finished an attempt.
+     *
+     * A quiz is "handed in" when an attempt is submitted; one still in
+     * progress, abandoned, or a teacher's preview is not a hand-in.
+     *
+     * @param int $userid
+     * @return int|null
+     */
+    public function submitted_at(int $userid): ?int {
+        global $DB;
+
+        $finished = $DB->get_field_sql(
+            "SELECT timefinish
+               FROM {quiz_attempts}
+              WHERE quiz = :quiz
+                AND userid = :userid
+                AND state = :state
+                AND preview = 0
+                AND timefinish > 0
+           ORDER BY timefinish DESC",
+            ['quiz' => $this->cm->instance, 'userid' => $userid, 'state' => 'finished'],
+            IGNORE_MULTIPLE
+        );
+
+        return $finished ? (int) $finished : null;
+    }
+
+    /**
      * The `timeclose` a user override grants this student.
      *
      * @param int $userid

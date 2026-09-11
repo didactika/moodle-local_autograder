@@ -31,8 +31,11 @@ namespace local_autograder\local;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class due_date_calculator {
-    /** @var string No module close date and no exception applied. */
+    /** @var string Graded from the completion instant: no close date, no exception. */
     public const REASON_COMPLETION = 'completion';
+
+    /** @var string Graded from the submission instant: completion is not tracked here. */
+    public const REASON_SUBMISSION = 'submission';
 
     /** @var string The module's own close date applied, no exception. */
     public const REASON_DUEDATE = 'duedate';
@@ -47,14 +50,24 @@ final class due_date_calculator {
      * Works out the baseline due date for one student in one module, or
      * decides there is nothing to grade yet.
      *
-     * Priority: a user override always outranks a group override; either
-     * outranks the module's own close date; the module's close date outranks
-     * the bare completion instant. All four still require a completion —
-     * an exception changes *when* to grade, it never creates or waives that
-     * requirement (plan.md §4, rule 4).
+     * Two things have to be true for a grade to be due. The student must have
+     * *done* the activity — completed it where completion is tracked, or
+     * simply handed it in where it is not — and there has to be an instant to
+     * count the wait from. The first is the gate; the second is what this
+     * returns.
      *
-     * @param int|null $completedat When the student completed the activity
-     *                              (Unix timestamp), or null if they have not.
+     * Priority for that instant: a user override always outranks a group
+     * override; either outranks the module's own close date; the close date
+     * outranks the bare instant the student engaged. An exception changes
+     * *when* to grade — it never waives the requirement that they did the
+     * activity at all.
+     *
+     * @param int|null $completedat When the student completed the activity,
+     *                              or null when completion is not tracked here
+     *                              or they have not completed it.
+     * @param int|null $submittedat When the student handed the activity in, or
+     *                              null when they have not, or when the
+     *                              activity has no notion of submitting.
      * @param int|null $closedate The module's own close date, or null if it
      *                            has none (e.g. `cutoffdate`/`duedate` = 0).
      * @param int|null $useroverridedate The close date from an override
@@ -64,16 +77,21 @@ final class due_date_calculator {
      *                                   targeting a group this student belongs
      *                                   to. Empty if there are none.
      * @return array{baselineduedate: int, duedatereason: string}|null Null
-     *         when the student has not completed the activity — no decision
-     *         should exist for them at all.
+     *         when the student has neither completed nor submitted — no
+     *         decision should exist for them at all.
      */
     public static function calculate(
         ?int $completedat,
+        ?int $submittedat,
         ?int $closedate,
         ?int $useroverridedate,
         array $groupoverridedates = [],
     ): ?array {
-        if ($completedat === null) {
+        // Completion is the stronger signal where it is tracked; a submission
+        // stands in where it is not.
+        $engagedat = $completedat ?? $submittedat;
+
+        if ($engagedat === null) {
             return null;
         }
 
@@ -89,7 +107,10 @@ final class due_date_calculator {
             return self::result($closedate, self::REASON_DUEDATE);
         }
 
-        return self::result($completedat, self::REASON_COMPLETION);
+        return self::result(
+            $engagedat,
+            $completedat !== null ? self::REASON_COMPLETION : self::REASON_SUBMISSION,
+        );
     }
 
     /**

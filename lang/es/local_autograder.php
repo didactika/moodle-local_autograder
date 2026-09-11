@@ -24,6 +24,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['advanced:define_first'] = 'Define primero la rúbrica o guía de evaluación de esta actividad y vuelve para indicar qué niveles debe marcar autograder.';
+$string['advanced:error_score_range'] = 'Debe estar entre 0 y {$a}.';
+$string['advanced:heading'] = 'Niveles que marca autograder';
+$string['advanced:intro'] = 'Elige qué marca autograder en cada criterio de <strong>{$a}</strong>. Califica exactamente como si un docente los hubiera marcado a mano, así que Moodle calcula la nota resultante por su cuenta.';
+$string['advanced:level'] = 'Nivel';
+$string['advanced:not_advanced'] = 'Esta actividad no se califica con rúbrica ni con guía de evaluación.';
+$string['advanced:remark'] = 'Comentario (opcional)';
+$string['advanced:saved'] = 'Guardado lo que marcará autograder.';
+$string['advanced:score'] = 'Puntuación (sobre {$a})';
 $string['autograder:configure'] = 'Activar o desactivar autograder en una actividad';
 $string['autograder:gradeonbehalf'] = 'Ser elegible para que autograder ponga notas en tu nombre';
 $string['autograder:manage'] = 'Gestionar los ajustes de autograder a nivel de sitio';
@@ -33,12 +42,17 @@ $string['error:nogradeitem'] = 'Esta actividad no tiene ítem de calificación d
 $string['event:config_created'] = 'Configuración de autograder creada';
 $string['event:config_deleted'] = 'Configuración de autograder eliminada';
 $string['event:config_updated'] = 'Configuración de autograder actualizada';
+$string['form:advanced_define_first'] = 'Esta actividad se califica con rúbrica o guía, pero todavía no hay ninguna definida. <a href="{$a}">Defínela primero</a> y luego elige qué marca autograder.';
+$string['form:advanced_set'] = 'Autograder ya sabe qué marcar en esta rúbrica o guía. <a href="{$a}">Cambiarlo</a>.';
+$string['form:advanced_undefined'] = 'Esta actividad se califica con una rúbrica o guía que autograder no puede leer.';
+$string['form:advanced_unset'] = 'Elige <a href="{$a}">qué marca autograder</a> en esta rúbrica o guía — hasta entonces no tiene con qué calificar.';
 $string['form:days_to_complete'] = 'Días';
 $string['form:enabled'] = 'Activar autograder';
 $string['form:enabled_help'] = 'Si se activa, un alumno que complete esta actividad se calificará automáticamente, el tiempo configurado después de su vencimiento, con la nota indicada abajo — salvo que alguien lo califique a mano antes.';
-$string['form:error_completion_tracking'] = 'Autograder necesita que el seguimiento de finalización esté activado en esta actividad.';
 $string['form:error_negative_time'] = 'No puede ser negativo.';
+$string['form:error_not_graded'] = 'Autograder necesita que la actividad sea calificable. Elige un tipo de calificación distinto de «Ninguna».';
 $string['form:error_numeric'] = 'Debe ser un número.';
+$string['form:error_scale_unset'] = 'Elige qué ítem de la escala debe asignar autograder.';
 $string['form:grade'] = 'Nota a asignar';
 $string['form:heading'] = 'Autograder';
 $string['form:hours_to_complete'] = 'Horas';

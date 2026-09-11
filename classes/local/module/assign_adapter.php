@@ -55,6 +55,41 @@ class assign_adapter extends module_adapter {
     }
 
     /**
+     * When the student last submitted this assignment.
+     *
+     * Only a row actually marked submitted counts — a draft the student is
+     * still working on is not a hand-in. `latest` picks the current attempt
+     * rather than a superseded one.
+     *
+     * @param int $userid
+     * @return int|null
+     */
+    public function submitted_at(int $userid): ?int {
+        global $DB, $CFG;
+
+        // ASSIGN_SUBMISSION_STATUS_SUBMITTED lives in assign's locallib.
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+        $submitted = $DB->get_field_sql(
+            "SELECT timemodified
+               FROM {assign_submission}
+              WHERE assignment = :assignment
+                AND userid = :userid
+                AND status = :status
+                AND latest = 1
+           ORDER BY timemodified DESC",
+            [
+                'assignment' => $this->cm->instance,
+                'userid' => $userid,
+                'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
+            ],
+            IGNORE_MULTIPLE
+        );
+
+        return $submitted ? (int) $submitted : null;
+    }
+
+    /**
      * The close date a user override grants this student.
      *
      * @param int $userid
