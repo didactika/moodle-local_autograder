@@ -15,7 +15,11 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * The scheduled tasks of this plugin.
+ *
+ * Grading itself is not here: each decision gets its own adhoc task, queued
+ * for the exact moment it comes due (plan.md D1). These two only tidy up
+ * after it.
  *
  * @package     local_autograder
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
@@ -24,9 +28,23 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
-$plugin->version = 2026091101;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->supported = [405, 502];
+$tasks = [
+    [
+        'classname' => 'local_autograder\task\reconcile_pending',
+        'blocking' => 0,
+        'minute' => '*/30',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
+    [
+        'classname' => 'local_autograder\task\purge_history',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '3',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*',
+    ],
+];

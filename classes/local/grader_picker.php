@@ -279,6 +279,24 @@ final class grader_picker {
     }
 
     /**
+     * Whether a user is someone who grades this activity rather than someone
+     * who is graded on it.
+     *
+     * Used to keep teachers out of the set of students autograder watches.
+     *
+     * @param \stdClass $cm
+     * @param int $userid
+     * @return bool
+     */
+    public static function grades_this_module(\stdClass $cm, int $userid): bool {
+        return has_capability(
+            self::grade_capability_for($cm->modname),
+            \context_module::instance((int) $cm->id),
+            $userid
+        );
+    }
+
+    /**
      * Whether a user has asked never to be chosen (plan.md §5.1).
      *
      * @param int $userid

@@ -42,6 +42,9 @@ $string['error:nogradeitem'] = "Cette activité n'a aucun élément de note où 
 $string['event:config_created'] = "Configuration d'autograder créée";
 $string['event:config_deleted'] = "Configuration d'autograder supprimée";
 $string['event:config_updated'] = "Configuration d'autograder mise à jour";
+$string['event:decision_cancelled'] = 'Décision de notation automatique annulée';
+$string['event:grading_failed'] = 'Échec de la notation automatique';
+$string['event:student_graded'] = 'Étudiant noté automatiquement';
 $string['form:advanced_define_first'] = "Cette activité est notée par une grille ou un guide, mais aucun n'est encore défini. <a href=\"{\$a}\">Définissez-le d'abord</a>, puis choisissez ce qu'autograder coche.";
 $string['form:advanced_set'] = "Autograder sait quoi cocher sur cette grille ou ce guide. <a href=\"{\$a}\">Le modifier</a>.";
 $string['form:advanced_undefined'] = "Cette activité est notée par une grille ou un guide qu'autograder ne peut pas lire.";
@@ -90,3 +93,9 @@ $string['setting:tiebreak_lowest_userid'] = "Celui dont l'ID utilisateur est le 
 $string['settings:generaltab'] = 'Général';
 $string['settings:modulestab'] = 'Activités autocorrigeables';
 $string['settings:retentiontab'] = 'Rétention';
+$string['task:cancel_module'] = 'Annuler les notations automatiques en attente sur une activité';
+$string['task:catch_up_module'] = 'Rattraper les étudiants déjà en attente sur une activité';
+$string['task:grade_student'] = 'Noter un étudiant';
+$string['task:purge_history'] = 'Purger les décisions et le journal de notation automatique terminés';
+$string['task:recalculate_module'] = 'Recalculer les dates de notation automatique d\'une activité';
+$string['task:reconcile_pending'] = 'Remettre en file les décisions de notation automatique ayant perdu leur tâche';

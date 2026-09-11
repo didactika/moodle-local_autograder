@@ -22,6 +22,8 @@ use local_autograder\event\config_updated;
 use local_autograder\local\advanced_grading;
 use local_autograder\local\config_repository;
 use local_autograder\local\eligibility;
+use local_autograder\task\cancel_module;
+use local_autograder\task\catch_up_module;
 
 /**
  * The autograder section on an activity's own settings form.
@@ -407,6 +409,8 @@ final class autograder_section {
      * @param \stdClass $data The whole module form submission.
      */
     public static function save(\stdClass $data): void {
+        global $USER;
+
         $modname = $data->modulename ?? null;
         $cmid = (int) ($data->coursemodule ?? 0);
 
@@ -430,6 +434,8 @@ final class autograder_section {
                     'objectid' => $cmid,
                     'context' => \context_module::instance($cmid),
                 ])->trigger();
+
+                self::apply_switch($cmid, false);
             }
 
             return;
@@ -454,7 +460,7 @@ final class autograder_section {
             // carry whatever is already stored rather than wiping it.
             $advanced && $existing ? $existing->advancedgrading : null,
             $delayseconds,
-            (int) $data->userid ?? 0,
+            (int) $USER->id,
         );
 
         $context = \context_module::instance($cmid);
@@ -469,6 +475,33 @@ final class autograder_section {
                 'enabled' => (bool) $config->enabled,
             ],
         ])->trigger();
+
+        self::apply_switch($cmid, (bool) $config->enabled);
+    }
+
+    /**
+     * Acts on what the teacher just chose.
+     *
+     * Switched on, every student who already finished has to be caught up, or
+     * turning it on would only ever reach the ones who finish afterwards.
+     * Switched off, everything still queued has to be called off. Both run as
+     * adhoc tasks so that saving the activity stays as quick as it was, however
+     * large the class.
+     *
+     * @param int $cmid
+     * @param bool $enabled
+     */
+    private static function apply_switch(int $cmid, bool $enabled): void {
+        if ($enabled) {
+            $task = new catch_up_module();
+            $task->set_custom_data((object) ['cmid' => $cmid]);
+        } else {
+            $task = new cancel_module();
+            $task->set_custom_data((object) ['cmid' => $cmid, 'reason' => 'autograderoff']);
+        }
+
+        // Deduplicated: saving the same form twice earns one pass.
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 
     /**

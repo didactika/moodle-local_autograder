@@ -1,0 +1,130 @@
+<?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace local_autograder\local;
+
+use local_autograder\local\module\module_adapter;
+
+/**
+ * Works out, from live Moodle data, whether a student is due to be graded and
+ * when.
+ *
+ * This is the bridge between Moodle and {@see due_date_calculator}: it reads
+ * the completion, the submission, the activity's close date, the exceptions
+ * that apply to this student and the groups they are in, then hands all of it
+ * to the rule, which knows nothing about the database. Everything here is
+ * read fresh every time it is asked — a plan is never trusted from when it
+ * was last written (plan.md §3).
+ *
+ * @package     local_autograder
+ * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+final class decision_planner {
+    /**
+     * What autograder should do about one student in one activity, right now.
+     *
+     * @param \stdClass $cm The course module.
+     * @param \stdClass $config Its autograder configuration.
+     * @param int $userid The student.
+     * @return array{baselineduedate: int, duedatereason: string, scheduledgradetime: int}|null
+     *         Null when there is nothing to grade: the student has neither
+     *         completed nor submitted.
+     */
+    public static function plan(\stdClass $cm, \stdClass $config, int $userid): ?array {
+        $adapter = module_adapter::for_cm($cm, $config);
+
+        $result = due_date_calculator::calculate(
+            self::completed_at($cm, $userid),
+            $adapter->submitted_at($userid),
+            $adapter->close_date(),
+            $adapter->user_override_date($userid),
+            $adapter->group_override_dates(self::group_ids($cm, $userid)),
+        );
+
+        if ($result === null) {
+            return null;
+        }
+
+        $result['scheduledgradetime'] = due_date_calculator::scheduled_grade_time(
+            $result['baselineduedate'],
+            (int) $config->delayseconds,
+        );
+
+        return $result;
+    }
+
+    /**
+     * When the student completed the activity, or null when completion is not
+     * tracked here or they have not completed it.
+     *
+     * A completion row whose state is "incomplete" is not a completion — a
+     * student who ticks a box and unticks it has undone it, and the decision
+     * that followed must go with it.
+     *
+     * @param \stdClass $cm
+     * @param int $userid
+     * @return int|null
+     */
+    public static function completed_at(\stdClass $cm, int $userid): ?int {
+        global $CFG;
+
+        require_once($CFG->libdir . '/completionlib.php');
+
+        $course = get_course($cm->course);
+        $completion = new \completion_info($course);
+
+        if (!$completion->is_enabled($cm)) {
+            return null;
+        }
+
+        $data = $completion->get_data($cm, false, $userid);
+
+        if (empty($data->completionstate) || $data->completionstate == COMPLETION_INCOMPLETE) {
+            return null;
+        }
+
+        return !empty($data->timemodified) ? (int) $data->timemodified : null;
+    }
+
+    /**
+     * The groups this student belongs to in the activity's course.
+     *
+     * @param \stdClass $cm
+     * @param int $userid
+     * @return int[]
+     */
+    public static function group_ids(\stdClass $cm, int $userid): array {
+        $groups = groups_get_all_groups($cm->course, $userid);
+
+        return array_map('intval', array_keys($groups));
+    }
+
+    /**
+     * Whether the student is still actively enrolled where this activity is.
+     *
+     * Completion at one instant says nothing about a fortnight later, when
+     * the grade is actually due — so this is checked again at grading time,
+     * never assumed from when the decision was made.
+     *
+     * @param \stdClass $cm
+     * @param int $userid
+     * @return bool
+     */
+    public static function is_still_enrolled(\stdClass $cm, int $userid): bool {
+        return is_enrolled(\context_course::instance($cm->course), $userid, '', true);
+    }
+}
