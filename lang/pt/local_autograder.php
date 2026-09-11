@@ -52,6 +52,7 @@ $string['form:advanced_unset'] = 'Escolha <a href="{$a}">o que o autograder marc
 $string['form:days_to_complete'] = 'Dias';
 $string['form:enabled'] = 'Ativar autograder';
 $string['form:enabled_help'] = 'Se ativado, um estudante que conclua esta atividade é avaliado automaticamente, o tempo configurado após o prazo, com a nota indicada abaixo — a menos que alguém o avalie manualmente antes.';
+$string['form:error_advanced_unset'] = 'Não foi indicado ao autograder o que assinalar na rubrica ou guião de avaliação desta atividade. <a href="{$a}">Escolha isso primeiro</a> e depois ative-o.';
 $string['form:error_grade_above_max'] = 'Esta atividade é avaliada em {$a}, por isso a nota não pode ser superior.';
 $string['form:error_grade_negative'] = 'A nota não pode ser negativa.';
 $string['form:error_grade_required'] = 'Indique a nota que o autograder deve atribuir.';
@@ -60,6 +61,7 @@ $string['form:error_minutes_range'] = 'Indique de 0 a 59 minutos. Para mais temp
 $string['form:error_negative_time'] = 'Não pode ser negativo.';
 $string['form:error_not_graded'] = 'O autograder precisa que esta atividade seja avaliada. Escolha um tipo de nota diferente de "Nenhuma".';
 $string['form:error_numeric'] = 'Deve ser um número.';
+$string['form:error_scale_mismatch'] = 'Esse item não pertence à escala que a atividade usa agora. Escolha um da escala que acabou de selecionar.';
 $string['form:error_scale_unset'] = 'Escolha que item da escala o autograder deve atribuir.';
 $string['form:error_whole_number'] = 'Indique um número inteiro.';
 $string['form:grade'] = 'Nota a atribuir';

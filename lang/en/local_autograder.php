@@ -52,6 +52,7 @@ $string['form:advanced_unset'] = 'Choose <a href="{$a}">what autograder marks</a
 $string['form:days_to_complete'] = 'Days';
 $string['form:enabled'] = 'Enable autograder';
 $string['form:enabled_help'] = 'When enabled, a student who completes this activity is graded automatically, the configured time after it was due, with the grade set below — unless someone grades them by hand first.';
+$string['form:error_advanced_unset'] = 'Autograder has not been told what to mark on this activity\'s rubric or marking guide. <a href="{$a}">Choose that first</a>, then switch autograder on.';
 $string['form:error_grade_above_max'] = 'This activity is graded out of {$a}, so the grade cannot be higher than that.';
 $string['form:error_grade_negative'] = 'The grade cannot be negative.';
 $string['form:error_grade_required'] = 'Enter the grade autograder should give.';
@@ -60,6 +61,7 @@ $string['form:error_minutes_range'] = 'Enter 0 to 59 minutes. Use the hours fiel
 $string['form:error_negative_time'] = 'Cannot be negative.';
 $string['form:error_not_graded'] = 'Autograder needs this activity to be graded. Choose a grade type other than "None".';
 $string['form:error_numeric'] = 'Must be a number.';
+$string['form:error_scale_mismatch'] = 'That item does not belong to the scale this activity now uses. Choose one from the scale you just selected.';
 $string['form:error_scale_unset'] = 'Choose which scale item autograder should assign.';
 $string['form:error_whole_number'] = 'Enter a whole number.';
 $string['form:grade'] = 'Grade to assign';

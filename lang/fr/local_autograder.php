@@ -52,6 +52,7 @@ $string['form:advanced_unset'] = "Choisissez <a href=\"{\$a}\">ce qu'autograder 
 $string['form:days_to_complete'] = 'Jours';
 $string['form:enabled'] = 'Activer autograder';
 $string['form:enabled_help'] = "Si activé, un étudiant qui termine cette activité est noté automatiquement, le délai configuré après son échéance, avec la note indiquée ci-dessous — sauf si quelqu'un le note à la main avant.";
+$string['form:error_advanced_unset'] = 'On n\'a pas indiqué à autograder ce qu\'il doit cocher sur la grille d\'évaluation de cette activité. <a href="{$a}">Choisissez-le d\'abord</a>, puis activez-le.';
 $string['form:error_grade_above_max'] = 'Cette activité est notée sur {$a} : la note ne peut pas être supérieure.';
 $string['form:error_grade_negative'] = 'La note ne peut pas être négative.';
 $string['form:error_grade_required'] = 'Indiquez la note qu\'autograder doit attribuer.';
@@ -60,6 +61,7 @@ $string['form:error_minutes_range'] = 'Indiquez de 0 à 59 minutes. Au-delà, ut
 $string['form:error_negative_time'] = 'Ne peut pas être négatif.';
 $string['form:error_not_graded'] = "Autograder a besoin que cette activité soit notée. Choisissez un type de note autre que « Aucune ».";
 $string['form:error_numeric'] = 'Doit être un nombre.';
+$string['form:error_scale_mismatch'] = 'Cet élément n\'appartient pas au barème que l\'activité utilise maintenant. Choisissez-en un dans le barème que vous venez de sélectionner.';
 $string['form:error_scale_unset'] = "Choisissez l'élément de barème qu'autograder doit attribuer.";
 $string['form:error_whole_number'] = 'Indiquez un nombre entier.';
 $string['form:grade'] = 'Note à attribuer';

@@ -211,10 +211,30 @@ final class autograder_section {
             $mform->hideIf('autograder_grade_point_range', $typefield, 'neq', 'point');
         }
 
-        self::add_scale_elements($mform, $grademethod, $cm, $config, $typefield);
+        $scalenames = self::add_scale_elements($mform, $grademethod, $cm, $config, $typefield);
 
-        if ($cm && ($grademethod === 'rubric' || $grademethod === 'guide')) {
+        // A rubric or marking guide replaces the plain grade entirely, so the
+        // number and the scale pickers have nothing to say while one is
+        // selected. Hiding them off the module's own "Grading method" selector
+        // keeps that live: switch to Rubric and they go, switch back and they
+        // return, with nothing to save in between.
+        $advancedfield = self::advanced_method_field($modname);
+
+        if ($advancedfield === null) {
+            return;
+        }
+
+        foreach (array_merge(['autograder_grade_point'], $scalenames) as $name) {
+            $mform->hideIf($name, $advancedfield, 'neq', '');
+        }
+
+        if ($mform->elementExists('autograder_grade_point_range')) {
+            $mform->hideIf('autograder_grade_point_range', $advancedfield, 'neq', '');
+        }
+
+        if ($cm) {
             self::add_advanced_grading_notice($mform, $cm, $config);
+            $mform->hideIf('autograder_advanced_notice', $advancedfield, 'eq', '');
         }
     }
 
@@ -277,6 +297,7 @@ final class autograder_section {
      * @param \cm_info|\stdClass|null $cm
      * @param \stdClass|false $config
      * @param string $typefield
+     * @return string[] The names of the pickers it built.
      */
     private static function add_scale_elements(
         \MoodleQuickForm $mform,
@@ -284,7 +305,9 @@ final class autograder_section {
         \cm_info|\stdClass|null $cm,
         $config,
         string $typefield,
-    ): void {
+    ): array {
+        $names = [];
+
         $scalefield = str_replace('[modgrade_type]', '[modgrade_scale]', $typefield);
         $courseid = $cm->course ?? 0;
         $current = ($config && $grademethod === 'scale') ? (int) $config->gradevalue : null;
@@ -310,7 +333,11 @@ final class autograder_section {
             $mform->hideIf($name, $typefield, 'neq', 'scale');
             $mform->hideIf($name, $scalefield, 'neq', (string) $scaleid);
             $mform->disabledIf($name, 'autograder_enabled');
+
+            $names[] = $name;
         }
+
+        return $names;
     }
 
     /**
@@ -363,28 +390,132 @@ final class autograder_section {
         }
 
         $modname = $data['modulename'] ?? null;
-        $gradetype = $modname ? self::submitted_grade_type($data, $modname) : null;
 
-        if ($gradetype === 'none') {
+        if ($modname === null) {
+            return $errors;
+        }
+
+        $grade = self::submitted_grade($data, $modname);
+        $advanced = self::submitted_advanced_method($data, $modname);
+
+        if ($grade['type'] === 'none') {
             $errors['autograder_enabled'] = get_string('form:error_not_graded', 'local_autograder');
-        }
-
-        if ($gradetype === 'point' && $modname) {
-            $errors += self::validate_point_grade($data, $modname);
-        }
-
-        if ($gradetype === 'scale' && $modname) {
-            $scaleid = (int) (self::submitted_grade_field($data, $modname)['modgrade_scale'] ?? 0);
-            $field = "autograder_grade_scale_{$scaleid}";
-
-            if ($scaleid > 0 && empty($data[$field])) {
-                $errors[$field] = get_string('form:error_scale_unset', 'local_autograder');
-            }
+        } else if ($advanced !== null) {
+            $errors += self::validate_advanced_grading($data, $advanced);
+        } else if ($grade['type'] === 'point') {
+            $errors += self::validate_point_grade($data, $grade['maximum']);
+        } else if ($grade['type'] === 'scale') {
+            $errors += self::validate_scale_grade($data, $grade['scaleid']);
         }
 
         $errors += self::validate_delay($data);
 
         return $errors;
+    }
+
+    /**
+     * The advanced grading method this activity is about to use, if any.
+     *
+     * A rubric or marking guide takes the place of a plain grade entirely, so
+     * what has to be checked is not a number but whether autograder has been
+     * told what to mark.
+     *
+     * @param array $data The submitted form data.
+     * @param string $modname
+     * @return string|null "rubric", "guide", or null.
+     */
+    private static function submitted_advanced_method(array $data, string $modname): ?string {
+        $field = self::advanced_method_field($modname);
+        $method = $field === null ? null : ($data[$field] ?? null);
+
+        return ($method === 'rubric' || $method === 'guide') ? $method : null;
+    }
+
+    /**
+     * The name of the "Grading method" selector on this module's own form.
+     *
+     * Core names it after the gradable area — `advancedgradingmethod_submissions`
+     * for an assignment — and its empty value means simple direct grading.
+     *
+     * @param string $modname
+     * @return string|null Null for a module with no advanced grading at all.
+     */
+    private static function advanced_method_field(string $modname): ?string {
+        $area = eligibility::advanced_grading_area($modname);
+
+        return $area === null ? null : 'advancedgradingmethod_' . $area['area'];
+    }
+
+    /**
+     * Refuses switching autograder on for a rubric or marking guide it has not
+     * been told what to mark on.
+     *
+     * A configuration that says "enabled" and can never post a grade is worse
+     * than one that is plainly off, and the message says where to go and fix
+     * it. A rubric that does not exist yet is not held against the teacher —
+     * they cannot have chosen levels on a definition they have not written.
+     *
+     * @param array $data The submitted form data.
+     * @param string $method "rubric" or "guide".
+     * @return array<string, string>
+     */
+    private static function validate_advanced_grading(array $data, string $method): array {
+        $cmid = (int) ($data['coursemodule'] ?? 0);
+
+        if ($cmid === 0) {
+            return [];
+        }
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, IGNORE_MISSING);
+
+        if (!$cm || !advanced_grading::is_defined($cm)) {
+            return [];
+        }
+
+        $config = config_repository::get_for_cm($cmid);
+
+        if ($config && advanced_grading::filling_is_current($cm, $config->advancedgrading)) {
+            return [];
+        }
+
+        $url = new \moodle_url('/local/autograder/advanced.php', ['cmid' => $cmid]);
+
+        return [
+            'autograder_enabled' => get_string(
+                'form:error_advanced_unset',
+                'local_autograder',
+                $url->out()
+            ),
+        ];
+    }
+
+    /**
+     * Checks that an item of the scale in use has actually been picked.
+     *
+     * @param array $data The submitted form data.
+     * @param int $scaleid
+     * @return array<string, string>
+     */
+    private static function validate_scale_grade(array $data, int $scaleid): array {
+        if ($scaleid <= 0) {
+            return [];
+        }
+
+        $field = "autograder_grade_scale_{$scaleid}";
+        $chosen = (int) ($data[$field] ?? 0);
+        $items = self::scale_items_of($scaleid);
+
+        if ($chosen <= 0) {
+            return [$field => get_string('form:error_scale_unset', 'local_autograder')];
+        }
+
+        if (!isset($items[$chosen])) {
+            // The teacher changed which scale the activity uses in this very
+            // save, so the item they picked belongs to the old one.
+            return [$field => get_string('form:error_scale_mismatch', 'local_autograder')];
+        }
+
+        return [];
     }
 
     /**
@@ -397,10 +528,10 @@ final class autograder_section {
      * wave through a grade the activity will not accept a moment later.
      *
      * @param array $data The submitted form data.
-     * @param string $modname
+     * @param float $maximum What the activity is about to be graded out of.
      * @return array<string, string>
      */
-    private static function validate_point_grade(array $data, string $modname): array {
+    private static function validate_point_grade(array $data, float $maximum): array {
         $field = 'autograder_grade_point';
         $raw = $data[$field] ?? null;
 
@@ -413,7 +544,6 @@ final class autograder_section {
         }
 
         $grade = (float) $raw;
-        $maximum = (float) (self::submitted_grade_field($data, $modname)['modgrade_point'] ?? 0);
 
         if ($grade < 0) {
             return [$field => get_string('form:error_grade_negative', 'local_autograder')];
@@ -479,34 +609,59 @@ final class autograder_section {
     }
 
     /**
-     * The grade type the teacher has just chosen on the form, which is not
-     * necessarily the one the activity is saved with.
+     * How the activity is about to be graded, read off this very submission.
+     *
+     * The `modgrade` element does not submit its three controls separately:
+     * `exportValue()` collapses them into **one number** under the grade field
+     * — positive is the maximum for point grading, negative is minus the id of
+     * the scale, zero is not graded at all. Core reads it exactly this way
+     * itself when it checks the grade to pass
+     * (`moodleform_mod::validation()`), and reading it any other way is how
+     * this section silently validated nothing at all.
      *
      * @param array $data The submitted form data.
      * @param string $modname
-     * @return string|null "none", "point", "scale", or null when this module's
-     *                     form carries no grade-type selector.
+     * @return array{type: string|null, maximum: float, scaleid: int} The type
+     *         is null when this module's form carries no grade element.
      */
-    private static function submitted_grade_type(array $data, string $modname): ?string {
-        return self::submitted_grade_field($data, $modname)['modgrade_type'] ?? null;
-    }
-
-    /**
-     * The module's own grade element as submitted — `modgrade_type`,
-     * `modgrade_point`, `modgrade_scale`.
-     *
-     * @param array $data The submitted form data.
-     * @param string $modname
-     * @return array Empty when this module's form carries no such element.
-     */
-    private static function submitted_grade_field(array $data, string $modname): array {
+    private static function submitted_grade(array $data, string $modname): array {
+        $none = ['type' => null, 'maximum' => 0.0, 'scaleid' => 0];
         $gradefield = \core_grades\component_gradeitems::get_field_name_for_itemnumber(
             "mod_{$modname}",
             eligibility::grade_itemnumber($modname),
             'grade',
         );
+        $raw = $data[$gradefield] ?? null;
 
-        return (isset($data[$gradefield]) && is_array($data[$gradefield])) ? $data[$gradefield] : [];
+        if ($raw === null) {
+            return $none;
+        }
+
+        // A module that hands the raw element group through rather than its
+        // exported value is read on its own terms.
+        if (is_array($raw)) {
+            return [
+                'type' => $raw['modgrade_type'] ?? 'none',
+                'maximum' => (float) ($raw['modgrade_point'] ?? 0),
+                'scaleid' => (int) ($raw['modgrade_scale'] ?? 0),
+            ];
+        }
+
+        if (!is_numeric($raw)) {
+            return $none;
+        }
+
+        $value = (float) $raw;
+
+        if ($value > 0) {
+            return ['type' => 'point', 'maximum' => $value, 'scaleid' => 0];
+        }
+
+        if ($value < 0) {
+            return ['type' => 'scale', 'maximum' => 0.0, 'scaleid' => (int) -$value];
+        }
+
+        return ['type' => 'none', 'maximum' => 0.0, 'scaleid' => 0];
     }
 
     /**
