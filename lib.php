@@ -40,11 +40,16 @@ function local_autograder_coursemodule_standard_elements($formwrapper, $mform) {
 /**
  * Validates the autograder section of a submitted activity settings form.
  *
+ * Moodle's own dispatcher (`moodleform_mod::plugin_extend_coursemodule_validation()`)
+ * calls this as `$pluginfunction($this, $data)` — the form wrapper first, the
+ * submitted data second. There is no `$files` parameter here at all, unlike
+ * `moodleform::validation()` itself.
+ *
+ * @param moodleform_mod $formwrapper
  * @param array $data
- * @param array $files
  * @return array<string, string> Field name => error message.
  */
-function local_autograder_coursemodule_validation($data, $files) {
+function local_autograder_coursemodule_validation($formwrapper, $data) {
     return autograder_section::validate($data);
 }
 

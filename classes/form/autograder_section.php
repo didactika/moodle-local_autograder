@@ -24,12 +24,14 @@ use local_autograder\local\eligibility;
 /**
  * The autograder section on an activity's own settings form.
  *
- * Only offered on an **existing** activity: at add-time there is no grade
- * item yet to read `grademethod` from (the form's own grade fields have not
- * been saved anywhere), so `add_elements()` is a no-op until the module has
- * been created once. Reading the submitted grade type straight off the
- * add-form to lift this restriction is a known follow-up
- * (docs-refactor/autograder-local/tasks.md, Fase 1).
+ * On a brand new activity there is no grade item yet to read `grademethod`
+ * from — the form's own grade fields have not been saved anywhere — so the
+ * section offers plain point grading, the common case; `save()` re-derives
+ * the real method from the grade_item that exists by the time it runs (the
+ * module has already been created). A teacher who picks scale, rubric or
+ * guide for the very module they configure autograder on in that same step
+ * gets a mismatched `gradevalue` — a known, narrow gap, no worse than what
+ * v2 did (docs-refactor/autograder-local/tasks.md, Fase 1).
  *
  * @package     local_autograder
  * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
@@ -45,26 +47,44 @@ final class autograder_section {
     public static function add_elements(\moodleform_mod $formwrapper, \MoodleQuickForm $mform): void {
         $current = $formwrapper->get_current();
         $modname = $current->modulename ?? null;
-        $cmid = $current->coursemodule ?? 0;
+        $cmid = (int) ($current->coursemodule ?? 0);
 
-        if (!$modname || !eligibility::is_module_type_enabled($modname) || !$cmid) {
+        if (!$modname || !eligibility::is_module_type_enabled($modname)) {
             return;
         }
 
-        $context = \context_module::instance($cmid);
+        if ($cmid) {
+            $context = \context_module::instance($cmid);
 
-        if (!eligibility::can_configure($context)) {
-            return;
+            if (!eligibility::can_configure($context)) {
+                return;
+            }
+
+            $cm = get_coursemodule_from_id($modname, $cmid, 0, false, MUST_EXIST);
+            $grademethod = eligibility::grademethod_for($cm);
+
+            if ($grademethod === null) {
+                return;
+            }
+
+            $config = config_repository::get_for_cm($cmid);
+        } else {
+            // A brand new activity: there is no grade_item yet to read a
+            // method from — the grade fields on this very form have not been
+            // saved anywhere. Offer plain point grading, the common case and
+            // what v2 always did; save() re-derives the real method once the
+            // module (and its grade_item) exist. A teacher who picks scale,
+            // rubric or guide for a module they configure autograder on in
+            // this same step gets a mismatched gradevalue — a known,
+            // documented gap (tasks.md, Fase 1) no worse than v2's own.
+            if (!has_capability('local/autograder:configure', \context_course::instance((int) $current->course))) {
+                return;
+            }
+
+            $cm = null;
+            $grademethod = 'point';
+            $config = false;
         }
-
-        $cm = get_coursemodule_from_id($modname, $cmid, 0, false, MUST_EXIST);
-        $grademethod = eligibility::grademethod_for($cm);
-
-        if ($grademethod === null) {
-            return;
-        }
-
-        $config = config_repository::get_for_cm($cmid);
 
         $mform->addElement('header', 'autogradersection', get_string('form:heading', 'local_autograder'));
 
@@ -92,13 +112,15 @@ final class autograder_section {
      *
      * @param \MoodleQuickForm $mform
      * @param string $grademethod
-     * @param \stdClass $cm
+     * @param \stdClass|null $cm Null for a brand new activity — never reached
+     *                           by the "scale" branch, since add_elements()
+     *                           only ever passes "point" in that case.
      * @param \stdClass|false $config
      */
     private static function add_grade_elements(
         \MoodleQuickForm $mform,
         string $grademethod,
-        \stdClass $cm,
+        ?\stdClass $cm,
         $config,
     ): void {
         if ($grademethod === 'scale') {
