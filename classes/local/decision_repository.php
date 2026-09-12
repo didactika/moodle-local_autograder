@@ -67,6 +67,25 @@ final class decision_repository {
     }
 
     /**
+     * The states that are an answer rather than a circumstance.
+     *
+     * A decision stops being reconsidered only once somebody's grade is
+     * actually on it — autograder's own, or a teacher's. Everything else was
+     * settled by something that can stop being true: autograder was switched
+     * off and is on again, the student left and came back, there was no
+     * eligible teacher and now there is. Treating those as final is how an
+     * activity ends up switched on, configured, and quietly grading nobody.
+     *
+     * @return string[]
+     */
+    public static function graded_statuses(): array {
+        return [
+            self::STATUS_GRADED,
+            self::STATUS_MANUAL,
+        ];
+    }
+
+    /**
      * One student's decision for one activity.
      *
      * @param int $cmid
@@ -141,8 +160,9 @@ final class decision_repository {
 
         $existing = self::for_cm_user((int) $cm->id, $userid);
 
-        if ($existing && in_array($existing->status, self::terminal_statuses(), true)) {
-            // Already settled; nothing to reopen.
+        if ($existing && in_array($existing->status, self::graded_statuses(), true)) {
+            // Somebody's grade is on it — autograder's own or a teacher's —
+            // and that is the one thing this never takes back.
             return $existing;
         }
 
@@ -203,6 +223,16 @@ final class decision_repository {
         $decision->duedatereason = $plan['duedatereason'];
         $decision->scheduledgradetime = $plan['scheduledgradetime'];
         $decision->timemodified = time();
+
+        // A decision that is waiting for a moment is, by definition, pending.
+        // One that had been called off is being picked back up here, so the
+        // reason it was called off goes with it — otherwise the row would sit
+        // at its new date still saying "cancelled", and the task queued for it
+        // would look at the status and do nothing.
+        $decision->status = self::STATUS_PENDING;
+        $decision->failurereason = null;
+        $decision->graderid = null;
+        $decision->gradedvalue = null;
 
         $DB->update_record('local_autograder_decision', $decision);
 

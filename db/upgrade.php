@@ -54,6 +54,15 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091201, 'local', 'autograder');
     }
 
+    if ($oldversion < 2026091300) {
+        // Until now a decision that had been called off stayed called off, so
+        // an activity switched off and back on kept every student cancelled
+        // and graded nobody. The same sweep picks them up again.
+        upgrade_local_autograder_catch_up_everything();
+
+        upgrade_plugin_savepoint(true, 2026091300, 'local', 'autograder');
+    }
+
     return true;
 }
 
