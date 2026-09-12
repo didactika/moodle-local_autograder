@@ -35,7 +35,6 @@ $string['advanced:saved'] = 'Saved what autograder will mark.';
 $string['autograder:configure'] = 'Turn autograder on or off for an activity';
 $string['autograder:gradeonbehalf'] = 'Be eligible to have autograder post grades on your behalf';
 $string['autograder:manage'] = 'Manage autograder site-wide settings';
-$string['autograder:viewreport'] = 'View the autograder report for a course';
 $string['error:advancedgradingstale'] = 'The rubric or marking guide has changed since autograder was told what to mark on it. Open the activity\'s autograder settings and choose the levels again.';
 $string['error:gradewritefailed'] = 'Moodle refused the grade autograder tried to post.';
 $string['error:nogradeitem'] = 'This activity has no grade item to write to.';

@@ -42,6 +42,12 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091100, 'local', 'autograder');
     }
 
+    // `local/autograder:viewreport` was dropped in 2026091200: seeing the
+    // report is report_autograder's business, that plugin defines its own
+    // capability per level, and nothing here ever checked this one. No step is
+    // needed — core calls `update_capabilities()` on every plugin upgrade, and
+    // that removes whatever `db/access.php` no longer declares.
+
     return true;
 }
 

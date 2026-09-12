@@ -35,7 +35,6 @@ $string['advanced:saved'] = "Ce qu'autograder cochera a été enregistré.";
 $string['autograder:configure'] = 'Activer ou désactiver autograder sur une activité';
 $string['autograder:gradeonbehalf'] = 'Être éligible pour que autograder pose des notes en votre nom';
 $string['autograder:manage'] = "Gérer les réglages d'autograder au niveau du site";
-$string['autograder:viewreport'] = "Voir le rapport d'autograder d'un cours";
 $string['error:advancedgradingstale'] = 'La grille d\'évaluation a changé depuis qu\'on a indiqué à autograder ce qu\'il devait y cocher. Ouvrez les réglages autograder de l\'activité et choisissez à nouveau les niveaux.';
 $string['error:gradewritefailed'] = "Moodle a refusé la note qu'autograder a tenté de déposer.";
 $string['error:nogradeitem'] = "Cette activité n'a aucun élément de note où écrire.";

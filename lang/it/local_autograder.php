@@ -35,7 +35,6 @@ $string['advanced:saved'] = 'Salvato ciò che segnerà autograder.';
 $string['autograder:configure'] = 'Attivare o disattivare autograder su un\'attività';
 $string['autograder:gradeonbehalf'] = 'Essere idoneo affinché autograder assegni voti a tuo nome';
 $string['autograder:manage'] = 'Gestire le impostazioni di autograder a livello di sito';
-$string['autograder:viewreport'] = 'Visualizzare il report di autograder di un corso';
 $string['error:advancedgradingstale'] = 'La rubric o la griglia di valutazione è cambiata da quando si è indicato ad autograder cosa contrassegnare. Apri le impostazioni autograder dell\'attività e scegli di nuovo i livelli.';
 $string['error:gradewritefailed'] = 'Moodle ha rifiutato il voto che autograder ha tentato di inserire.';
 $string['error:nogradeitem'] = 'Questa attività non ha un elemento di valutazione su cui scrivere.';

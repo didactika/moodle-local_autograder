@@ -58,16 +58,4 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
-
-    // Seeing autograder's decisions and grading log for a course — used by
-    // report_autograder, not by this plugin directly.
-    'local/autograder:viewreport' => [
-        'riskbitmask' => RISK_PERSONAL,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW,
-        ],
-    ],
 ];

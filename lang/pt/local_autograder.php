@@ -35,7 +35,6 @@ $string['advanced:saved'] = 'Guardado o que o autograder vai marcar.';
 $string['autograder:configure'] = 'Ativar ou desativar o autograder numa atividade';
 $string['autograder:gradeonbehalf'] = 'Ser elegível para que o autograder atribua notas em seu nome';
 $string['autograder:manage'] = 'Gerir as definições do autograder ao nível do site';
-$string['autograder:viewreport'] = 'Ver o relatório do autograder de um curso';
 $string['error:advancedgradingstale'] = 'A rubrica ou o guião de avaliação mudou desde que se indicou ao autograder o que assinalar. Abra as definições de autograder da atividade e volte a escolher os níveis.';
 $string['error:gradewritefailed'] = 'O Moodle recusou a nota que o autograder tentou atribuir.';
 $string['error:nogradeitem'] = 'Esta atividade não tem item de avaliação onde escrever.';
