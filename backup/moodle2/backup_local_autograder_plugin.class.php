@@ -18,7 +18,8 @@
  * Carries an activity's autograder settings along with the activity.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -37,7 +38,8 @@ defined('MOODLE_INTERNAL') || die();
  * ones where it did not.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_local_autograder_plugin extends backup_local_plugin {

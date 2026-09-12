@@ -29,7 +29,8 @@ use local_autograder\task\catch_up_module;
  * settled it no longer holds.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\local\decision_repository::ensure
  */
@@ -147,6 +148,40 @@ final class reconsider_test extends \advanced_testcase {
             $this->decision()->status,
             'Switching autograder back on has to revive what switching it off called off.'
         );
+    }
+
+    /**
+     * Saving the activity moves the students already waiting there and then,
+     * without waiting for cron.
+     *
+     * This is what a teacher sees: they shorten the wait, open the report, and
+     * expect the new dates. Leaving it to the queued sweep means the report
+     * shows the old ones until the next cron run, which reads as the setting
+     * having done nothing.
+     */
+    public function test_saving_the_form_moves_the_waiting_students_at_once(): void {
+        $before = (int) $this->decision()->scheduledgradetime;
+
+        \local_autograder\form\autograder_section::save((object) [
+            'modulename' => 'assign',
+            'coursemodule' => (int) $this->cm->id,
+            'course' => (int) $this->course->id,
+            'autograder_enabled' => 1,
+            'autograder_grade_point' => 70,
+            'autograder_days' => 0,
+            'autograder_hours' => 1,
+            'autograder_minutes' => 0,
+        ]);
+
+        // Deliberately no task is run here.
+        $after = $this->decision();
+
+        $this->assertEquals(
+            (int) $after->baselineduedate + HOURSECS,
+            (int) $after->scheduledgradetime,
+            'The new wait applies to the students already waiting.'
+        );
+        $this->assertLessThan($before, (int) $after->scheduledgradetime);
     }
 
     /**

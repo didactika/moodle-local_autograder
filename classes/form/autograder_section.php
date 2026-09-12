@@ -21,9 +21,11 @@ use local_autograder\event\config_deleted;
 use local_autograder\event\config_updated;
 use local_autograder\local\advanced_grading;
 use local_autograder\local\config_repository;
+use local_autograder\local\decision_repository;
 use local_autograder\local\eligibility;
 use local_autograder\task\cancel_module;
 use local_autograder\task\catch_up_module;
+use local_autograder\task\recalculate_module;
 
 /**
  * The autograder section on an activity's own settings form.
@@ -38,10 +40,17 @@ use local_autograder\task\catch_up_module;
  * v2 did (docs-refactor/autograder-local/tasks.md, Fase 1).
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class autograder_section {
+    /**
+     * @var int Past this many students already waiting, moving them is left to
+     *          the queue rather than done while the form saves.
+     */
+    private const INLINE_RECALCULATION_LIMIT = 200;
+
     /**
      * Adds the section to a module's settings form, if this module qualifies.
      *
@@ -756,6 +765,13 @@ final class autograder_section {
      */
     private static function apply_switch(int $cmid, bool $enabled): void {
         if ($enabled) {
+            // The students who are already waiting are moved here and now: the
+            // teacher has just changed the wait and is about to open the
+            // report to see it. Leaving that to the queue means the report
+            // shows the old dates until the next cron run, which reads as
+            // "the setting did nothing".
+            self::recalculate_now($cmid);
+
             $task = new catch_up_module();
             $task->set_custom_data((object) ['cmid' => $cmid]);
         } else {
@@ -763,8 +779,32 @@ final class autograder_section {
             $task->set_custom_data((object) ['cmid' => $cmid, 'reason' => 'autograderoff']);
         }
 
-        // Deduplicated: saving the same form twice earns one pass.
+        // Deduplicated: saving the same form twice earns one pass. The sweep
+        // stays queued either way — finding the students who have no decision
+        // yet means looking at every enrolled user, which is not something to
+        // do while somebody waits for a form to save.
         \core\task\manager::queue_adhoc_task($task, true);
+    }
+
+    /**
+     * Moves the decisions that are already waiting, unless there are so many
+     * that doing it here would make saving the form slow.
+     *
+     * The cap is a judgement, not a rule of the domain: re-planning a student
+     * is a handful of queries, so a normal class is imperceptible and a
+     * cohort-sized one is not. Past the cap the queued sweep does it instead,
+     * a minute later.
+     *
+     * @param int $cmid
+     */
+    private static function recalculate_now(int $cmid): void {
+        $pending = count(decision_repository::pending_for_cm($cmid));
+
+        if ($pending === 0 || $pending > self::INLINE_RECALCULATION_LIMIT) {
+            return;
+        }
+
+        recalculate_module::run_for_cm($cmid);
     }
 
     /**

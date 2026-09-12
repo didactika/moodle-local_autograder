@@ -22,7 +22,8 @@ namespace local_autograder\event;
  * they exist for `report_autograder`, auditing, and any future integration.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class config_event_base extends \core\event\base {
