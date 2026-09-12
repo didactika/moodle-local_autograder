@@ -127,6 +127,32 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
         $DB->execute("UPDATE {local_autograder_config} SET usermodified = 2"); // 2 = the primary admin account.
     }
 
+    upgrade_local_autograder_add_timecreated($dbman, $table);
+    upgrade_local_autograder_make_rows_fit($dbman, $table);
+
+    // A rename leaves the column's type alone, so every field the v2 table
+    // already had is still shaped the way v2 shaped it. Bring each one up to
+    // what install.xml declares, or the first save on the upgraded site fails
+    // — `gradevalue` above all, which v2 kept as a plain integer and which
+    // this plugin now writes decimals into.
+    $definitions = [
+        new xmldb_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null),
+        new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null),
+        new xmldb_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0'),
+        new xmldb_field('gradevalue', XMLDB_TYPE_NUMBER, '10, 5', null, null, null, null),
+        new xmldb_field('delayseconds', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'),
+    ];
+
+    foreach ($definitions as $field) {
+        if (!$dbman->field_exists($table, $field)) {
+            continue;
+        }
+
+        $dbman->change_field_type($table, $field);
+        $dbman->change_field_notnull($table, $field);
+        $dbman->change_field_default($table, $field);
+    }
+
     $courseidindex = new xmldb_index('courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
 
     if (!$dbman->index_exists($table, $courseidindex)) {
@@ -135,10 +161,85 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
 
     // The old plugin never enforced one row per cmid at the database level —
     // it only ever wrote one because its own code always looked cmid up first.
+    // "Only ever wrote one" is not the same as "cannot hold two", though, and
+    // adding the key on a table that holds two would fail the whole upgrade,
+    // so the duplicates are settled first (see make_rows_fit()).
     $cmidunique = new xmldb_key('uq_locautog_config_cmid', XMLDB_KEY_UNIQUE, ['cmid']);
 
     if (!$dbman->find_key_name($table, $cmidunique)) {
         $dbman->add_key($table, $cmidunique);
+    }
+}
+
+/**
+ * Gives the migrated table the `timecreated` column v2 never had.
+ *
+ * v2 only ever recorded when a configuration was last changed. The closest
+ * honest answer to when it was created is that same instant, so that is what
+ * the migrated rows get rather than the moment of the upgrade, which would
+ * claim every configuration on the site was made the day it was upgraded.
+ *
+ * @param database_manager $dbman
+ * @param xmldb_table $table
+ */
+function upgrade_local_autograder_add_timecreated(database_manager $dbman, xmldb_table $table): void {
+    global $DB;
+
+    $field = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+    if ($dbman->field_exists($table, new xmldb_field('timecreated'))) {
+        return;
+    }
+
+    $dbman->add_field($table, $field);
+    $DB->execute('UPDATE {local_autograder_config} SET timecreated = timemodified');
+
+    // install.xml declares it without a default; the default was only there so
+    // the column could be added to a table that already had rows.
+    $dbman->change_field_default($table, new xmldb_field(
+        'timecreated',
+        XMLDB_TYPE_INTEGER,
+        '10',
+        null,
+        XMLDB_NOTNULL,
+        null,
+        null
+    ));
+}
+
+/**
+ * Settles the rows v2 allowed but v3 does not.
+ *
+ * Two things v2 never stopped: a row with no course module, which is a
+ * configuration for nothing, and two rows for the same one, which v3 forbids
+ * with a unique key that would refuse to be created. The newest row wins,
+ * because it is the one whose settings the teacher last saw.
+ *
+ * @param database_manager $dbman
+ * @param xmldb_table $table
+ */
+function upgrade_local_autograder_make_rows_fit(database_manager $dbman, xmldb_table $table): void {
+    global $DB;
+
+    unset($dbman, $table);
+
+    $DB->execute('DELETE FROM {local_autograder_config} WHERE cmid IS NULL OR courseid IS NULL');
+    $DB->execute('UPDATE {local_autograder_config} SET enabled = 0 WHERE enabled IS NULL');
+    $DB->execute('UPDATE {local_autograder_config} SET delayseconds = 0 WHERE delayseconds IS NULL');
+
+    $duplicates = $DB->get_records_sql(
+        'SELECT cmid, MAX(id) AS keepid
+           FROM {local_autograder_config}
+       GROUP BY cmid
+         HAVING COUNT(1) > 1'
+    );
+
+    foreach ($duplicates as $duplicate) {
+        $DB->delete_records_select(
+            'local_autograder_config',
+            'cmid = :cmid AND id <> :keepid',
+            ['cmid' => $duplicate->cmid, 'keepid' => $duplicate->keepid]
+        );
     }
 }
 
