@@ -48,6 +48,12 @@ function xmldb_local_autograder_upgrade($oldversion) {
     // needed — core calls `update_capabilities()` on every plugin upgrade, and
     // that removes whatever `db/access.php` no longer declares.
 
+    if ($oldversion < 2026091201) {
+        upgrade_local_autograder_catch_up_everything();
+
+        upgrade_plugin_savepoint(true, 2026091201, 'local', 'autograder');
+    }
+
     return true;
 }
 
@@ -146,5 +152,36 @@ function upgrade_local_autograder_create_missing_tables(database_manager $dbman)
         }
 
         $dbman->install_one_table_from_xmldb_file($xmlfile, $name);
+    }
+}
+
+/**
+ * Asks autograder to look at every activity it is switched on for.
+ *
+ * This is the handover. Until v3 the grading was done by an external service
+ * that kept its own schedule; the migration above brings each activity's
+ * settings across but not a single decision, because decisions are worked out
+ * from Moodle's own data rather than copied. Without this step a site would
+ * upgrade, keep all its configuration, and quietly grade nobody: the students
+ * who had already submitted have no event left to fire, so nothing would ever
+ * create their decision, and their deadlines would pass in silence.
+ *
+ * Safe to run more than once — {@see \local_autograder\local\decision_repository::ensure()}
+ * settles on the same answer every time, and the tasks are deduplicated.
+ */
+function upgrade_local_autograder_catch_up_everything(): void {
+    global $DB;
+
+    $configs = $DB->get_records('local_autograder_config', ['enabled' => 1], 'cmid', 'id, cmid');
+
+    foreach ($configs as $config) {
+        $task = new \local_autograder\task\catch_up_module();
+        $task->set_custom_data((object) ['cmid' => (int) $config->cmid]);
+
+        \core\task\manager::queue_adhoc_task($task, true);
+    }
+
+    if (!empty($configs)) {
+        mtrace('local_autograder: queued a catch-up for ' . count($configs) . ' activity(ies).');
     }
 }
