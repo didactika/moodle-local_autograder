@@ -31,12 +31,18 @@ $userid = optional_param('userid', $USER->id, PARAM_INT);
 
 require_login();
 
+if (!get_config('local_autograder', 'allowoptout')) {
+    // The site does not offer this to its users, so the page is not there to
+    // be reached by typing its address either.
+    throw new moodle_exception('preference:notoffered', 'local_autograder');
+}
+
 $user = $userid === (int) $USER->id ? $USER : core_user::get_user($userid, '*', MUST_EXIST);
 $usercontext = context_user::instance($user->id);
 
 $PAGE->set_context($usercontext);
 $PAGE->set_url(new moodle_url('/local/autograder/optout.php', ['userid' => $userid]));
-$PAGE->set_title(get_string('preference:optout', 'local_autograder'));
+$PAGE->set_title(get_string('preference:heading', 'local_autograder'));
 
 if ($userid !== (int) $USER->id) {
     require_capability('moodle/user:editprofile', $usercontext);
@@ -62,6 +68,6 @@ if ($form->is_cancelled()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('preference:optout', 'local_autograder'));
+echo $OUTPUT->heading(get_string('preference:heading', 'local_autograder'));
 $form->display();
 echo $OUTPUT->footer();

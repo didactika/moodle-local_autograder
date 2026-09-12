@@ -304,6 +304,14 @@ final class grader_picker {
      * @return bool
      */
     private static function has_opted_out(int $userid): bool {
+        // The site decides whether the preference counts at all. Somewhere it
+        // was once offered and then switched off, a teacher's old answer must
+        // stop taking them out of the rota — otherwise the site would still be
+        // honouring an option it no longer admits to having.
+        if (!get_config('local_autograder', 'allowoptout')) {
+            return false;
+        }
+
         return (bool) get_user_preferences('local_autograder_optout', false, $userid);
     }
 }

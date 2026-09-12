@@ -90,6 +90,18 @@ if ($hassiteconfig) {
         get_string('setting:fallback_grader_desc', 'local_autograder'),
     ));
 
+    // Off unless a site decides otherwise: letting teachers take themselves
+    // out of the rota changes who gets graded and when, and on a site with few
+    // eligible teachers it can leave an activity with nobody to grade as. A
+    // site that wants to offer it can, and until then the preference is
+    // neither shown nor honoured.
+    $general->add(new admin_setting_configcheckbox(
+        'local_autograder/allowoptout',
+        get_string('setting:allowoptout', 'local_autograder'),
+        get_string('setting:allowoptout_desc', 'local_autograder'),
+        0,
+    ));
+
     $settings->add($general);
 
     $modules = new admin_settingpage('local_autograder_modules', get_string('settings:modulestab', 'local_autograder'));

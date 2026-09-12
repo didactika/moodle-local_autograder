@@ -76,13 +76,18 @@ function local_autograder_coursemodule_edit_post_actions($data) {
  * @param context $coursecontext
  */
 function local_autograder_extend_navigation_user_settings($parentnode, $user, $usercontext, $course, $coursecontext) {
-    // Shown unconditionally: `local/autograder:gradeonbehalf` is granted per
-    // module context, so there is no single context here that could answer
-    // "could this user ever be graded on behalf of anyone" cheaply and
-    // correctly. Offering the toggle to a teacher it never applies to is a
-    // harmless no-op, not a wrong answer.
+    if (!get_config('local_autograder', 'allowoptout')) {
+        // The site has not offered this to its users.
+        return;
+    }
+
+    // Shown to everyone the site does offer it to: `local/autograder:gradeonbehalf`
+    // is granted per module context, so there is no single context here that
+    // could answer "could this user ever be graded on behalf of anyone"
+    // cheaply and correctly. Offering the page to a teacher it never applies
+    // to is a harmless no-op, not a wrong answer.
     $parentnode->add(
-        get_string('preference:optout', 'local_autograder'),
+        get_string('preference:heading', 'local_autograder'),
         new moodle_url('/local/autograder/optout.php', ['userid' => $user->id]),
         navigation_node::TYPE_SETTING,
     );
