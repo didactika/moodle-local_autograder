@@ -16,7 +16,7 @@
 
 namespace local_autograder;
 
-use local_autograder\local\config_repository;
+use local_autograder\local\config\config_repository;
 
 /**
  * A course backed up and restored keeps what a teacher configured.

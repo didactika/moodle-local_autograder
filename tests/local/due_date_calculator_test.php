@@ -24,6 +24,8 @@
  */
 namespace local_autograder\local;
 
+use local_autograder\local\decision\due_date_calculator;
+
 /**
  * Exercises the grading rules directly, one behaviour per test.
  *
@@ -31,7 +33,7 @@ namespace local_autograder\local;
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers \local_autograder\local\due_date_calculator
+ * @covers \local_autograder\local\decision\due_date_calculator
  */
 final class due_date_calculator_test extends \basic_testcase {
     /** @var int An arbitrary but fixed instant, for readable fixtures. */

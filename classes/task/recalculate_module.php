@@ -16,8 +16,8 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
 
 /**
  * Works out every waiting decision on an activity again, and moves the tasks

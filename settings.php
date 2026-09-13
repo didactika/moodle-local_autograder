@@ -86,7 +86,7 @@ if ($hassiteconfig) {
 
     // Defaulted to user id 0, "no fallback grader": there is no sensible
     // non-zero user to pick on a site's behalf.
-    $general->add(new \local_autograder\local\fallback_grader_setting(
+    $general->add(new \local_autograder\local\config\fallback_grader_setting(
         'local_autograder/fallback_grader',
         get_string('setting:fallback_grader', 'local_autograder'),
         get_string('setting:fallback_grader_desc', 'local_autograder'),

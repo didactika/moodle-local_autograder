@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace local_autograder\local;
+namespace local_autograder\local\decision;
 
 use local_autograder\event\decision_cancelled;
+use local_autograder\local\grading\grade_log_repository;
 use local_autograder\task\grade_student;
 
 /**

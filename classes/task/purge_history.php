@@ -16,8 +16,8 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\decision_repository;
-use local_autograder\local\grade_log_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grade_log_repository;
 
 /**
  * Clears out decisions that are finished with, and grading log older than the

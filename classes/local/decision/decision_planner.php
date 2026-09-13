@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace local_autograder\local;
+namespace local_autograder\local\decision;
 
 use local_autograder\local\module\module_adapter;
 

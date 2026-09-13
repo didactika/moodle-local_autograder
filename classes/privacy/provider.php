@@ -23,7 +23,7 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
-use local_autograder\local\decision_repository;
+use local_autograder\local\decision\decision_repository;
 
 /**
  * What this plugin holds about people, and how to hand it over or remove it.

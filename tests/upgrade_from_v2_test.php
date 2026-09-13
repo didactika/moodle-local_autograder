@@ -16,7 +16,7 @@
 
 namespace local_autograder;
 
-use local_autograder\local\config_repository;
+use local_autograder\local\config\config_repository;
 
 /**
  * Upgrading a site that really had v2 installed.

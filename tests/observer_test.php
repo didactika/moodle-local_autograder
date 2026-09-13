@@ -16,8 +16,8 @@
 
 namespace local_autograder;
 
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
 
 /**
  * What the plugin does when Moodle says something happened.
@@ -176,9 +176,9 @@ final class observer_test extends \advanced_testcase {
 
         $this->submit();
         $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
-        \local_autograder\local\grade_log_repository::record(
+        \local_autograder\local\grading\grade_log_repository::record(
             $decision,
-            \local_autograder\local\grade_log_repository::OUTCOME_CANCELLED,
+            \local_autograder\local\grading\grade_log_repository::OUTCOME_CANCELLED,
             'test'
         );
 

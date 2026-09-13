@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace local_autograder\local;
+namespace local_autograder\local\grading;
+
+use local_autograder\local\config\eligibility;
 
 /**
  * Reads a rubric or marking guide definition, and shapes what autograder

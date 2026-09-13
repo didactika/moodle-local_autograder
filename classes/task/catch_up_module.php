@@ -16,9 +16,9 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
-use local_autograder\local\grader_picker;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grader_picker;
 
 /**
  * Catches up every student who already did the activity when autograder was

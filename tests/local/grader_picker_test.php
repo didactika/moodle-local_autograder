@@ -16,6 +16,8 @@
 
 namespace local_autograder\local;
 
+use local_autograder\local\grading\grader_picker;
+
 /**
  * Whose name a grade is posted in.
  *
@@ -28,7 +30,7 @@ namespace local_autograder\local;
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \local_autograder\local\grader_picker
+ * @covers      \local_autograder\local\grading\grader_picker
  */
 final class grader_picker_test extends \advanced_testcase {
     /** @var \stdClass The course. */

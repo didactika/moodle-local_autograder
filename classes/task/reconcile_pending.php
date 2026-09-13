@@ -16,7 +16,7 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\decision_repository;
+use local_autograder\local\decision\decision_repository;
 
 /**
  * The safety net, not the normal path.

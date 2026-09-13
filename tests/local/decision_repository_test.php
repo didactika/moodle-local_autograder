@@ -16,6 +16,10 @@
 
 namespace local_autograder\local;
 
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grade_log_repository;
+
 /**
  * A decision and the task queued for it have to move together.
  *
@@ -23,7 +27,7 @@ namespace local_autograder\local;
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \local_autograder\local\decision_repository
+ * @covers      \local_autograder\local\decision\decision_repository
  */
 final class decision_repository_test extends \advanced_testcase {
     /** @var \stdClass The course everything in a test lives in. */

@@ -32,9 +32,9 @@ require_once(__DIR__ . '/../../config.php');
 
 use local_autograder\event\config_updated;
 use local_autograder\form\advanced_grading_form;
-use local_autograder\local\advanced_grading;
-use local_autograder\local\config_repository;
-use local_autograder\local\eligibility;
+use local_autograder\local\grading\advanced_grading;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\config\eligibility;
 
 $cmid = required_param('cmid', PARAM_INT);
 

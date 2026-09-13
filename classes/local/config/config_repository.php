@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace local_autograder\local;
+namespace local_autograder\local\config;
 
 /**
  * CRUD over `local_autograder_config` — one row per course module with

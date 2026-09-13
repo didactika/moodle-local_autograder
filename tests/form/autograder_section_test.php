@@ -16,7 +16,7 @@
 
 namespace local_autograder\form;
 
-use local_autograder\local\config_repository;
+use local_autograder\local\config\config_repository;
 
 /**
  * What the activity settings form refuses, and what it lets through.
@@ -324,7 +324,7 @@ final class autograder_section_test extends \advanced_testcase {
     private function store_rubric_filling(\stdClass $cm): void {
         $filling = [];
 
-        foreach (\local_autograder\local\advanced_grading::criteria($cm) as $criterionid => $criterion) {
+        foreach (\local_autograder\local\grading\advanced_grading::criteria($cm) as $criterionid => $criterion) {
             $filling[$criterionid] = [
                 'levelid' => (int) array_key_first($criterion['levels']),
                 'remark' => '',
@@ -337,7 +337,7 @@ final class autograder_section_test extends \advanced_testcase {
             true,
             'rubric',
             null,
-            \local_autograder\local\advanced_grading::encode($filling),
+            \local_autograder\local\grading\advanced_grading::encode($filling),
             0,
             2
         );

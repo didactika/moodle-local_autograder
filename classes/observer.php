@@ -16,10 +16,10 @@
 
 namespace local_autograder;
 
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
-use local_autograder\local\eligibility;
-use local_autograder\local\grade_log_repository;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\config\eligibility;
+use local_autograder\local\grading\grade_log_repository;
 use local_autograder\local\module\module_adapter;
 use local_autograder\task\catch_up_module;
 use local_autograder\task\recalculate_module;

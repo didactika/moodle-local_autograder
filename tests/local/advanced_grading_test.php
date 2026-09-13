@@ -16,6 +16,8 @@
 
 namespace local_autograder\local;
 
+use local_autograder\local\grading\advanced_grading;
+
 /**
  * The rubric autograder is configured against, and the guard that stops it
  * grading on one that no longer matches.
@@ -24,7 +26,7 @@ namespace local_autograder\local;
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \local_autograder\local\advanced_grading
+ * @covers      \local_autograder\local\grading\advanced_grading
  */
 final class advanced_grading_test extends \advanced_testcase {
     /** @var \stdClass The assignment graded by a rubric. */

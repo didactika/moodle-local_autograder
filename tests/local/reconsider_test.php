@@ -16,6 +16,8 @@
 
 namespace local_autograder\local;
 
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
 use local_autograder\task\cancel_module;
 use local_autograder\task\catch_up_module;
 
@@ -32,7 +34,7 @@ use local_autograder\task\catch_up_module;
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \local_autograder\local\decision_repository::ensure
+ * @covers      \local_autograder\local\decision\decision_repository::ensure
  */
 final class reconsider_test extends \advanced_testcase {
     /** @var \stdClass The course. */

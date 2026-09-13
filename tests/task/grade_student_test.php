@@ -16,9 +16,9 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
-use local_autograder\local\grade_log_repository;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grade_log_repository;
 
 /**
  * The whole cycle, from switching autograder on to the grade in the gradebook.

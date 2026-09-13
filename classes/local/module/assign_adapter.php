@@ -16,7 +16,7 @@
 
 namespace local_autograder\local\module;
 
-use local_autograder\local\acting_as;
+use local_autograder\local\grading\acting_as;
 
 /**
  * Assignment.

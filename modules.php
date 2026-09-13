@@ -31,7 +31,7 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-use local_autograder\local\eligibility;
+use local_autograder\local\config\eligibility;
 
 admin_externalpage_setup('local_autograder_modules_page');
 

@@ -16,7 +16,7 @@
 
 namespace local_autograder;
 
-use local_autograder\local\config_repository;
+use local_autograder\local\config\config_repository;
 
 /**
  * The handover from the external service to this plugin.

@@ -18,11 +18,11 @@ namespace local_autograder\task;
 
 use local_autograder\event\grading_failed;
 use local_autograder\event\student_graded;
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_planner;
-use local_autograder\local\decision_repository;
-use local_autograder\local\grade_log_repository;
-use local_autograder\local\grader_picker;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_planner;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grade_log_repository;
+use local_autograder\local\grading\grader_picker;
 use local_autograder\local\module\module_adapter;
 
 /**

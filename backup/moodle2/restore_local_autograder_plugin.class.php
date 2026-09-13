@@ -24,8 +24,8 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_autograder\local\config_repository;
-use local_autograder\local\eligibility;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\config\eligibility;
 use local_autograder\task\catch_up_module;
 
 /**

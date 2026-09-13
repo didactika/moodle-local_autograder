@@ -16,7 +16,7 @@
 
 namespace local_autograder\form;
 
-use local_autograder\local\config_repository;
+use local_autograder\local\config\config_repository;
 
 /**
  * The activity settings form, built for real.

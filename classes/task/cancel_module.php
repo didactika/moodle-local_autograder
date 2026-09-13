@@ -16,7 +16,7 @@
 
 namespace local_autograder\task;
 
-use local_autograder\local\decision_repository;
+use local_autograder\local\decision\decision_repository;
 
 /**
  * Calls off everything autograder still had queued for an activity, because

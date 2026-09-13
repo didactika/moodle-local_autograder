@@ -20,9 +20,9 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
-use local_autograder\local\config_repository;
-use local_autograder\local\decision_repository;
-use local_autograder\local\grade_log_repository;
+use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_repository;
+use local_autograder\local\grading\grade_log_repository;
 
 /**
  * What the plugin hands over, and what it removes, when asked.

@@ -16,7 +16,7 @@
 
 namespace local_autograder\local\module;
 
-use local_autograder\local\advanced_grading;
+use local_autograder\local\grading\advanced_grading;
 
 /**
  * What autograder needs to know about one activity type: when it closes, what
@@ -204,7 +204,7 @@ abstract class module_adapter {
             'iteminstance' => $this->cm->instance,
             // Forum's activity grade is item 1; item 0 is post ratings, which
             // autograder must not touch. See eligibility::grade_itemnumber().
-            'itemnumber' => \local_autograder\local\eligibility::grade_itemnumber($this->cm->modname),
+            'itemnumber' => \local_autograder\local\config\eligibility::grade_itemnumber($this->cm->modname),
             'courseid' => $this->cm->course,
         ]);
 

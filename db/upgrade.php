@@ -275,7 +275,7 @@ function upgrade_local_autograder_create_missing_tables(database_manager $dbman)
  * who had already submitted have no event left to fire, so nothing would ever
  * create their decision, and their deadlines would pass in silence.
  *
- * Safe to run more than once — {@see \local_autograder\local\decision_repository::ensure()}
+ * Safe to run more than once — {@see \local_autograder\local\decision\decision_repository::ensure()}
  * settles on the same answer every time, and the tasks are deduplicated.
  */
 function upgrade_local_autograder_catch_up_everything(): void {
