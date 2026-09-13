@@ -96,7 +96,11 @@ foreach (eligibility::gradeable_module_types() as $type) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('settings:modulestab', 'local_autograder'));
 echo html_writer::tag('p', get_string('modules:intro', 'local_autograder'));
-echo html_writer::table($table);
+echo html_writer::div(html_writer::table($table), 'local-autograder-table-scroll', [
+    'tabindex' => '0',
+    'role' => 'region',
+    'aria-label' => get_string('settings:modulestab', 'local_autograder'),
+]);
 $PAGE->requires->js_amd_inline(
     "require(['jquery'], function($) {
         $('#local-autograder-modules input[data-submitonchange]').on('change', function() {
