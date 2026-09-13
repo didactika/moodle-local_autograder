@@ -55,8 +55,8 @@ final class autograder_section_test extends \advanced_testcase {
         $mform = new \MoodleQuickForm('probe', 'post', '');
         $element = $mform->addElement('modgrade', 'grade', 'Grade');
 
-        // exportValue() takes its submission by reference, so it needs a
-        // variable rather than a literal.
+        // The exportValue() call takes its submission by reference, so it
+        // needs a variable rather than a literal.
         $submitted = ['grade' => ['modgrade_type' => 'scale', 'modgrade_scale' => $scale->id]];
         $exported = $element->exportValue($submitted, true);
 

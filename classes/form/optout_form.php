@@ -22,7 +22,7 @@ global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * "Do not let the autograder post grades in my name" (plan.md §5.1, D7).
+ * "Do not let the autograder post grades in my name".
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

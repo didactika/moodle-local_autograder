@@ -23,8 +23,6 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Runs every upgrade step this plugin has ever needed.
  *
@@ -43,11 +41,11 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091100, 'local', 'autograder');
     }
 
-    // `local/autograder:viewreport` was dropped in 2026091200: seeing the
-    // report is report_autograder's business, that plugin defines its own
-    // capability per level, and nothing here ever checked this one. No step is
-    // needed — core calls `update_capabilities()` on every plugin upgrade, and
-    // that removes whatever `db/access.php` no longer declares.
+    // The `local/autograder:viewreport` capability was dropped in 2026091200:
+    // seeing the report is report_autograder's business, that plugin defines
+    // its own capability per level, and nothing here ever checked this one. No
+    // step is needed — core calls `update_capabilities()` on every plugin
+    // upgrade, and that removes whatever `db/access.php` no longer declares.
 
     if ($oldversion < 2026091201) {
         upgrade_local_autograder_catch_up_everything();
@@ -195,8 +193,8 @@ function upgrade_local_autograder_add_timecreated(database_manager $dbman, xmldb
     $dbman->add_field($table, $field);
     $DB->execute('UPDATE {local_autograder_config} SET timecreated = timemodified');
 
-    // install.xml declares it without a default; the default was only there so
-    // the column could be added to a table that already had rows.
+    // The install.xml file declares it without a default; the default was only
+    // there so the column could be added to a table that already had rows.
     $dbman->change_field_default($table, new xmldb_field(
         'timecreated',
         XMLDB_TYPE_INTEGER,

@@ -19,7 +19,7 @@
  *
  * Who gets to grade is not configured here — see the
  * `local/autograder:gradeonbehalf` capability and the `local_autograder_optout`
- * user preference (plan.md §5.1). `fallback_grader` below is the one exception:
+ * user preference. `fallback_grader` below is the one exception:
  * the last resort when the course itself has nobody eligible.
  *
  * @package     local_autograder
@@ -84,10 +84,13 @@ if ($hassiteconfig) {
         PARAM_INT,
     ));
 
+    // Defaulted to user id 0, "no fallback grader": there is no sensible
+    // non-zero user to pick on a site's behalf.
     $general->add(new \local_autograder\local\fallback_grader_setting(
         'local_autograder/fallback_grader',
         get_string('setting:fallback_grader', 'local_autograder'),
         get_string('setting:fallback_grader_desc', 'local_autograder'),
+        0,
     ));
 
     // Off unless a site decides otherwise: letting teachers take themselves

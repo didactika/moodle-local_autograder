@@ -24,9 +24,9 @@ namespace local_autograder\local;
  * which teachers a student may see — reimplemented here, not depended on,
  * because the two plugins are independent. The starting pool is different on
  * purpose: `local_resume` starts from a configured list of teacher roles;
- * this starts from who holds the `local/autograder:gradeonbehalf` capability
- * (plan.md §5, D7) — a permission, not a role list, so a site adjusts it with
- * an ordinary role override instead of a setting.
+ * this starts from who holds the `local/autograder:gradeonbehalf` capability —
+ * a permission, not a role list, so a site adjusts it with an ordinary role
+ * override instead of a setting.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -38,7 +38,7 @@ final class grader_picker {
      * The capability that actually lets Moodle accept a grade for a module
      * type, by `modname`. A type not listed here falls back to
      * `moodle/grade:edit` — the generic gradebook-override capability, which
-     * is what the generic adapter (plan.md §4.1/§8) writes through.
+     * is what the generic adapter writes through.
      */
     private const GRADE_CAPABILITY_BY_MODULE = [
         'assign' => 'mod/assign:grade',
@@ -87,6 +87,14 @@ final class grader_picker {
      * @return array<int, \stdClass> Candidate users keyed by id.
      */
     private static function candidates_for(\cm_info|\stdClass $cm): array {
+        $cache = self::request_cache();
+        $key = 'candidates-' . (int) $cm->id;
+        $cached = $cache->get($key);
+
+        if ($cached !== false) {
+            return $cached;
+        }
+
         $modulecontext = \context_module::instance($cm->id);
         $gradecapability = self::grade_capability_for($cm->modname);
 
@@ -106,6 +114,8 @@ final class grader_picker {
 
             $candidates[$userid] = $user;
         }
+
+        $cache->set($key, $candidates);
 
         return $candidates;
     }
@@ -136,10 +146,8 @@ final class grader_picker {
             return $candidates;
         }
 
-        $studentgroupids = array_column(
-            self::groups_in_grouping($studentid, $cm->course, $course->defaultgroupingid),
-            'id',
-        );
+        $membership = self::grouping_membership((int) $cm->course, (int) $course->defaultgroupingid);
+        $studentgroupids = $membership[$studentid] ?? [];
 
         if (empty($studentgroupids)) {
             return $candidates;
@@ -155,12 +163,7 @@ final class grader_picker {
                 continue;
             }
 
-            $theirgroupids = array_column(
-                self::groups_in_grouping((int) $candidateid, $cm->course, $course->defaultgroupingid),
-                'id',
-            );
-
-            if (array_intersect($studentgroupids, $theirgroupids)) {
+            if (array_intersect($studentgroupids, $membership[(int) $candidateid] ?? [])) {
                 $filtered[$candidateid] = $candidate;
             }
         }
@@ -169,29 +172,64 @@ final class grader_picker {
     }
 
     /**
-     * The groups a user belongs to within one grouping of a course.
+     * Who belongs to which group of one grouping, as a single map.
      *
-     * @param int $userid
+     * Read in one go rather than once per person: the student and every
+     * candidate are weighed against the same grouping, and the report asks
+     * this question for a whole page of students at a time.
+     *
      * @param int $courseid
      * @param int $groupingid
-     * @return \stdClass[]
+     * @return array<int, int[]> Group ids, by user id.
      */
-    private static function groups_in_grouping(int $userid, int $courseid, int $groupingid): array {
+    private static function grouping_membership(int $courseid, int $groupingid): array {
         global $DB;
 
-        $sql = "SELECT g.*
-                  FROM {groups} g
-                  JOIN {groupings_groups} gg ON gg.groupid = g.id
-                  JOIN {groups_members} gm ON gm.groupid = g.id
-                 WHERE gm.userid = :userid AND g.courseid = :courseid AND gg.groupingid = :groupingid";
+        $cache = self::request_cache();
+        $key = "grouping-{$courseid}-{$groupingid}";
+        $cached = $cache->get($key);
 
-        return $DB->get_records_sql($sql, ['userid' => $userid, 'courseid' => $courseid, 'groupingid' => $groupingid]);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $sql = "SELECT gm.id, gm.userid, gm.groupid
+                  FROM {groups_members} gm
+                  JOIN {groups} g ON g.id = gm.groupid
+                  JOIN {groupings_groups} gg ON gg.groupid = g.id
+                 WHERE g.courseid = :courseid AND gg.groupingid = :groupingid";
+        $membership = [];
+
+        foreach ($DB->get_records_sql($sql, ['courseid' => $courseid, 'groupingid' => $groupingid]) as $row) {
+            $membership[(int) $row->userid][] = (int) $row->groupid;
+        }
+
+        $cache->set($key, $membership);
+
+        return $membership;
+    }
+
+    /**
+     * Where the answers that cannot change during one request are kept.
+     *
+     * Who may grade a module is asked once per student, and the report asks it
+     * for every waiting student on a page. The questions underneath — who
+     * holds a capability in this context, who is in which group — each cost a
+     * real query against role assignments or group membership, and none of
+     * them can differ between two rows of the same page. A request cache
+     * rather than a static array, so that a test resetting the site clears
+     * this along with everything else.
+     *
+     * @return \cache_loader
+     */
+    private static function request_cache(): \cache_loader {
+        return \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'graderpicker');
     }
 
     /**
      * The site's configured last resort, when the course itself has nobody
      * eligible — revalidated against the module's own grading capability
-     * (D8): a user holding `moodle/grade:edit` site-wide is not guaranteed to
+     * — a user holding `moodle/grade:edit` site-wide is not guaranteed to
      * still hold it once a role override narrows it back down in one course
      * or category. `local/autograder:gradeonbehalf` is deliberately not
      * required of the fallback grader — they stand in exactly because the
@@ -218,8 +256,7 @@ final class grader_picker {
     }
 
     /**
-     * Picks one candidate deterministically, per the site's configured rule
-     * (plan.md D6).
+     * Picks one candidate deterministically, per the site's configured rule.
      *
      * @param array<int, \stdClass> $candidates
      * @param int $courseid
@@ -298,7 +335,7 @@ final class grader_picker {
     }
 
     /**
-     * Whether a user has asked never to be chosen (plan.md §5.1).
+     * Whether a user has asked never to be chosen.
      *
      * @param int $userid
      * @return bool

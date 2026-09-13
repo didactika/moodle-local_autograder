@@ -26,7 +26,7 @@ use local_autograder\task\grade_student;
  * Scheduling lives here rather than in the tasks because the row and its task
  * have to move together: a due date that changes has to move the task with
  * it, and a decision that is called off has to take its task with it, or the
- * task would fire on data that no longer says what it said (plan.md §7, D1).
+ * task would fire on data that no longer says what it said.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -128,7 +128,7 @@ final class decision_repository {
 
     /**
      * Pending decisions that are already due but have no live task behind
-     * them — what the safety net looks for (plan.md §7).
+     * them — what the safety net looks for.
      *
      * @param int $now
      * @return \stdClass[]

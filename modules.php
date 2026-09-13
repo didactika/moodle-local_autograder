@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Site-wide "which activity types can have autograder" page (plan.md §9, D4).
+ * Site-wide "which activity types can have autograder" page.
  *
  * Deliberately shaped like core's own "Manage activities"
  * (`admin/modules.php`): one row per gradeable activity type, name and a

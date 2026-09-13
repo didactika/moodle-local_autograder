@@ -37,7 +37,7 @@ use local_autograder\task\recalculate_module;
  * module has already been created). A teacher who picks scale, rubric or
  * guide for the very module they configure autograder on in that same step
  * gets a mismatched `gradevalue` — a known, narrow gap, no worse than what
- * v2 did (docs-refactor/autograder-local/tasks.md, Fase 1).
+ * v2 did.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -89,7 +89,7 @@ final class autograder_section {
             // module (and its grade_item) exist. A teacher who picks scale,
             // rubric or guide for a module they configure autograder on in
             // this same step gets a mismatched gradevalue — a known,
-            // documented gap (tasks.md, Fase 1) no worse than v2's own.
+            // documented gap, no worse than v2's own.
             if (!has_capability('local/autograder:configure', \context_course::instance((int) $current->course))) {
                 return;
             }
@@ -387,8 +387,8 @@ final class autograder_section {
      * Completion tracking is deliberately *not* required. Where an activity
      * tracks completion autograder counts from the completion; where it does
      * not, it counts from the moment the student handed the activity in
-     * (plan.md §4) — so demanding completion here would refuse perfectly
-     * gradeable activities.
+     * — so demanding completion here would refuse perfectly gradeable
+     * activities.
      *
      * @param array $data
      * @return array<string, string> Field name => error message.

@@ -31,7 +31,7 @@ use local_autograder\local\module\module_adapter;
  * Scheduled for the exact instant rather than swept for periodically, so a
  * change of mind — an extension, a withdrawn submission, a teacher grading by
  * hand — is acted on immediately by moving or cancelling this task, instead of
- * being noticed some minutes later (plan.md D1).
+ * being noticed some minutes later.
  *
  * Nothing it was told when it was queued is trusted: every condition is read
  * again here, because days may have passed.

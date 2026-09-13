@@ -23,7 +23,7 @@ namespace local_autograder\local\module;
  * made. What a teacher does when they want a different number there is
  * override it in the gradebook, and that is exactly what autograder does —
  * the same thing the old external service achieved through the grading-panel
- * web service (plan.md §8.1).
+ * web service.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

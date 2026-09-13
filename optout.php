@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * A teacher's own "do not grade in my name" preference (plan.md §5.1).
+ * A teacher's own "do not grade in my name" preference.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

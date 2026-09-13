@@ -18,7 +18,7 @@ namespace local_autograder\event;
 
 /**
  * What every announcement about one student's autograder decision has in
- * common (plan.md §10.1, D10).
+ * common.
  *
  * Nothing inside this plugin listens to these — they exist for
  * `report_autograder`, auditing, and any integration that wants to know what

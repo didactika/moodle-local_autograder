@@ -18,7 +18,7 @@ namespace local_autograder\event;
 
 /**
  * What every announcement about a module's autograder configuration has in
- * common (plan.md §10.1, D10). Nothing inside this plugin listens to these —
+ * common. Nothing inside this plugin listens to these —
  * they exist for `report_autograder`, auditing, and any future integration.
  *
  * @package     local_autograder

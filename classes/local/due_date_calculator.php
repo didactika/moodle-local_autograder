@@ -17,14 +17,14 @@
 namespace local_autograder\local;
 
 /**
- * The one rule this whole plugin exists to apply (plan.md §4): when a student
+ * The one rule this whole plugin exists to apply: when a student
  * should be graded, and why.
  *
  * Pure domain logic — no `$DB`, no `$CFG`, no Moodle API calls. Every caller
  * (the form's live preview, `grade_student`, `recalculate_module`) reads the
  * same live data and hands it here; this class never reads anything itself,
  * which is exactly what makes it recalculable from scratch on every run
- * instead of trusted stale (plan.md §3's whole point).
+ * instead of trusted stale, which is the whole point of it.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

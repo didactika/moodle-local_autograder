@@ -17,7 +17,7 @@
 namespace local_autograder\local;
 
 /**
- * The site setting for `fallback_grader` (plan.md D8): a single user, chosen
+ * The site setting for `fallback_grader`: a single user, chosen
  * from a searchable dropdown that only ever lists users who could plausibly
  * grade something — holders of `moodle/grade:edit` at system context.
  *
@@ -34,18 +34,6 @@ namespace local_autograder\local;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fallback_grader_setting extends \admin_setting {
-    /**
-     * Fixes the default at "no fallback grader" (user id 0) — there is no
-     * sensible non-zero default to pick on its caller's behalf.
-     *
-     * @param string $name
-     * @param string $visiblename
-     * @param string $description
-     */
-    public function __construct(string $name, string $visiblename, string $description) {
-        parent::__construct($name, $visiblename, $description, 0);
-    }
-
     /**
      * Whether the setting has ever been given a value.
      *

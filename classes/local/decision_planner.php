@@ -27,7 +27,7 @@ use local_autograder\local\module\module_adapter;
  * that apply to this student and the groups they are in, then hands all of it
  * to the rule, which knows nothing about the database. Everything here is
  * read fresh every time it is asked — a plan is never trusted from when it
- * was last written (plan.md §3).
+ * was last written.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

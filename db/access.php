@@ -29,8 +29,8 @@ $capabilities = [
     // Held by a teacher = the autograder may post a grade as that teacher for
     // an activity of theirs. Granted to editingteacher by default; taken away
     // by a role override wherever a teacher (or their institution) opts out.
-    // See plan.md §5/§5.1 — this is the whole mechanism, there is no separate
-    // site setting listing "grader roles".
+    // This is the whole mechanism: there is no separate site setting
+    // listing "grader roles".
     'local/autograder:gradeonbehalf' => [
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',

@@ -17,7 +17,7 @@
 namespace local_autograder\local;
 
 /**
- * The audit trail of every grading attempt (plan.md §6).
+ * The audit trail of every grading attempt.
  *
  * Written on success and on failure alike, and kept independently of the
  * decision it came from: a row here outlives the decision once retention
@@ -115,7 +115,7 @@ final class grade_log_repository {
 
     /**
      * Deletes log rows older than the given instant — what the retention
-     * task walks (plan.md §9).
+     * task walks.
      *
      * @param int $before Unix timestamp.
      * @return int Rows deleted.

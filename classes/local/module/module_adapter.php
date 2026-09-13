@@ -23,8 +23,8 @@ use local_autograder\local\advanced_grading;
  * exceptions move that date for a given student, and how to post a grade to
  * it the way a teacher would.
  *
- * One subclass per activity type that needs its own answer (plan.md §4.1,
- * §8.1); {@see generic_adapter} covers everything else through the gradebook.
+ * One subclass per activity type that needs its own answer; {@see
+ * generic_adapter} covers everything else through the gradebook.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -102,7 +102,7 @@ abstract class module_adapter {
      * or when the activity has no notion of handing anything in.
      *
      * What autograder counts from where an activity does not track completion
-     * (plan.md §4): a student who submitted has done the thing, whether or not
+     * — a student who submitted has done the thing, whether or not
      * anyone asked Moodle to tick a completion box for it.
      *
      * @param int $userid
@@ -162,7 +162,7 @@ abstract class module_adapter {
      * null when the only grade there is one nobody set by hand.
      *
      * An overridden grade, or one stamped with a real user in `usermodified`,
-     * is a person's (plan.md §8.3). A grade the activity computed for itself —
+     * is a person's. A grade the activity computed for itself —
      * a quiz score off an attempt — is not, and must not stop autograder.
      *
      * @param int $userid

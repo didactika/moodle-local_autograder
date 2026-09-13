@@ -18,7 +18,7 @@
  * The scheduled tasks of this plugin.
  *
  * Grading itself is not here: each decision gets its own adhoc task, queued
- * for the exact moment it comes due (plan.md D1). These two only tidy up
+ * for the exact moment it comes due. These two only tidy up
  * after it.
  *
  * @package     local_autograder

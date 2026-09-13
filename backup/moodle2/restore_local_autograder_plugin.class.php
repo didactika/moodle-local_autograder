@@ -24,8 +24,6 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 use local_autograder\local\config_repository;
 use local_autograder\local\eligibility;
 use local_autograder\task\catch_up_module;
