@@ -189,14 +189,27 @@ final class autograder_section {
         $config,
         string $typefield,
     ): void {
+        // Says the range out loud instead of leaving the teacher to find it
+        // by being refused. It is what the activity is graded out of *now*;
+        // one changed in this same save is caught by validate().
+        $maximum = $cm ? eligibility::maximum_grade($cm) : null;
+
         $mform->addElement('text', 'autograder_grade_point', get_string('form:grade', 'local_autograder'));
         $mform->setType('autograder_grade_point', PARAM_FLOAT);
-        $mform->setDefault(
-            'autograder_grade_point',
-            ($config && $grademethod !== 'scale')
-                ? $config->gradevalue
-                : get_config('local_autograder', 'default_grade'),
-        );
+
+        if ($config && $grademethod !== 'scale') {
+            $mform->setDefault('autograder_grade_point', $config->gradevalue);
+        } else if ($maximum !== null) {
+            // No autograder grade chosen yet for an activity that already has
+            // a maximum: default to it instead of an arbitrary site-wide
+            // number, so leaving the field untouched still saves something
+            // that means something for *this* activity.
+            $mform->setDefault('autograder_grade_point', $maximum);
+        }
+        // A brand new activity has no maximum to read yet (see the class
+        // docblock): the field is left with no default at all, so the
+        // teacher has to type a grade — validate() refuses an empty one.
+
         $mform->addRule(
             'autograder_grade_point',
             get_string('form:error_numeric', 'local_autograder'),
@@ -206,11 +219,6 @@ final class autograder_section {
         );
         $mform->hideIf('autograder_grade_point', $typefield, 'neq', 'point');
         $mform->disabledIf('autograder_grade_point', 'autograder_enabled');
-
-        // Says the range out loud instead of leaving the teacher to find it
-        // by being refused. It is what the activity is graded out of *now*;
-        // one changed in this same save is caught by validate().
-        $maximum = $cm ? eligibility::maximum_grade($cm) : null;
 
         if ($maximum !== null) {
             $mform->addElement(
@@ -358,13 +366,13 @@ final class autograder_section {
      * @param \stdClass|false $config
      */
     private static function add_delay_elements(\MoodleQuickForm $mform, $config): void {
+        // No system-wide default either: a wait that means something for
+        // *this* activity is 0 (grade the moment the student is due) unless
+        // the teacher sets otherwise, never an arbitrary number picked
+        // site-wide.
         [$days, $hours, $minutes] = $config
             ? self::seconds_to_parts((int) $config->delayseconds)
-            : [
-                (int) get_config('local_autograder', 'default_days'),
-                (int) get_config('local_autograder', 'default_hours'),
-                (int) get_config('local_autograder', 'default_minutes'),
-            ];
+            : [0, 0, 0];
 
         $fields = [
             'autograder_days' => [$days, 'form:days_to_complete'],

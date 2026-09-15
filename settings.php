@@ -52,38 +52,6 @@ if ($hassiteconfig) {
         ],
     ));
 
-    $general->add(new admin_setting_configtext(
-        'local_autograder/default_grade',
-        get_string('setting:default_grade', 'local_autograder'),
-        get_string('setting:default_grade_desc', 'local_autograder'),
-        '10',
-        PARAM_FLOAT,
-    ));
-
-    $general->add(new admin_setting_configtext(
-        'local_autograder/default_days',
-        get_string('setting:default_days', 'local_autograder'),
-        get_string('setting:default_time_desc', 'local_autograder'),
-        '2',
-        PARAM_INT,
-    ));
-
-    $general->add(new admin_setting_configtext(
-        'local_autograder/default_hours',
-        get_string('setting:default_hours', 'local_autograder'),
-        '',
-        '0',
-        PARAM_INT,
-    ));
-
-    $general->add(new admin_setting_configtext(
-        'local_autograder/default_minutes',
-        get_string('setting:default_minutes', 'local_autograder'),
-        '',
-        '0',
-        PARAM_INT,
-    ));
-
     // Defaulted to user id 0, "no fallback grader": there is no sensible
     // non-zero user to pick on a site's behalf.
     $general->add(new \local_autograder\local\config\fallback_grader_setting(
