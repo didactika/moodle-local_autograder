@@ -19,8 +19,15 @@ namespace local_autograder\local\config;
 /**
  * The site setting for `fallback_grader`: a single user, chosen
  * from a searchable dropdown that only ever lists users who could plausibly
- * grade something — holders of `local/autograder:gradeonbehalf` at system
- * context.
+ * grade something — holders of `local/autograder:gradeonbehalf`, wherever
+ * that actually comes from.
+ *
+ * Almost never at system context: a teacher holds this the way they hold
+ * any other teaching capability, through a role assigned in one course (or a
+ * category), not a role assigned site-wide. `context_system::instance()`
+ * alone would list only genuine site-wide holders — managers, mostly — and
+ * leave the picker looking empty on an ordinary site. See
+ * {@see eligible_users()} for how the search actually looks past that.
  *
  * Renders as a plain `<select>` (so the setting works with JavaScript off)
  * progressively enhanced into a type-ahead search by `core/form-autocomplete`,
@@ -35,6 +42,9 @@ namespace local_autograder\local\config;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fallback_grader_setting extends \admin_setting {
+    /** The capability {@see eligible_users()} looks for a holder of. */
+    private const CAPABILITY = 'local/autograder:gradeonbehalf';
+
     /**
      * Whether the setting has ever been given a value.
      *
@@ -62,15 +72,46 @@ class fallback_grader_setting extends \admin_setting {
 
     /**
      * Every user this setting may ever point to: holders of
-     * `local/autograder:gradeonbehalf` at system context, ordered by name.
+     * {@see CAPABILITY}, ordered by name.
+     *
+     * Found by role rather than by asking each context in turn: every role
+     * that grants it — by its own default, or through an override made
+     * anywhere, in either direction — names itself in `role_capabilities`
+     * regardless of which context the override was made in, so one query
+     * against that table finds every such role, and a second finds every
+     * user holding one of them, in any context at all. What this does not
+     * do is weigh a user's *own* assignment against the specific context it
+     * was made in — a role prevented from grading in one particular course
+     * still lists a teacher whose only assignment is that course, the same
+     * approximation {@see get_users_by_capability()} itself would not make
+     * for a single context, but the only one that stays a single, cheap
+     * query across the whole site instead of one per course.
      *
      * @return array<int, string> User id => fully-formatted name.
      */
     public static function eligible_users(): array {
-        $users = get_users_by_capability(
-            \context_system::instance(),
-            'local/autograder:gradeonbehalf',
-            'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename',
+        global $DB;
+
+        $roleids = $DB->get_fieldset_select(
+            'role_capabilities',
+            'DISTINCT roleid',
+            'capability = :capability AND permission = :allow',
+            ['capability' => self::CAPABILITY, 'allow' => CAP_ALLOW],
+        );
+
+        if (empty($roleids)) {
+            return [];
+        }
+
+        [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+
+        $users = $DB->get_records_sql(
+            "SELECT DISTINCT u.id, u.firstname, u.lastname, u.firstnamephonetic,
+                    u.lastnamephonetic, u.middlename, u.alternatename
+               FROM {user} u
+               JOIN {role_assignments} ra ON ra.userid = u.id
+              WHERE ra.roleid {$insql} AND u.deleted = 0 AND u.suspended = 0",
+            $params,
         );
 
         $options = [];
