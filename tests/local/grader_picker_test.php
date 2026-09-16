@@ -75,11 +75,21 @@ final class grader_picker_test extends \advanced_testcase {
         );
     }
 
-    /** A denied activity capability must be rejected before writing. */
-    public function test_the_capability_is_checked_while_choosing(): void {
-        $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+    /**
+     * A denied grading capability does not unchoose the student's teacher.
+     *
+     * The capability decides nothing about whether the grade can be stored, so
+     * consulting it here only ever refused writes that would have worked. What
+     * a teacher may really do is settled by the write itself.
+     */
+    public function test_the_capability_is_not_checked_while_choosing(): void {
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $this->prevent('mod/assign:grade');
-        $this->assertNull(grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
+
+        $this->assertSame(
+            (int) $teacher->id,
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
+        );
     }
 
     /**
@@ -97,7 +107,7 @@ final class grader_picker_test extends \advanced_testcase {
         );
         $this->assertSame(
             (int) $standin->id,
-            grader_picker::fallback_for((int) $this->cm->id),
+            grader_picker::fallback_for(),
             'And the fallback is who grade_student turns to next.'
         );
     }
@@ -115,7 +125,7 @@ final class grader_picker_test extends \advanced_testcase {
 
         $this->assertTrue(grader_picker::must_never_grade((int) $admin->id));
         $this->assertNull(
-            grader_picker::fallback_for((int) $this->cm->id),
+            grader_picker::fallback_for(),
             'Configured or not, the administrator never grades.'
         );
     }
@@ -241,29 +251,51 @@ final class grader_picker_test extends \advanced_testcase {
         $this->assertFalse(grader_picker::grades_this_module($this->cm, (int) $this->student->id));
     }
 
-    /** A valid second associated teacher takes precedence over fallback. */
-    public function test_denied_teacher_is_skipped_before_fallback(): void {
+    /**
+     * An activity prohibition does not move the choice on to somebody else.
+     *
+     * The fallback is for a student with no associated teacher at all, not for
+     * a teacher whose capabilities the activity happens to restrict.
+     */
+    public function test_a_prohibition_does_not_change_who_is_chosen(): void {
         global $DB;
         $first = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
-        $second = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
+        $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
         $fallback = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
         set_config('fallback_grader', $fallback->id, 'local_autograder');
         $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
-        assign_capability('mod/assign:grade', CAP_PROHIBIT, $roleid,
-            \context_module::instance($this->cm->id)->id);
+        assign_capability(
+            'mod/assign:grade',
+            CAP_PROHIBIT,
+            $roleid,
+            \context_module::instance($this->cm->id)->id
+        );
         accesslib_clear_all_caches_for_unit_testing();
-        $this->assertSame((int) $second->id,
-            grader_picker::resolve_for((int) $this->cm->id, (int) $this->student->id));
+        $this->assertSame(
+            (int) $first->id,
+            grader_picker::resolve_for((int) $this->cm->id, (int) $this->student->id)
+        );
     }
 
-    /** Fallback has exactly the same permission requirements as a teacher. */
-    public function test_unprivileged_fallback_cannot_grade(): void {
+    /**
+     * The fallback needs no privilege either, only an account that may sign.
+     *
+     * A site names its stand-in on purpose; refusing it for want of a
+     * capability the write never consults would leave decisions failing with
+     * a perfectly good grader configured and unused.
+     */
+    public function test_the_fallback_needs_no_privilege(): void {
         $fallback = $this->getDataGenerator()->create_user();
         set_config('fallback_grader', $fallback->id, 'local_autograder');
-        $this->assertNull(grader_picker::resolve_for((int) $this->cm->id, (int) $this->student->id));
+        $this->assertSame(
+            (int) $fallback->id,
+            grader_picker::resolve_for((int) $this->cm->id, (int) $this->student->id)
+        );
     }
 
-    /** Deleted and suspended accounts cannot sign a grade. */
+    /**
+     * Deleted and suspended accounts cannot sign a grade.
+     */
     public function test_inactive_teachers_are_excluded(): void {
         global $DB;
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
@@ -271,22 +303,56 @@ final class grader_picker_test extends \advanced_testcase {
         $this->assertNull(grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
     }
 
-    /** Activity group restrictions apply even when course association is broad. */
-    public function test_activity_separate_groups_block_an_unrelated_teacher(): void {
+    /**
+     * Groups narrow the choice by the course's rule, not the activity's.
+     *
+     * Separate groups plus a default grouping is what local_resume reads, and
+     * it is the rule the student is shown their own teachers by. An activity
+     * carries its own group mode, but letting that narrow the choice as well
+     * produced a second, contradictory answer: a teacher the student sees as
+     * theirs, refused on the activity, for a grade the activity would have
+     * accepted.
+     */
+    public function test_the_courses_grouping_is_what_narrows_the_choice(): void {
         global $DB;
-        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
-        $group = $this->getDataGenerator()->create_group(['courseid' => $this->course->id]);
+
+        $generator = $this->getDataGenerator();
+        $mine = $generator->create_and_enrol($this->course, 'editingteacher');
+        $theirs = $generator->create_and_enrol($this->course, 'editingteacher');
+        $group = $generator->create_group(['courseid' => $this->course->id]);
+        $other = $generator->create_group(['courseid' => $this->course->id]);
+        $grouping = $generator->create_grouping(['courseid' => $this->course->id]);
+
+        groups_assign_grouping((int) $grouping->id, (int) $group->id);
+        groups_assign_grouping((int) $grouping->id, (int) $other->id);
         $this->join($group, $this->student);
-        $DB->set_field('course_modules', 'groupmode', SEPARATEGROUPS, ['id' => $this->cm->id]);
+        $this->join($other, $theirs);
+
+        $DB->set_field('course', 'groupmode', SEPARATEGROUPS, ['id' => $this->course->id]);
+        $DB->set_field('course', 'defaultgroupingid', $grouping->id, ['id' => $this->course->id]);
         $this->prevent('moodle/site:accessallgroups');
-        $this->assertNull(grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
-        $this->join($group, $teacher);
+
+        // Nobody shares the student's group yet, so the whole course stands —
+        // the same widening local_resume does rather than showing no teacher.
         \cache_helper::purge_all();
-        $this->assertSame((int) $teacher->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
+        $this->assertContains(
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
+            [(int) $mine->id, (int) $theirs->id]
+        );
+
+        $this->join($group, $mine);
+        \cache_helper::purge_all();
+
+        $this->assertSame(
+            (int) $mine->id,
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
+            'The teacher sharing the student\'s group in the default grouping.'
+        );
     }
 
-    /** Programme courses use coordinators, not the union of both role lists. */
+    /**
+     * Programme courses use coordinators, not the union of both role lists.
+     */
     public function test_programme_uses_coordinator_roles(): void {
         $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $coordinator = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
@@ -294,19 +360,33 @@ final class grader_picker_test extends \advanced_testcase {
         set_config('coordinator_roles', 'teacher', 'local_resume');
         set_config('subject_course_category', -1, 'local_resume');
         set_config('program_course_category', $this->course->category, 'local_resume');
-        $this->assertSame((int) $coordinator->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
+        $this->assertSame(
+            (int) $coordinator->id,
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
+        );
     }
 
-    /** Gradebook override adapters need grade:edit, not quiz manual grading. */
-    public function test_quiz_checks_the_permission_used_by_its_adapter(): void {
-        $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+    /**
+     * The choice is the same in every activity of one course.
+     */
+    public function test_every_activity_of_a_course_picks_the_same_teacher(): void {
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $quiz = $this->getDataGenerator()->create_module('quiz', ['course' => $this->course->id]);
         $this->prevent('moodle/grade:edit');
-        $this->assertNull(grader_picker::pick_for((int) $quiz->cmid, (int) $this->student->id));
+
+        $this->assertSame(
+            (int) $teacher->id,
+            grader_picker::pick_for((int) $quiz->cmid, (int) $this->student->id)
+        );
+        $this->assertSame(
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
+            grader_picker::pick_for((int) $quiz->cmid, (int) $this->student->id)
+        );
     }
 
-    /** Repeated students in different activities reuse course association data. */
+    /**
+     * Repeated students in different activities reuse course association data.
+     */
     public function test_warm_selection_does_not_query_per_student(): void {
         global $DB;
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
@@ -317,8 +397,10 @@ final class grader_picker_test extends \advanced_testcase {
         grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id);
         $before = $DB->perf_get_reads();
         foreach ($students as $student) {
-            $this->assertSame((int) $teacher->id,
-                grader_picker::pick_for((int) $this->cm->id, (int) $student->id));
+            $this->assertSame(
+                (int) $teacher->id,
+                grader_picker::pick_for((int) $this->cm->id, (int) $student->id)
+            );
         }
         $this->assertSame($before, $DB->perf_get_reads());
     }

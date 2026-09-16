@@ -138,9 +138,10 @@ abstract class module_adapter {
      * @throws \moodle_exception When the grade could not be posted.
      */
     final public function write_grade(int $userid, int $graderid): float {
-        if (!\local_autograder\local\grading\grader_picker::can_grade($this->cm, $graderid, $userid)) {
-            throw new \moodle_exception('error:gradewritefailed', 'local_autograder');
-        }
+        // Nothing is asked in advance about whether this teacher may post it.
+        // The write itself is the answer: it either stores the grade or throws,
+        // and the caller then falls back and finally fails. Guessing here only
+        // ever refused writes that would have succeeded.
         self::$writing = true;
 
         try {

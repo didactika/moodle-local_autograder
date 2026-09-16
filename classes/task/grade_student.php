@@ -127,19 +127,37 @@ class grade_student extends \core\task\adhoc_task {
     ): void {
         $userid = (int) $decision->userid;
 
-        $graderid = grader_picker::resolve_for((int) $cm->id, $userid);
+        $graderid = grader_picker::pick_for((int) $cm->id, $userid);
+        $fallback = grader_picker::fallback_for();
+
+        if ($graderid === null) {
+            $graderid = $fallback;
+        }
+
         if ($graderid === null) {
             $this->fail($decision, $cm, 'no_grader');
             return;
         }
 
+        // Nothing was asked in advance about whether this teacher may post the
+        // grade, so the attempt is what finds out. A refusal hands over to the
+        // site's stand-in once, and only a stand-in that is refused too — or
+        // missing — leaves the decision failing.
         try {
             $posted = $adapter->write_grade($userid, $graderid);
         } catch (\Throwable $e) {
-            // A write error may occur after side effects. Do not retry the same
-            // grade under a different identity or conceal the original failure.
-            $this->fail($decision, $cm, 'grade_write_failed', $e->getMessage());
-            return;
+            if ($fallback === null || $fallback === $graderid) {
+                $this->fail($decision, $cm, 'grade_write_failed', $e->getMessage());
+                return;
+            }
+
+            try {
+                $posted = $adapter->write_grade($userid, $fallback);
+                $graderid = $fallback;
+            } catch (\Throwable $second) {
+                $this->fail($decision, $cm, 'grade_write_failed', $second->getMessage());
+                return;
+            }
         }
 
         decision_repository::settle(

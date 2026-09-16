@@ -28,7 +28,11 @@ namespace local_autograder\local\grading;
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class teacher_source {
-    /** @return bool Whether the association provider is installed. */
+    /**
+     * Whether the site has the plugin that owns this answer.
+     *
+     * @return bool
+     */
     public static function is_available(): bool {
         return \core_component::get_component_directory('local_resume') !== null
             && class_exists('\local_resume\local\teachers');
@@ -58,7 +62,8 @@ final class teacher_source {
         $program = $course->category != get_config('local_resume', 'subject_course_category')
             && $course->category == get_config('local_resume', 'program_course_category');
         $roles = array_filter(array_map('trim', explode(',', (string) get_config(
-            'local_resume', $program ? 'coordinator_roles' : 'teacher_roles'
+            'local_resume',
+            $program ? 'coordinator_roles' : 'teacher_roles'
         ))));
         $teachers = [];
         if ($roles !== []) {
@@ -149,20 +154,24 @@ final class teacher_source {
     public static function teachers_of(int $courseid, int $studentid): array {
         $teachers = self::possible_graders_in($courseid);
         $course = self::course($courseid);
-        if (!$teachers || groups_get_course_groupmode($course) != SEPARATEGROUPS
+        if (
+            !$teachers || groups_get_course_groupmode($course) != SEPARATEGROUPS
                 || !$course->defaultgroupingid
-                || has_capability('moodle/site:accessallgroups', \context_course::instance($courseid), $studentid)) {
+                || has_capability('moodle/site:accessallgroups', \context_course::instance($courseid), $studentid)
+        ) {
             return $teachers;
         }
         self::prime_groups($courseid, array_merge($teachers, [$studentid]));
         $groups = self::groups_of($courseid, $studentid, (int) $course->defaultgroupingid);
-        $matched = array_filter($teachers, static function(int $teacherid) use ($courseid, $groups): bool {
+        $matched = array_filter($teachers, static function (int $teacherid) use ($courseid, $groups): bool {
             return (bool) array_intersect($groups, self::groups_of($courseid, $teacherid));
         });
         return array_values($matched ?: $teachers);
     }
 
     /**
+     * The course record, read once per request.
+     *
      * @param int $courseid
      * @return \stdClass Course metadata shared by students and activities.
      */
@@ -177,7 +186,11 @@ final class teacher_source {
         return $course;
     }
 
-    /** @return \cache_loader Request-only association data. */
+    /**
+     * The request-only cache this class keeps its answers in.
+     *
+     * @return \cache_loader
+     */
     private static function request_cache(): \cache_loader {
         return \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'teachersource');
     }
