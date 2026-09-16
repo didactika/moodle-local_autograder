@@ -20,13 +20,16 @@ namespace local_autograder\local\grading;
  * Select the associated teacher whose name an automatic grade is posted under.
  *
  * Who teaches the student is {@see teacher_source}'s answer, and that is the
- * whole of the selection. No grading capability is consulted, for
- * two reasons. It decides nothing: the grade is written through
+ * whole of the selection. Nothing is asked of the chosen teacher afterwards.
+ *
+ * In particular no capability is re-checked per user here. It would decide
+ * nothing — the grade is written through
  * `component_gradeitem::store_grade_from_formdata()`, which checks no
- * capability at all, so a check here forbids what the write would have allowed.
- * And it decides it wrongly: a site names its correctors through roles of its
- * own, which routinely carry no `mod/forum:grade`, so the check rejected
- * precisely the teachers the student is shown as theirs.
+ * capability at all, so a refusal here forbids what the write would have
+ * allowed — and asking it twice is how a teacher ended up rejected on one
+ * activity while teaching the course the grade belongs to. Capabilities are
+ * consulted once, by {@see teacher_source}, to work out which *roles* teach a
+ * course at all.
  *
  * A teacher is therefore assumed willing and able unless one of two things
  * says otherwise — they are an administrator or guest, or they have set the
@@ -38,11 +41,8 @@ namespace local_autograder\local\grading;
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class grader_picker {
-    /** @var array Native grading permissions; other adapters override the gradebook. */
-    private const GRADE_CAPABILITY_BY_MODULE = [
-        'assign' => 'mod/assign:grade',
-        'forum' => 'mod/forum:grade',
-    ];
+    /** @var string The capability a module without one of its own is graded through. */
+    private const DEFAULT_GRADE_CAPABILITY = 'moodle/grade:edit';
 
     /**
      * Select among the student's associated teachers in the activity's course.
@@ -160,6 +160,60 @@ final class grader_picker {
     }
 
     /**
+     * Every capability that lets somebody put a grade on something.
+     *
+     * The generic gradebook one plus each module type's own. Used to work out
+     * which roles teach a course — a role that grants one of these is a role
+     * that grades — so that a site naming a new corrector role does not also
+     * have to tell autograder about it.
+     *
+     * @return string[]
+     */
+    public static function grade_capabilities(): array {
+        global $DB;
+
+        $cache = self::request_cache();
+        $cached = $cache->get('gradecapabilities');
+
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        // Read out of the capability table rather than listed here: every
+        // module that can be graded declares `mod/<name>:grade` by Moodle's
+        // own convention, so a module installed later is covered without this
+        // plugin being told about it. The gradebook capability comes along for
+        // the module types graded by overriding the gradebook instead.
+        $capabilities = $DB->get_fieldset_sql(
+            'SELECT DISTINCT name FROM {capabilities} WHERE ' . $DB->sql_like('name', ':pattern'),
+            ['pattern' => 'mod/%:grade']
+        );
+        $capabilities[] = self::DEFAULT_GRADE_CAPABILITY;
+        $capabilities = array_values(array_unique($capabilities));
+
+        $cache->set('gradecapabilities', $capabilities);
+
+        return $capabilities;
+    }
+
+    /**
+     * The capability a grade on this activity is written through.
+     *
+     * Its module's own where it declares one, and the gradebook capability
+     * where it does not — which is what the generic adapter writes through.
+     *
+     * @param string $modname
+     * @return string
+     */
+    public static function grade_capability_for(string $modname): string {
+        $capability = 'mod/' . $modname . ':grade';
+
+        return in_array($capability, self::grade_capabilities(), true)
+            ? $capability
+            : self::DEFAULT_GRADE_CAPABILITY;
+    }
+
+    /**
      * Whether this user is one of the people who grade this activity.
      *
      * Asked to keep an activity's own graders off the list of people it
@@ -172,7 +226,7 @@ final class grader_picker {
      */
     public static function grades_this_module(\cm_info|\stdClass $cm, int $userid): bool {
         return has_capability(
-            self::GRADE_CAPABILITY_BY_MODULE[$cm->modname] ?? 'moodle/grade:edit',
+            self::grade_capability_for((string) $cm->modname),
             \context_module::instance((int) $cm->id),
             $userid
         );

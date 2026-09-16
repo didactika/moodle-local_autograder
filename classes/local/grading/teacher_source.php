@@ -19,22 +19,26 @@ namespace local_autograder\local\grading;
 /**
  * Which teachers a student has in a course.
  *
- * Two questions, one rule. A course names its teachers by role: whoever holds
- * one of the configured teacher roles, assigned in the course itself. Where
- * the course separates its groups and names a default grouping, that list is
- * then narrowed to the teachers sharing one of the student's groups inside
- * that grouping — and if none do, the whole list stands rather than the
- * student being left with no teacher at all.
+ * A course names its teachers by role: whoever holds a teaching role,
+ * assigned in the course itself. Where the course separates its groups and
+ * names a default grouping, that list is then narrowed to the teachers
+ * sharing one of the student's groups inside that grouping — and if none do,
+ * the whole list stands rather than the student being left with no teacher.
  *
- * Every part of that comes from this plugin's own settings, so a site can see
- * and change what decides it in one place. That is deliberate: the rule used
- * to be read out of another plugin's configuration, which meant a site could
- * add a corrector role, see it listed on the course, and never find out why
- * autograder thought the course had no teacher.
+ * What makes a role a teaching role is worked out, not listed. By default it
+ * is any role that grants one of the capabilities a grade is actually written
+ * through ({@see grader_picker::grade_capabilities()}), which means a site
+ * that invents a corrector role gets it recognised the moment the role
+ * exists. Naming roles by hand is what broke this before: the list held the
+ * two stock roles, a site added its own corrector, and every course it taught
+ * reported that nobody could grade it — with nothing on screen to say why.
  *
- * No capability is consulted here or anywhere after it. Holding one of these
- * roles is what makes somebody a teacher of the course; whether the grade can
- * then be stored is settled by storing it.
+ * A site that wants the choice pinned can still make it by hand; the setting
+ * is a fallback from the automatic rule, not the normal way to run it.
+ *
+ * The capability is read off the *role*, once per course, and never per user
+ * afterwards. A role that can grade makes its holders teachers; whether a
+ * given grade can then be stored is settled by storing it.
  *
  * @package local_autograder
  * @copyright 2026 Didactika.org
@@ -42,18 +46,11 @@ namespace local_autograder\local\grading;
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class teacher_source {
-    /**
-     * Whether the site has said which roles make somebody a teacher.
-     *
-     * Nothing else can be answered until it has: with no roles configured
-     * there is no rule, and inventing one would put grades in the names of
-     * whoever happened to match it.
-     *
-     * @return bool
-     */
-    public static function is_configured(): bool {
-        return self::teacher_roles(false) !== [] || self::teacher_roles(true) !== [];
-    }
+    /** @var string Teaching roles are whichever ones can grade. */
+    public const MODE_GRADING_ROLES = 'grading_roles';
+
+    /** @var string Teaching roles are the ones the site named. */
+    public const MODE_CHOSEN_ROLES = 'chosen_roles';
 
     /**
      * Everybody who teaches this course, before any student narrows it.
@@ -76,20 +73,21 @@ final class teacher_source {
             return $cached;
         }
 
-        $roles = self::teacher_roles(self::is_programme($courseid));
+        $context = \context_course::instance($courseid);
+        $roleids = self::teaching_roles($courseid);
         $teachers = [];
 
-        if ($roles !== []) {
-            [$insql, $params] = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED);
-            $params['contextid'] = \context_course::instance($courseid)->id;
+        if ($roleids !== []) {
+            [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            $params['contextid'] = $context->id;
             // The course context and only the course context. A role held over
             // the whole category makes somebody a teacher of every course in
-            // it, which is not what a grade should be signed with.
+            // it, and a manager assigned at the system level a teacher of the
+            // entire site — which is not what a grade should be signed with.
             $teachers = array_map('intval', $DB->get_fieldset_sql(
                 "SELECT DISTINCT ra.userid
                    FROM {role_assignments} ra
-                   JOIN {role} r ON r.id = ra.roleid
-                  WHERE ra.contextid = :contextid AND r.shortname {$insql}",
+                  WHERE ra.contextid = :contextid AND ra.roleid {$insql}",
                 $params
             ));
         }
@@ -97,6 +95,84 @@ final class teacher_source {
         $cache->set($key, $teachers);
 
         return $teachers;
+    }
+
+    /**
+     * The roles that teach one course, as ids.
+     *
+     * @param int $courseid
+     * @return int[]
+     */
+    private static function teaching_roles(int $courseid): array {
+        $chosen = get_config('local_autograder', 'teacher_source_mode') === self::MODE_CHOSEN_ROLES;
+        $cache = self::request_cache();
+        // The automatic answer is one list for the whole site, so it is worked
+        // out once however many courses a report walks. Only the hand-picked
+        // answer varies per course, and then only between two lists.
+        $key = $chosen ? 'roles-chosen-' . (int) self::is_programme($courseid) : 'roles-grading';
+        $cached = $cache->get($key);
+
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $roleids = $chosen
+            ? self::chosen_roles(self::is_programme($courseid))
+            : self::grading_roles();
+
+        $cache->set($key, $roleids);
+
+        return $roleids;
+    }
+
+    /**
+     * Every role that grants one of the capabilities a grade is written with.
+     *
+     * One query for the whole site rather than one per course: a site report
+     * covering a hundred thousand courses asks this once. Asking it per course
+     * context — which is what would honour an override made in one course —
+     * would be a query per capability per course, and the report would stop
+     * being usable long before it became more accurate.
+     *
+     * So a role counts if it is granted a grading capability anywhere. That
+     * errs towards including a role rather than leaving it out, which is the
+     * right way round: a teacher wrongly left out means an activity nobody
+     * can grade and no explanation on screen, while a role wrongly included
+     * only reaches a grade if somebody holds it inside the course itself.
+     *
+     * @return int[]
+     */
+    private static function grading_roles(): array {
+        global $DB;
+
+        [$insql, $params] = $DB->get_in_or_equal(grader_picker::grade_capabilities(), SQL_PARAMS_NAMED);
+        $params['allow'] = CAP_ALLOW;
+
+        return array_map('intval', $DB->get_fieldset_sql(
+            "SELECT DISTINCT rc.roleid
+               FROM {role_capabilities} rc
+              WHERE rc.capability {$insql} AND rc.permission = :allow",
+            $params
+        ));
+    }
+
+    /**
+     * The roles the site named by hand, as ids.
+     *
+     * @param bool $programme Read the programme list instead of the subject one.
+     * @return int[]
+     */
+    private static function chosen_roles(bool $programme): array {
+        global $DB;
+
+        $setting = get_config('local_autograder', $programme ? 'coordinator_roles' : 'teacher_roles');
+        $shortnames = array_values(array_filter(array_map('trim', explode(',', (string) $setting))));
+
+        if ($shortnames === []) {
+            return [];
+        }
+
+        return array_map('intval', array_keys($DB->get_records_list('role', 'shortname', $shortnames, '', 'id')));
     }
 
     /**
@@ -239,18 +315,6 @@ final class teacher_source {
         return $programme !== false && $programme !== ''
             && $course->category != $subject
             && $course->category == $programme;
-    }
-
-    /**
-     * The role shortnames that make somebody a teacher of a course.
-     *
-     * @param bool $programme Read the programme list instead of the subject one.
-     * @return string[]
-     */
-    private static function teacher_roles(bool $programme): array {
-        $setting = get_config('local_autograder', $programme ? 'coordinator_roles' : 'teacher_roles');
-
-        return array_values(array_filter(array_map('trim', explode(',', (string) $setting))));
     }
 
     /**

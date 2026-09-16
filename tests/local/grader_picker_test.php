@@ -17,6 +17,7 @@
 namespace local_autograder\local;
 
 use local_autograder\local\grading\grader_picker;
+use local_autograder\local\grading\teacher_source;
 
 /**
  * Whose name a grade is posted in.
@@ -98,7 +99,7 @@ final class grader_picker_test extends \advanced_testcase {
      */
     public function test_the_site_fallback_stands_in_for_a_course_with_nobody(): void {
         $standin = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        set_config('teacher_roles', 'editingteacher', 'local_autograder');
+        $this->choose_roles('editingteacher');
         set_config('fallback_grader', $standin->id, 'local_autograder');
 
         $this->assertNull(
@@ -356,7 +357,7 @@ final class grader_picker_test extends \advanced_testcase {
     public function test_programme_uses_coordinator_roles(): void {
         $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $coordinator = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        set_config('teacher_roles', 'editingteacher', 'local_autograder');
+        $this->choose_roles('editingteacher');
         set_config('coordinator_roles', 'teacher', 'local_autograder');
         set_config('subject_course_category', -1, 'local_autograder');
         set_config('program_course_category', $this->course->category, 'local_autograder');
@@ -426,6 +427,23 @@ final class grader_picker_test extends \advanced_testcase {
 
     /**
      * Puts a user in a group.
+     *
+     * @param \stdClass $group
+     * @param \stdClass $user
+     */
+    /**
+     * Pins the teaching roles by hand, instead of letting them be worked out.
+     *
+     * @param string $shortnames Comma-separated.
+     */
+    private function choose_roles(string $shortnames): void {
+        set_config('teacher_source_mode', teacher_source::MODE_CHOSEN_ROLES, 'local_autograder');
+        set_config('teacher_roles', $shortnames, 'local_autograder');
+        \cache_helper::purge_all();
+    }
+
+    /**
+     * Adds a user to a group.
      *
      * @param \stdClass $group
      * @param \stdClass $user

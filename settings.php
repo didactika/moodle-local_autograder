@@ -98,6 +98,22 @@ if ($hassiteconfig) {
         get_string('setting:teachers_heading', 'local_autograder'),
     ));
 
+    // Worked out rather than listed, by default. Naming the roles by hand is
+    // what broke this: a site added a corrector role, every course it taught
+    // reported that nobody could grade it, and nothing on screen said why.
+    $teachers->add(new admin_setting_configselect(
+        'local_autograder/teacher_source_mode',
+        get_string('setting:teacher_source_mode', 'local_autograder'),
+        get_string('setting:teacher_source_mode_desc', 'local_autograder'),
+        \local_autograder\local\grading\teacher_source::MODE_GRADING_ROLES,
+        [
+            \local_autograder\local\grading\teacher_source::MODE_GRADING_ROLES =>
+                get_string('setting:teacher_source_mode_grading', 'local_autograder'),
+            \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES =>
+                get_string('setting:teacher_source_mode_chosen', 'local_autograder'),
+        ],
+    ));
+
     $roleoptions = [];
     $teacherarchetypes = [];
 
@@ -145,6 +161,17 @@ if ($hassiteconfig) {
         get_string('setting:program_course_category_desc', 'local_autograder'),
         1,
     ));
+
+    // Everything below the mode belongs to the hand-picked answer, so it only
+    // appears once a site has asked for that.
+    foreach (['teacher_roles', 'coordinator_roles', 'subject_course_category', 'program_course_category'] as $name) {
+        $teachers->hide_if(
+            'local_autograder/' . $name,
+            'local_autograder/teacher_source_mode',
+            'neq',
+            \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES,
+        );
+    }
 
     $settings->add($teachers);
 

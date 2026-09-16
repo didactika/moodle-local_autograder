@@ -72,10 +72,10 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091602, 'local', 'autograder');
     }
 
-    if ($oldversion < 2026091603) {
+    if ($oldversion < 2026091604) {
         upgrade_local_autograder_adopt_teacher_settings();
 
-        upgrade_plugin_savepoint(true, 2026091603, 'local', 'autograder');
+        upgrade_plugin_savepoint(true, 2026091604, 'local', 'autograder');
     }
 
     return true;
