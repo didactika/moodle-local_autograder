@@ -142,6 +142,20 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
         new xmldb_field('delayseconds', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'),
     ];
 
+    // v2's own schema already indexed cmid and courseid somehow (a plain
+    // index, or a key that is index-backed either way), and a column type
+    // change is refused outright while any index still depends on it. Both
+    // are recreated a few lines below regardless (see $courseidindex,
+    // $cmidunique), so the old one just needs to be out of the way, not
+    // replaced in place.
+    foreach (['cmid', 'courseid'] as $indexedfield) {
+        $oldindex = new xmldb_index($indexedfield, XMLDB_INDEX_NOTUNIQUE, [$indexedfield]);
+
+        if ($dbman->find_index_name($table, $oldindex) !== false) {
+            $dbman->drop_index($table, $oldindex);
+        }
+    }
+
     foreach ($definitions as $field) {
         if (!$dbman->field_exists($table, $field)) {
             continue;
