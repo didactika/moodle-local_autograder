@@ -23,8 +23,7 @@ use local_autograder\local\grading\advanced_grading;
  * exceptions move that date for a given student, and how to post a grade to
  * it the way a teacher would.
  *
- * One subclass per activity type that needs its own answer; {@see
- * generic_adapter} covers everything else through the gradebook.
+ * One subclass per activity type that needs its own answer; {@see generic_adapter} covers everything else through the gradebook.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -139,6 +138,9 @@ abstract class module_adapter {
      * @throws \moodle_exception When the grade could not be posted.
      */
     final public function write_grade(int $userid, int $graderid): float {
+        if (!\local_autograder\local\grading\grader_picker::can_grade($this->cm, $graderid, $userid)) {
+            throw new \moodle_exception('error:gradewritefailed', 'local_autograder');
+        }
         self::$writing = true;
 
         try {

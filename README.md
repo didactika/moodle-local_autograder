@@ -11,11 +11,25 @@ grades on the site's behalf, and calling Moodle's own grading APIs — including
 simple direct grading, scales, and advanced grading (rubrics and marking
 guides), simulated exactly as a teacher would grade by hand.
 
-Who grades on the site's behalf is a capability, not a setting:
-`local/autograder:gradeonbehalf`, granted to editing teachers by default and
-adjusted with an ordinary role override. A site can additionally offer every
-user a preference asking never to be chosen — off by default, because taking
-teachers out of the rota changes who is graded and when.
+Teacher association follows `local_resume`: configured teacher roles for subjects
+and coordinator roles for programmes, narrowed to shared groups in the course's
+default grouping when the course uses separate groups. Like resume, an empty
+group match falls back to the course teachers. Profile role visibility does not
+determine grading rights, so the result is independent of the report or cron user.
+
+Candidates must be active, must not be administrators or guests, and must not
+have opted out. The picker checks course access, the actual adapter's grading
+capability in the module context, and access to the student's activity group.
+Assignments use `mod/assign:grade`, forums use `mod/forum:grade`; quiz and generic
+gradebook overrides use `moodle/grade:edit`. Moodle resolves inherited grants and
+module prohibitions. An eligible associated teacher always precedes the configured
+fallback, which must pass the same checks. Without either, the decision fails.
+
+The report and worker share `grader_picker::resolve_for()`. Course association,
+user eligibility, groups and module lookups are cached for the request; the
+worker clears this data before each grading task. The final write also checks
+permission. A write failure is recorded without attempting a second write in a
+different person's name. Existing database upgrade steps are unchanged.
 
 ## Installing via uploaded ZIP file ##
 

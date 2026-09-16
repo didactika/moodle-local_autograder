@@ -53,6 +53,7 @@ class grade_student extends \core\task\adhoc_task {
      * Re-checks everything, then grades — or decides not to.
      */
     public function execute(): void {
+        grader_picker::reset_caches();
         $data = $this->get_custom_data();
         $decision = decision_repository::get((int) ($data->decisionid ?? 0));
 
@@ -126,42 +127,18 @@ class grade_student extends \core\task\adhoc_task {
     ): void {
         $userid = (int) $decision->userid;
 
-        // Whether a teacher can really post this grade is not asked in
-        // advance, it is found out by asking Moodle to post it. So each
-        // candidate is tried in turn: the student's own teacher first, then
-        // the site's fallback, and if neither could, the decision fails —
-        // a grade is never posted in the name of somebody who was only
-        // reachable because they administer the site.
-        $attempts = array_values(array_unique(array_filter([
-            grader_picker::pick_for((int) $cm->id, $userid),
-            grader_picker::fallback_for((int) $cm->id),
-        ], static fn(?int $id): bool => $id !== null)));
-
-        if ($attempts === []) {
+        $graderid = grader_picker::resolve_for((int) $cm->id, $userid);
+        if ($graderid === null) {
             $this->fail($decision, $cm, 'no_grader');
-
             return;
         }
 
-        $graderid = null;
-        $posted = null;
-        $lasterror = '';
-
-        foreach ($attempts as $candidate) {
-            try {
-                $posted = $adapter->write_grade($userid, $candidate);
-                $graderid = $candidate;
-                break;
-            } catch (\Throwable $e) {
-                // One student's grade failing must not take the rest down with
-                // it, so this is recorded and left, not rethrown.
-                $lasterror = $e->getMessage();
-            }
-        }
-
-        if ($graderid === null) {
-            $this->fail($decision, $cm, 'grade_write_failed', $lasterror);
-
+        try {
+            $posted = $adapter->write_grade($userid, $graderid);
+        } catch (\Throwable $e) {
+            // A write error may occur after side effects. Do not retry the same
+            // grade under a different identity or conceal the original failure.
+            $this->fail($decision, $cm, 'grade_write_failed', $e->getMessage());
             return;
         }
 

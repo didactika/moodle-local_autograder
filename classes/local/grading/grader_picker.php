@@ -17,323 +17,249 @@
 namespace local_autograder\local\grading;
 
 /**
- * Which teacher autograder grades a given student on behalf of.
+ * Select an associated teacher who can grade this student in this activity.
  *
- * The answer is `local_resume`'s, asked through {@see teacher_source} rather
- * than worked out again here — and it is that answer entire, with nothing
- * added to it. It used to be worked out here, from a capability of this
- * plugin's own, and that produced a different list from the one the student is
- * shown as their own teachers: a grade signed by somebody the student has
- * never been told is their teacher. The capability has since been dropped.
- *
- * Three rules settle the rest, in order:
- *
- * - A site administrator is never chosen, for anything. They hold every
- *   capability in every course, so any rule phrased in capabilities picks
- *   them everywhere, and their name on a grade says nothing true.
- * - A student with no teacher falls to the site's configured fallback grader.
- * - With no fallback either, the decision fails and says so. Nothing is
- *   posted in a name that was not really behind it — least of all somebody
- *   who merely holds a grading capability in the course.
- *
- * No capability is checked while choosing — see {@see self::pick_for()}.
- *
- * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package local_autograder
+ * @copyright 2026 Didactika.org
+ * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class grader_picker {
-    /**
-     * The capability that actually lets Moodle accept a grade for a module
-     * type, by `modname`. A type not listed here falls back to
-     * `moodle/grade:edit` — the generic gradebook-override capability, which
-     * is what the generic adapter writes through.
-     */
+    /** @var array Native grading permissions; other adapters override the gradebook. */
     private const GRADE_CAPABILITY_BY_MODULE = [
         'assign' => 'mod/assign:grade',
-        'quiz' => 'mod/quiz:grade',
         'forum' => 'mod/forum:grade',
     ];
 
-    /** @var string The capability a type not in {@see GRADE_CAPABILITY_BY_MODULE} is graded through. */
-    private const DEFAULT_GRADE_CAPABILITY = 'moodle/grade:edit';
-
     /**
-     * Picks the teacher to grade one student in one course module, or null
-     * when the student has none.
-     *
-     * Who a student's teachers are is not decided here: it is
-     * `local_resume`'s answer, asked through {@see teacher_source}, so that
-     * the name on the grade is one of the names the student is shown as their
-     * own teachers. Nothing else would be defensible to either of them.
-     *
-     * No capability is checked while choosing. Whether the chosen teacher can
-     * really post the grade is settled by trying, at the moment of grading —
-     * see {@see \local_autograder\task\grade_student}, which falls back and
-     * then fails rather than guessing in advance.
-     *
-     * Deliberately called at the moment of grading, not when the decision is
-     * created: a teacher can join or leave the course, or a group, in the days
-     * a decision waits to be due.
+     * Select among associated teachers, after checking activity access.
      *
      * @param int $cmid
      * @param int $studentid
-     * @return int|null The chosen user id, or null when the student has no teacher.
+     * @return int|null
      */
     public static function pick_for(int $cmid, int $studentid): ?int {
-        $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING);
-
+        $cm = self::module($cmid);
         if (!$cm) {
             return null;
         }
-
-        return self::pick_for_course((int) $cm->course, $studentid);
+        $candidates = array_filter(
+            self::candidates_for_course((int) $cm->course, $studentid),
+            static fn(int $id): bool => self::can_grade($cm, $id, $studentid)
+        );
+        return self::tie_break($candidates, (int) $cm->course);
     }
 
     /**
-     * The same choice, made from the course rather than one of its activities.
+     * The same effective choice used by both the worker and the report.
      *
-     * Who a student's teachers are is a fact about the course, so nothing in
-     * the answer needs the activity — which is what lets a report show, for a
-     * whole course at once, who would be grading whom.
+     * @param int $cmid
+     * @param int $studentid
+     * @return int|null
+     */
+    public static function resolve_for(int $cmid, int $studentid): ?int {
+        return self::pick_for($cmid, $studentid) ?? self::fallback_for($cmid, $studentid);
+    }
+
+    /**
+     * Course association only: activity overrides can change the final choice.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int|null
      */
     public static function pick_for_course(int $courseid, int $studentid): ?int {
-        $candidates = self::candidates_for_course($courseid, $studentid);
-
-        if (empty($candidates)) {
-            return null;
-        }
-
-        return self::tie_break(array_flip($candidates), $courseid);
+        return self::tie_break(self::candidates_for_course($courseid, $studentid), $courseid);
     }
 
     /**
-     * Those of a list who may actually be chosen.
-     *
-     * Public so that a report showing who could grade a course filters the
-     * list through the same rule the picker itself applies, instead of
-     * offering names this class would then refuse.
+     * Active, non-administrator accounts that have not opted out.
      *
      * @param int[] $userids
      * @return int[]
      */
     public static function usable(array $userids): array {
-        $usable = [];
+        global $DB;
 
-        foreach ($userids as $userid) {
-            if (!self::must_never_grade($userid) && !self::has_opted_out($userid)) {
-                $usable[] = (int) $userid;
+        $userids = array_values(array_unique(array_filter(array_map('intval', $userids))));
+        if (!$userids) {
+            return [];
+        }
+        $cache = self::request_cache();
+        $key = 'usable-' . sha1(implode(',', $userids));
+        $cached = $cache->get($key);
+        if ($cached !== false) {
+            return $cached;
+        }
+        [$insql, $params] = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
+        $params['preference'] = 'local_autograder_optout';
+        $users = $DB->get_records_sql(
+            "SELECT u.id, p.value AS optout
+               FROM {user} u
+          LEFT JOIN {user_preferences} p ON p.userid = u.id AND p.name = :preference
+              WHERE u.id {$insql} AND u.deleted = 0 AND u.suspended = 0",
+            $params
+        );
+        $usable = [];
+        foreach ($users as $user) {
+            if (!self::must_never_grade((int) $user->id) && empty($user->optout)) {
+                $usable[] = (int) $user->id;
             }
         }
-
+        $cache->set($key, $usable);
         return $usable;
     }
 
     /**
-     * Everybody who could be chosen for this student, not just the one who is.
-     *
-     * The honest answer when something asks who might grade this student
-     * rather than who would today: the choice can change between now and the
-     * moment the grade is due, as teachers join and leave the course.
+     * The student's associated teachers, before activity permission checks.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[]
      */
     public static function candidates_for_course(int $courseid, int $studentid): array {
-        return self::teachers_of($courseid, $studentid);
+        return array_values(array_diff(self::usable(teacher_source::teachers_of($courseid, $studentid)), [$studentid]));
     }
 
     /**
-     * The student's teachers, minus the ones who must never be chosen.
-     *
-     * Cached per request and per student, because the answer costs
-     * local_resume several queries and one activity's catch-up asks it for
-     * every student on the course.
-     *
-     * @param int $courseid
-     * @param int $studentid
-     * @return int[]
-     */
-    private static function teachers_of(int $courseid, int $studentid): array {
-        $cache = self::request_cache();
-        $key = 'teachers-' . $courseid . '-' . $studentid;
-        $cached = $cache->get($key);
-
-        if ($cached !== false) {
-            return $cached;
-        }
-
-        $teachers = self::usable(teacher_source::teachers_of($courseid, $studentid));
-
-        $cache->set($key, $teachers);
-
-        return $teachers;
-    }
-
-    /**
-     * Whether a user must never have a grade posted in their name.
-     *
-     * A site administrator never grades. They hold every capability
-     * everywhere, so any rule written in terms of capabilities picks them for
-     * every course on the site — and a grade signed by the administrator
-     * account tells a student nothing true about who taught them.
-     *
      * @param int $userid
-     * @return bool
+     * @return bool Whether this identity must never sign an automatic grade.
      */
     public static function must_never_grade(int $userid): bool {
         return $userid <= 0 || is_siteadmin($userid) || isguestuser($userid);
     }
 
     /**
-     * The site's configured last resort, for when the student has no teacher
-     * who could post the grade.
+     * Configured fallback; when an activity is supplied it must be gradable.
+     * A zero cmid exposes the configured identity only, for course summaries.
      *
      * @param int $cmid
+     * @param int $studentid Zero when no student is in scope.
      * @return int|null
      */
-    public static function fallback_for(int $cmid): ?int {
-        unset($cmid);
-
-        return self::fallback_grader();
-    }
-
-    /**
-     * Where the answers that cannot change during one request are kept.
-     *
-     * Who may grade a module is asked once per student, and the report asks it
-     * for every waiting student on a page. The questions underneath — who
-     * holds a capability in this context, who is in which group — each cost a
-     * real query against role assignments or group membership, and none of
-     * them can differ between two rows of the same page. A request cache
-     * rather than a static array, so that a test resetting the site clears
-     * this along with everything else.
-     *
-     * @return \cache_loader
-     */
-    private static function request_cache(): \cache_loader {
-        return \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'graderpicker');
-    }
-
-    /**
-     * The site's configured last resort, for a student whose course has no
-     * teacher of their own — or whose teacher turned out not to be able to
-     * post the grade.
-     *
-     * @return int|null
-     */
-    private static function fallback_grader(): ?int {
-        $fallbackid = (int) get_config('local_autograder', 'fallback_grader');
-
-        if (self::must_never_grade($fallbackid) || self::has_opted_out($fallbackid)) {
+    public static function fallback_for(int $cmid, int $studentid = 0): ?int {
+        $id = (int) get_config('local_autograder', 'fallback_grader');
+        if (!self::usable([$id])) {
             return null;
         }
-
-        // No capability check here either: whether they can really post this
-        // grade is settled by posting it. If they cannot, there is nobody left
-        // and the decision fails — which is the honest outcome, and the one an
-        // administrator would otherwise have been silently used to hide.
-        return $fallbackid;
-    }
-
-    /**
-     * Picks one candidate deterministically, per the site's configured rule.
-     *
-     * @param array $candidates Keyed by user id.
-     * @param int $courseid
-     * @return int
-     */
-    private static function tie_break(array $candidates, int $courseid): int {
-        if (count($candidates) === 1) {
-            return (int) array_key_first($candidates);
-        }
-
-        if (get_config('local_autograder', 'tiebreak') === 'last_course_access') {
-            $mostrecent = self::most_recently_active(array_keys($candidates), $courseid);
-
-            if ($mostrecent !== null) {
-                return $mostrecent;
+        if ($cmid > 0) {
+            $cm = self::module($cmid);
+            if (!$cm || !self::can_grade($cm, $id, $studentid)) {
+                return null;
             }
         }
-
-        $ids = array_map('intval', array_keys($candidates));
-        sort($ids);
-
-        return $ids[0];
+        return $id;
     }
 
     /**
-     * The candidate who accessed the course most recently, or null when none
-     * of them ever has (falls back to the lowest user id, same as the
-     * default rule).
-     *
-     * @param array $candidateids Their user ids.
-     * @param int $courseid
-     * @return int|null
-     */
-    private static function most_recently_active(array $candidateids, int $courseid): ?int {
-        global $DB;
-
-        [$insql, $params] = $DB->get_in_or_equal(array_map('intval', $candidateids), SQL_PARAMS_NAMED);
-        $params['courseid'] = $courseid;
-
-        $sql = "SELECT userid
-                  FROM {user_lastaccess}
-                 WHERE courseid = :courseid AND userid $insql
-              ORDER BY timeaccess DESC";
-
-        $userid = $DB->get_field_sql($sql, $params, IGNORE_MULTIPLE);
-
-        return $userid ? (int) $userid : null;
-    }
-
-    /**
-     * The capability that lets Moodle accept a grade for this module type.
-     *
-     * @param string $modname
-     * @return string
-     */
-    private static function grade_capability_for(string $modname): string {
-        return self::GRADE_CAPABILITY_BY_MODULE[$modname] ?? self::DEFAULT_GRADE_CAPABILITY;
-    }
-
-    /**
-     * Whether a user is someone who grades this activity rather than someone
-     * who is graded on it.
-     *
-     * Used to keep teachers out of the set of students autograder watches.
+     * Validate only permissions needed to grade: course access, the adapter's
+     * grading capability, and access to the student's activity group.
+     * Module context resolves inherited grants and activity prohibitions.
      *
      * @param \cm_info|\stdClass $cm
-     * @param int $userid
+     * @param int $graderid
+     * @param int $studentid
      * @return bool
+     */
+    public static function can_grade(\cm_info|\stdClass $cm, int $graderid, int $studentid = 0): bool {
+        if ($graderid === $studentid || !self::usable([$graderid])) {
+            return false;
+        }
+        $cache = self::request_cache();
+        $key = 'permission-' . $cm->id . '-' . $graderid;
+        $allowed = $cache->get($key);
+        if ($allowed === false) {
+            $coursecontext = \context_course::instance((int) $cm->course);
+            $allowed = (int) (self::grades_this_module($cm, $graderid)
+                && (is_enrolled($coursecontext, $graderid, '', true)
+                    || has_capability('moodle/course:view', $coursecontext, $graderid)));
+            $cache->set($key, $allowed);
+        }
+        if (!$allowed) {
+            return false;
+        }
+        $context = \context_module::instance((int) $cm->id);
+        if (groups_get_activity_groupmode($cm, teacher_source::course((int) $cm->course)) != SEPARATEGROUPS
+                || has_capability('moodle/site:accessallgroups', $context, $graderid)) {
+            return true;
+        }
+        // A course summary has no target student; it cannot promise group access.
+        if (!$studentid) {
+            return true;
+        }
+        $groups = teacher_source::groups_of((int) $cm->course, $graderid, (int) $cm->groupingid);
+        return (bool) array_intersect($groups, teacher_source::groups_of((int) $cm->course, $studentid));
+    }
+
+    /**
+     * @param \cm_info|\stdClass $cm
+     * @param int $userid
+     * @return bool Whether the adapter's grading capability is granted.
      */
     public static function grades_this_module(\cm_info|\stdClass $cm, int $userid): bool {
         return has_capability(
-            self::grade_capability_for($cm->modname),
+            self::GRADE_CAPABILITY_BY_MODULE[$cm->modname] ?? 'moodle/grade:edit',
             \context_module::instance((int) $cm->id),
             $userid
         );
     }
 
     /**
-     * Whether a user has asked never to be chosen.
+     * Deterministic tie break, including equal last-access timestamps.
      *
-     * @param int $userid
-     * @return bool
+     * @param int[] $candidates
+     * @param int $courseid
+     * @return int|null
      */
-    private static function has_opted_out(int $userid): bool {
-        // Honoured whenever it is set, and only then. Somebody who may grade
-        // is assumed willing to be graded on behalf of; the one thing that
-        // changes that is their own answer saying otherwise. The site setting
-        // decides whether the preference is *offered*, not whether an answer
-        // already given still counts — withdrawing the offer must not start
-        // putting grades in the name of somebody who asked us not to.
-        return (bool) get_user_preferences('local_autograder_optout', false, $userid);
+    private static function tie_break(array $candidates, int $courseid): ?int {
+        global $DB;
+
+        if (!$candidates) {
+            return null;
+        }
+        sort($candidates, SORT_NUMERIC);
+        if (count($candidates) > 1 && get_config('local_autograder', 'tiebreak') === 'last_course_access') {
+            $cache = self::request_cache();
+            $key = 'access-' . $courseid . '-' . sha1(implode(',', $candidates));
+            $picked = $cache->get($key);
+            if ($picked === false) {
+                [$insql, $params] = $DB->get_in_or_equal($candidates, SQL_PARAMS_NAMED);
+                $params['courseid'] = $courseid;
+                $records = $DB->get_records_sql(
+                    "SELECT userid FROM {user_lastaccess}
+                      WHERE courseid = :courseid AND userid {$insql}
+                   ORDER BY timeaccess DESC, userid ASC", $params, 0, 1
+                );
+                $picked = $records ? (int) array_key_first($records) : $candidates[0];
+                $cache->set($key, $picked);
+            }
+            return $picked;
+        }
+        return $candidates[0];
+    }
+
+    /**
+     * @param int $cmid
+     * @return \stdClass|null Module lookup shared by every row on a page.
+     */
+    private static function module(int $cmid): ?\stdClass {
+        $cache = self::request_cache();
+        $key = 'module-' . $cmid;
+        $cm = $cache->get($key);
+        if ($cm === false) {
+            $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING) ?: null;
+            $cache->set($key, $cm);
+        }
+        return $cm;
+    }
+
+    /** Clear selection data when a long-running cron worker starts another task. */
+    public static function reset_caches(): void {
+        self::request_cache()->purge();
+        \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'teachersource')->purge();
+    }
+
+    /** @return \cache_loader Request-only cache, reset between cron tasks by Moodle. */
+    private static function request_cache(): \cache_loader {
+        return \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'graderpicker');
     }
 }

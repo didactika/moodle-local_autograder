@@ -17,173 +17,168 @@
 namespace local_autograder\local\grading;
 
 /**
- * Who a student's teachers are — the same answer `local_resume` gives.
+ * Teacher association using local_resume's configured roles and grouping rules.
  *
- * Autograder used to work this out for itself, from a capability of its own.
- * That produced a different list from the one the student is shown as their
- * own teachers, and a grade posted in the name of somebody the student has
- * never been told is their teacher is wrong however defensible the capability
- * behind it was. The capability is gone; this is the only answer left.
+ * Profile role visibility is deliberately not a grading permission. Association
+ * must not depend on the report viewer or the cron user. The picker validates
+ * the resulting candidates against the actual activity grading permission.
  *
- * So the question is handed to `local_resume\local\teachers` rather than
- * answered again here: one implementation, one answer, and no way for the two
- * to drift apart as either changes.
- *
- * It is asked *as the student*, because that is what makes the two identical.
- * `local_resume` finishes by dropping the teachers whose role the viewer may
- * not see, and it reads that viewer off `$USER`. Called from a scheduled task
- * `$USER` is whatever the cron happens to be running as, which would filter
- * the list against a stranger and usually empty it. Run as the student, the
- * list that comes back is precisely the list the student sees on their own
- * page.
- *
- * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package local_autograder
+ * @copyright 2026 Didactika.org
+ * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class teacher_source {
-    /** @var string The class that owns this answer, when the site has it. */
-    private const RESUME_TEACHERS = '\local_resume\local\teachers';
-
-    /**
-     * Whether the site has the plugin that owns this answer.
-     *
-     * @return bool
-     */
+    /** @return bool Whether the association provider is installed. */
     public static function is_available(): bool {
         return \core_component::get_component_directory('local_resume') !== null
-            && class_exists(self::RESUME_TEACHERS);
+            && class_exists('\local_resume\local\teachers');
     }
 
     /**
-     * A student's teachers in one course — local_resume's answer, entire.
-     *
-     * Nothing is added to it and nothing is taken away: these are the people
-     * the student is shown as their own teachers, already narrowed to the ones
-     * sharing a group with them where the course separates groups. When it is
-     * empty the student has no teacher, and the caller's business is the site
-     * fallback and then failing — not widening the question until somebody
-     * turns up.
-     *
-     * @param int $courseid
-     * @param int $studentid
-     * @return int[] Their user ids.
-     */
-    public static function teachers_of(int $courseid, int $studentid): array {
-        return self::resume_teachers($courseid, $studentid);
-    }
-
-    /**
-     * Everybody who could grade anybody in this course.
-     *
-     * A property of the course, not of its students: it costs the same on a
-     * course of ten and a course of ten thousand, which is what lets a report
-     * open on this instead of on a per-student walk.
-     *
-     * Reports only, never grading: grading takes local_resume's answer and
-     * nothing else ({@see self::teachers_of()}). A report is asked a wider
-     * question — who in this course is in a position to grade anyone at all —
-     * and answers it with the union of Moodle's own answer, who holds
-     * `moodle/grade:edit` here, and local_resume's teachers of the course,
-     * since a site can name somebody a teacher through a role that does not
-     * carry that capability.
+     * Course candidates, without mixing teachers and programme coordinators.
      *
      * @param int $courseid
      * @return int[]
      */
     public static function possible_graders_in(int $courseid): array {
-        $possible = self::capable_graders($courseid);
+        global $DB;
 
-        foreach (self::course_teachers($courseid) as $teacherid) {
-            if (!in_array($teacherid, $possible, true)) {
-                $possible[] = $teacherid;
-            }
+        $cache = self::request_cache();
+        $key = 'teachers-' . $courseid;
+        $cached = $cache->get($key);
+        if ($cached !== false) {
+            return $cached;
         }
-
-        return $possible;
-    }
-
-    /**
-     * local_resume's teachers of a course, without narrowing to any student.
-     *
-     * @param int $courseid
-     * @return int[]
-     */
-    private static function course_teachers(int $courseid): array {
         if (!self::is_available()) {
             return [];
         }
 
-        $classname = self::RESUME_TEACHERS;
-
-        try {
-            // The programme/subject distinction is local_resume's own; asked
-            // for both so that neither kind of course comes back empty.
-            $teachers = $classname::get_teachers($courseid, false)
-                + $classname::get_teachers($courseid, true);
-        } catch (\Throwable $e) {
-            return [];
+        $course = self::course($courseid);
+        // Match local_resume::get_course_type(), including subject precedence.
+        $program = $course->category != get_config('local_resume', 'subject_course_category')
+            && $course->category == get_config('local_resume', 'program_course_category');
+        $roles = array_filter(array_map('trim', explode(',', (string) get_config(
+            'local_resume', $program ? 'coordinator_roles' : 'teacher_roles'
+        ))));
+        $teachers = [];
+        if ($roles !== []) {
+            [$insql, $params] = $DB->get_in_or_equal($roles, SQL_PARAMS_NAMED);
+            $params['contextid'] = \context_course::instance($courseid)->id;
+            $teachers = array_map('intval', $DB->get_fieldset_sql(
+                "SELECT DISTINCT ra.userid
+                   FROM {role_assignments} ra
+                   JOIN {role} r ON r.id = ra.roleid
+                  WHERE ra.contextid = :contextid AND r.shortname {$insql}",
+                $params
+            ));
         }
-
-        return array_map('intval', array_keys($teachers));
+        $cache->set($key, $teachers);
+        return $teachers;
     }
 
     /**
-     * Everybody Moodle itself says may grade in one course.
-     *
-     * `moodle/grade:edit` and nothing of this plugin's own. Autograder used to
-     * define a capability of its own and ask for that instead, which was a
-     * second answer to a question Moodle already answers — and a worse one: a
-     * user with two roles, one granting it and one not, was judged by
-     * whichever the plugin happened to look at. Moodle's own resolution
-     * allows unless something prohibits, so it is what decides here now.
-     *
-     * Course context rather than each activity's: asking per activity would
-     * mean one capability query per module on a campus that has millions.
+     * Preload only the requested users' memberships, shared across activities.
      *
      * @param int $courseid
-     * @return int[]
+     * @param int[] $userids
      */
-    private static function capable_graders(int $courseid): array {
-        $context = \context_course::instance($courseid, IGNORE_MISSING);
+    public static function prime_groups(int $courseid, array $userids): void {
+        global $DB;
 
-        if (!$context) {
-            return [];
+        $cache = self::request_cache();
+        $missing = [];
+        foreach (array_unique($userids) as $userid) {
+            if ($cache->get('groups-' . $courseid . '-' . $userid) === false) {
+                $missing[(int) $userid] = [];
+            }
         }
-
-        return array_map(
-            'intval',
-            array_keys(get_users_by_capability($context, 'moodle/grade:edit', 'u.id'))
-        );
+        // Bound IN lists even when a caller processes a whole course.
+        foreach (array_chunk(array_keys($missing), 500) as $ids) {
+            [$insql, $params] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+            $params['courseid'] = $courseid;
+            $records = $DB->get_records_sql(
+                "SELECT gm.id, gm.userid, gm.groupid
+                   FROM {groups_members} gm
+                   JOIN {groups} g ON g.id = gm.groupid
+                  WHERE g.courseid = :courseid AND gm.userid {$insql}",
+                $params
+            );
+            foreach ($records as $record) {
+                $missing[(int) $record->userid][] = (int) $record->groupid;
+            }
+        }
+        foreach ($missing as $userid => $groups) {
+            $cache->set('groups-' . $courseid . '-' . $userid, $groups);
+        }
     }
 
     /**
-     * The student's own teachers, as local_resume names them.
+     * User groups, optionally narrowed to one grouping.
+     *
+     * @param int $courseid
+     * @param int $userid
+     * @param int $groupingid
+     * @return int[]
+     */
+    public static function groups_of(int $courseid, int $userid, int $groupingid = 0): array {
+        global $DB;
+
+        self::prime_groups($courseid, [$userid]);
+        $cache = self::request_cache();
+        $groups = $cache->get('groups-' . $courseid . '-' . $userid);
+        if (!$groupingid) {
+            return $groups;
+        }
+        $key = 'grouping-' . $groupingid;
+        $allowed = $cache->get($key);
+        if ($allowed === false) {
+            $allowed = $DB->get_fieldset_select('groupings_groups', 'groupid', 'groupingid = ?', [$groupingid]);
+            $cache->set($key, $allowed);
+        }
+        return array_values(array_intersect($groups, $allowed));
+    }
+
+    /**
+     * Associated teachers; an empty group match falls back to course teachers,
+     * as in local_resume. Activity permissions are checked by grader_picker.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[]
      */
-    private static function resume_teachers(int $courseid, int $studentid): array {
-        if (!self::is_available()) {
-            return [];
+    public static function teachers_of(int $courseid, int $studentid): array {
+        $teachers = self::possible_graders_in($courseid);
+        $course = self::course($courseid);
+        if (!$teachers || groups_get_course_groupmode($course) != SEPARATEGROUPS
+                || !$course->defaultgroupingid
+                || has_capability('moodle/site:accessallgroups', \context_course::instance($courseid), $studentid)) {
+            return $teachers;
         }
+        self::prime_groups($courseid, array_merge($teachers, [$studentid]));
+        $groups = self::groups_of($courseid, $studentid, (int) $course->defaultgroupingid);
+        $matched = array_filter($teachers, static function(int $teacherid) use ($courseid, $groups): bool {
+            return (bool) array_intersect($groups, self::groups_of($courseid, $teacherid));
+        });
+        return array_values($matched ?: $teachers);
+    }
 
-        $classname = self::RESUME_TEACHERS;
-
-        try {
-            $teachers = acting_as::user(
-                $studentid,
-                static fn(): array => $classname::get_user_teachers_by_groups($courseid, $studentid)
-            );
-        } catch (\Throwable $e) {
-            // A course local_resume cannot answer for — one outside the
-            // categories it is configured with, say — is not a course where
-            // autograder should invent an answer of its own instead.
-            return [];
+    /**
+     * @param int $courseid
+     * @return \stdClass Course metadata shared by students and activities.
+     */
+    public static function course(int $courseid): \stdClass {
+        $cache = self::request_cache();
+        $key = 'course-' . $courseid;
+        $course = $cache->get($key);
+        if ($course === false) {
+            $course = get_course($courseid);
+            $cache->set($key, $course);
         }
+        return $course;
+    }
 
-        return array_map('intval', array_keys($teachers));
+    /** @return \cache_loader Request-only association data. */
+    private static function request_cache(): \cache_loader {
+        return \cache::make_from_params(\cache_store::MODE_REQUEST, 'local_autograder', 'teachersource');
     }
 }
