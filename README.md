@@ -1,13 +1,21 @@
 # Local Autograder #
 
-Autograder is a Moodle plugin designed to automatically grade assignments and forums based on the time elapsed and the grade specified by the instructor.
+Grades a student in an assign, forum or quiz activity automatically, some time
+after they are due to be graded, with the mark the teacher configured — running
+entirely inside Moodle.
 
-The autograding process takes place after the activity’s submission deadline has passed, provided that autograder is enabled for the activity. Once the activity has ended, the configured autograding time is counted.
+Everything the v2 plugin left to an external service (`autograder-service`) now
+happens here: detecting who is pending, working out the due date from the
+activity's own close date and any user/group exception, choosing which teacher
+grades on the site's behalf, and calling Moodle's own grading APIs — including
+simple direct grading, scales, and advanced grading (rubrics and marking
+guides), simulated exactly as a teacher would grade by hand.
 
-This plugin stores the data entered through its configuration form and interacts with an external service that uses RabbitMQ to handle the autograding logic.
-
-By automating the grading process according to predefined rules, this plugin reduces the instructor’s administrative workload while ensuring consistent and timely grading.
-
+Who grades on the site's behalf is a capability, not a setting:
+`local/autograder:gradeonbehalf`, granted to editing teachers by default and
+adjusted with an ordinary role override. A site can additionally offer every
+user a preference asking never to be chosen — off by default, because taking
+teachers out of the rota changes who is graded and when.
 
 ## Installing via uploaded ZIP file ##
 
@@ -34,7 +42,7 @@ to complete the installation from the command line.
 
 ## License ##
 
-2025 Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
+2026 Didactika.org — Hector Arrechea <hectorlazaroarrechea@gmail.com>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

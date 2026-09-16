@@ -15,43 +15,57 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Backup definition for local_autograder plugin.
+ * Carries an activity's autograder settings along with the activity.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Backs up what a teacher configured, and only that.
+ *
+ * The decisions and the grading log are deliberately left out. Both are
+ * worked out from this course's own completions, submissions and enrolments,
+ * and both point at rows — a queued task, a grading teacher — that mean
+ * nothing in the course this backup is restored into. Restoring them would
+ * produce a copy of the record without the facts behind it; instead the
+ * restore asks autograder to look at the restored course and decide again,
+ * which gets the same answers where the same data came across and the right
+ * ones where it did not.
+ *
+ * @package     local_autograder
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class backup_local_autograder_plugin extends backup_local_plugin {
-
+    /**
+     * One activity's autograder configuration.
+     *
+     * @return backup_plugin_element
+     */
     protected function define_module_plugin_structure() {
-        if (!get_config('local_autograder', 'enable')) return;
         $plugin = $this->get_plugin_element();
-
-        if (!$plugin) {
-            return null;
-        }
-
         $wrapper = new backup_nested_element($this->get_recommended_name());
-
-        $autograder = new backup_nested_element('local_autograder', ['id'], [
-            'cmid',
-            'courseid',
-            'enable',
-            'gradetoassign',
-            'processingdelayseconds',
-            'timemodified'
-        ]);
-
         $plugin->add_child($wrapper);
-        $wrapper->add_child($autograder);
 
-        $autograder->set_source_table('local_autograder', [
-            'cmid' => backup::VAR_MODID
+        $config = new backup_nested_element('autograder_config', ['id'], [
+            'enabled',
+            'grademethod',
+            'gradevalue',
+            'advancedgrading',
+            'delayseconds',
+            'usermodified',
+            'timecreated',
+            'timemodified',
         ]);
+
+        $wrapper->add_child($config);
+
+        $config->set_source_table('local_autograder_config', ['cmid' => backup::VAR_MODID]);
+        $config->annotate_ids('user', 'usermodified');
 
         return $plugin;
     }

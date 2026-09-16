@@ -15,70 +15,124 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Restore of plugin local is here.
+ * Puts an activity's autograder settings back, and asks autograder to look at
+ * the restored activity afresh.
  *
  * @package     local_autograder
- * @copyright   2026 Acción Docente SDR <ct.accion.docente@funiber.org>
- * @author      Eduardo Cubias <eduardo.cubias@ct.uneatlantico.es>
- * @author      Hector Arrechea <hector.arrechea@uneatlantico.es>
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
-class restore_local_autograder_plugin extends restore_local_plugin
-{
+use local_autograder\local\config\config_repository;
+use local_autograder\local\config\eligibility;
+use local_autograder\task\catch_up_module;
 
-    /** @var array Stores autograder records to insert after execute */
-    protected $pendingrecords = [];
+/**
+ * Restores the configuration, then leaves the decisions to be worked out from
+ * the restored course rather than copied from the old one.
+ *
+ * Two things are deliberately not carried over as they stood. The grading
+ * method is re-read from the activity that actually exists here, because a
+ * restore can land in a site whose scales differ; and a rubric or marking
+ * guide filling is dropped, because restoring a grading form gives every
+ * criterion a new id, so the stored selection would point at criteria that no
+ * longer exist. The teacher is asked to pick the levels again rather than
+ * being given a configuration that looks complete and is not.
+ *
+ * @package     local_autograder
+ * @copyright  2026 Didactika.org
+ * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class restore_local_autograder_plugin extends restore_local_plugin {
+    /**
+     * The backed-up configuration, held until the restored activity is
+     * complete enough to read its real grading method back off it.
+     *
+     * @var \stdClass|null
+     */
+    protected ?\stdClass $pending = null;
 
     /**
-     * Define the paths in the backup XML that we want to process at module level.
+     * The paths this plugin claims inside an activity.
      *
      * @return restore_path_element[]
      */
-    protected function define_module_plugin_structure()
-    {
-        if (!get_config('local_autograder', 'enable')) return;
-
-        $paths = [];
-        $paths[] = new restore_path_element(
-            'local_autograder',
-            $this->get_pathfor('/local_autograder')
-        );
-
-        return $paths;
+    protected function define_module_plugin_structure() {
+        return [
+            new restore_path_element('autograder_config', $this->get_pathfor('/autograder_config')),
+        ];
     }
 
     /**
-     * Collect each local_autograder record from the backup for deferred processing.
-     * @param array|stdClass $data
+     * Holds one activity's configuration until the activity is finished.
+     *
+     * @param array|object $data
      */
-    public function process_local_autograder($data)
-    {
-        $this->pendingrecords[] = (object)$data;
+    public function process_autograder_config($data) {
+        $this->pending = (object) $data;
     }
 
     /**
-     * Called after the parent module has been fully restored and all mappings
-     * are guaranteed to exist. Insert the collected autograder records now.
+     * Writes the configuration against the restored activity, then has
+     * autograder decide what it owes the students who came across with it.
+     *
+     * By this point the activity, its grade item and its grading form all
+     * exist, which is what makes reading the real grading method back off it
+     * possible at all.
      */
-    public function after_restore_module()
-    {
-        global $DB;
-
-        foreach ($this->pendingrecords as $data) {
-            $newcmid = $this->get_mappingid('course_module', $data->cmid);
-            if (!$newcmid) {
-                $newcmid = $this->task->get_moduleid();
-            }
-            if ($newcmid) {
-                $data->cmid = $newcmid;
-                $data->courseid = $this->task->get_courseid();
-                unset($data->id);
-                $DB->insert_record('local_autograder', $data);
-            }
+    public function after_restore_module() {
+        if ($this->pending === null) {
+            return;
         }
 
-        $this->pendingrecords = [];
+        $data = $this->pending;
+        $this->pending = null;
+
+        $cmid = (int) $this->task->get_moduleid();
+
+        if ($cmid === 0) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, IGNORE_MISSING);
+
+        if (!$cm || !eligibility::is_module_type_enabled($cm->modname)) {
+            // The activity type is not one this site allows autograder on.
+            return;
+        }
+
+        $grademethod = eligibility::grademethod_for($cm);
+
+        if ($grademethod === null) {
+            // It came back not graded at all; a configuration that can never
+            // fire is worse than none.
+            return;
+        }
+
+        $advanced = in_array($grademethod, ['rubric', 'guide'], true);
+
+        config_repository::upsert_for_cm(
+            $cmid,
+            (int) $cm->course,
+            !empty($data->enabled),
+            $grademethod,
+            $advanced ? null : (isset($data->gradevalue) ? (float) $data->gradevalue : null),
+            null,
+            (int) $data->delayseconds,
+            (int) $this->get_mappingid('user', $data->usermodified, $this->task->get_userid())
+        );
+
+        if (empty($data->enabled)) {
+            return;
+        }
+
+        $task = new catch_up_module();
+        $task->set_custom_data((object) ['cmid' => $cmid]);
+
+        // Adhoc rather than inline: a restore should not wait on a class-sized
+        // sweep, and the enrolments this reads may still be arriving.
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 }

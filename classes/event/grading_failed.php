@@ -14,20 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_autograder\event;
+
 /**
- * Plugin version and other meta-data are defined here.
+ * Autograder was due to grade a student and could not.
+ *
+ * `other` carries `modname` and `failurereason` — no eligible teacher, a
+ * grading method it cannot write, or Moodle refusing the grade.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class grading_failed extends decision_event_base {
+    /**
+     * The event's own display name.
+     */
+    public static function get_name(): string {
+        return get_string('event:grading_failed', 'local_autograder');
+    }
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * A human-readable account of what happened.
+     */
+    public function get_description(): string {
+        $reason = $this->other['failurereason'] ?? 'unknown';
 
-$plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
-$plugin->version = 2026091303;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->supported = [405, 502];
+        return "Autograder could not grade the user with id '{$this->relateduserid}' in the course module " .
+            "with id '{$this->contextinstanceid}': {$reason}.";
+    }
+}

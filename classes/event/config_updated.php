@@ -14,20 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_autograder\event;
+
 /**
- * Plugin version and other meta-data are defined here.
+ * A course module's autograder configuration changed — including being
+ * switched on or off.
+ *
+ * `other` carries the fields that changed.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class config_updated extends config_event_base {
+    /**
+     * The letter core files this kind of event under.
+     */
+    protected function crud_letter(): string {
+        return 'u';
+    }
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * The event's own display name.
+     */
+    public static function get_name(): string {
+        return get_string('event:config_updated', 'local_autograder');
+    }
 
-$plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
-$plugin->version = 2026091303;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->supported = [405, 502];
+    /**
+     * A human-readable account of what happened.
+     */
+    public function get_description(): string {
+        return "The user with id '{$this->userid}' updated the autograder configuration of the course " .
+            "module with id '{$this->contextinstanceid}'.";
+    }
+}
