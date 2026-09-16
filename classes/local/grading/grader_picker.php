@@ -20,10 +20,11 @@ namespace local_autograder\local\grading;
  * Which teacher autograder grades a given student on behalf of.
  *
  * The answer is `local_resume`'s, asked through {@see teacher_source} rather
- * than worked out again here. It used to be worked out here, from who held
- * `local/autograder:gradeonbehalf`, and that produced a different list from
- * the one the student is shown as their own teachers — a grade signed by
- * somebody the student has never been told is their teacher.
+ * than worked out again here — and it is that answer entire, with nothing
+ * added to it. It used to be worked out here, from a capability of this
+ * plugin's own, and that produced a different list from the one the student is
+ * shown as their own teachers: a grade signed by somebody the student has
+ * never been told is their teacher. The capability has since been dropped.
  *
  * Three rules settle the rest, in order:
  *
@@ -32,7 +33,8 @@ namespace local_autograder\local\grading;
  *   them everywhere, and their name on a grade says nothing true.
  * - A student with no teacher falls to the site's configured fallback grader.
  * - With no fallback either, the decision fails and says so. Nothing is
- *   posted in a name that was not really behind it.
+ *   posted in a name that was not really behind it — least of all somebody
+ *   who merely holds a grading capability in the course.
  *
  * No capability is checked while choosing — see {@see self::pick_for()}.
  *
@@ -101,16 +103,6 @@ final class grader_picker {
      * @return int|null
      */
     public static function pick_for_course(int $courseid, int $studentid): ?int {
-        // The student's own teachers first, and only if there are none does
-        // anyone else who merely may grade the course come into it. Otherwise
-        // the tie-break — lowest id, say — could sign the grade with somebody
-        // who teaches a different group, or does not teach at all.
-        $preferred = self::usable(teacher_source::preferred_teachers_of($courseid, $studentid));
-
-        if (!empty($preferred)) {
-            return self::tie_break(array_flip($preferred), $courseid);
-        }
-
         $candidates = self::candidates_for_course($courseid, $studentid);
 
         if (empty($candidates)) {
@@ -123,10 +115,14 @@ final class grader_picker {
     /**
      * Those of a list who may actually be chosen.
      *
+     * Public so that a report showing who could grade a course filters the
+     * list through the same rule the picker itself applies, instead of
+     * offering names this class would then refuse.
+     *
      * @param int[] $userids
      * @return int[]
      */
-    private static function usable(array $userids): array {
+    public static function usable(array $userids): array {
         $usable = [];
 
         foreach ($userids as $userid) {
@@ -141,9 +137,9 @@ final class grader_picker {
     /**
      * Everybody who could be chosen for this student, not just the one who is.
      *
-     * What a report shows when it is asked who might grade a course: the
-     * choice can change between now and the moment the grade is due, so the
-     * honest answer is the whole set rather than today's pick.
+     * The honest answer when something asks who might grade this student
+     * rather than who would today: the choice can change between now and the
+     * moment the grade is due, as teachers join and leave the course.
      *
      * @param int $courseid
      * @param int $studentid
@@ -173,15 +169,7 @@ final class grader_picker {
             return $cached;
         }
 
-        $teachers = [];
-
-        foreach (teacher_source::teachers_of($courseid, $studentid) as $teacherid) {
-            if (self::must_never_grade($teacherid) || self::has_opted_out($teacherid)) {
-                continue;
-            }
-
-            $teachers[] = $teacherid;
-        }
+        $teachers = self::usable(teacher_source::teachers_of($courseid, $studentid));
 
         $cache->set($key, $teachers);
 
@@ -257,7 +245,7 @@ final class grader_picker {
     /**
      * Picks one candidate deterministically, per the site's configured rule.
      *
-     * @param array<int, \stdClass> $candidates
+     * @param array $candidates Keyed by user id.
      * @param int $courseid
      * @return int
      */
@@ -285,7 +273,7 @@ final class grader_picker {
      * of them ever has (falls back to the lowest user id, same as the
      * default rule).
      *
-     * @param array<int|string> $candidateids
+     * @param array $candidateids Their user ids.
      * @param int $courseid
      * @return int|null
      */

@@ -19,11 +19,11 @@ namespace local_autograder\local\grading;
 /**
  * Who a student's teachers are — the same answer `local_resume` gives.
  *
- * Autograder used to work this out for itself, from who held
- * `local/autograder:gradeonbehalf`. That produced a different list from the
- * one the student is shown as their own teachers, and a grade posted in the
- * name of somebody the student has never been told is their teacher is wrong
- * however defensible the capability behind it was.
+ * Autograder used to work this out for itself, from a capability of its own.
+ * That produced a different list from the one the student is shown as their
+ * own teachers, and a grade posted in the name of somebody the student has
+ * never been told is their teacher is wrong however defensible the capability
+ * behind it was. The capability is gone; this is the only answer left.
  *
  * So the question is handed to `local_resume\local\teachers` rather than
  * answered again here: one implementation, one answer, and no way for the two
@@ -57,65 +57,87 @@ final class teacher_source {
     }
 
     /**
-     * Everybody who could grade in one course.
+     * A student's teachers in one course — local_resume's answer, entire.
      *
-     * The union of two answers, because either alone leaves out somebody a
-     * site would expect to see:
-     *
-     * - local_resume's teachers of this student, which is the list the
-     *   student is shown as their own and so the one a grade should
-     *   normally be signed with;
-     * - anyone holding `local/autograder:gradeonbehalf` in the course, which
-     *   is how a site says "this person may grade here" without going
-     *   through a teacher role at all.
-     *
-     * Ordered so that the student's own teachers come first: they are who
-     * should be picked when there is a choice, and the caller takes the
-     * first that works.
+     * Nothing is added to it and nothing is taken away: these are the people
+     * the student is shown as their own teachers, already narrowed to the ones
+     * sharing a group with them where the course separates groups. When it is
+     * empty the student has no teacher, and the caller's business is the site
+     * fallback and then failing — not widening the question until somebody
+     * turns up.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[] Their user ids.
      */
     public static function teachers_of(int $courseid, int $studentid): array {
-        $teachers = self::preferred_teachers_of($courseid, $studentid);
-
-        foreach (self::capable_graders($courseid) as $graderid) {
-            if (!in_array($graderid, $teachers, true)) {
-                $teachers[] = $graderid;
-            }
-        }
-
-        return $teachers;
+        return self::resume_teachers($courseid, $studentid);
     }
 
     /**
-     * The student's own teachers, and only those.
+     * Everybody who could grade anybody in this course.
      *
-     * Who the grade should be signed with when there is a choice: these are
-     * the people the student is shown as their teachers, already narrowed to
-     * the ones sharing a group with them where the course separates groups.
-     * Everybody else in {@see self::teachers_of()} merely *could* grade —
-     * they are who is left when this list is empty.
+     * A property of the course, not of its students: it costs the same on a
+     * course of ten and a course of ten thousand, which is what lets a report
+     * open on this instead of on a per-student walk.
+     *
+     * Reports only, never grading: grading takes local_resume's answer and
+     * nothing else ({@see self::teachers_of()}). A report is asked a wider
+     * question — who in this course is in a position to grade anyone at all —
+     * and answers it with the union of Moodle's own answer, who holds
+     * `moodle/grade:edit` here, and local_resume's teachers of the course,
+     * since a site can name somebody a teacher through a role that does not
+     * carry that capability.
      *
      * @param int $courseid
-     * @param int $studentid
      * @return int[]
      */
-    public static function preferred_teachers_of(int $courseid, int $studentid): array {
-        return self::resume_teachers($courseid, $studentid);
+    public static function possible_graders_in(int $courseid): array {
+        $possible = self::capable_graders($courseid);
+
+        foreach (self::course_teachers($courseid) as $teacherid) {
+            if (!in_array($teacherid, $possible, true)) {
+                $possible[] = $teacherid;
+            }
+        }
+
+        return $possible;
+    }
+
+    /**
+     * local_resume's teachers of a course, without narrowing to any student.
+     *
+     * @param int $courseid
+     * @return int[]
+     */
+    private static function course_teachers(int $courseid): array {
+        if (!self::is_available()) {
+            return [];
+        }
+
+        $classname = self::RESUME_TEACHERS;
+
+        try {
+            // The programme/subject distinction is local_resume's own; asked
+            // for both so that neither kind of course comes back empty.
+            $teachers = $classname::get_teachers($courseid, false)
+                + $classname::get_teachers($courseid, true);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        return array_map('intval', array_keys($teachers));
     }
 
     /**
      * Everybody Moodle itself says may grade in one course.
      *
      * `moodle/grade:edit` and nothing of this plugin's own. Autograder used to
-     * define a `gradeonbehalf` capability and ask for that instead, which was
-     * a second answer to a question Moodle already answers — and a worse one:
-     * a user with two roles, one granting it and one not, was judged by
-     * whichever the plugin happened to look at. `has_capability()` has always
-     * resolved that properly, allowing unless something prohibits, so it is
-     * what decides here now.
+     * define a capability of its own and ask for that instead, which was a
+     * second answer to a question Moodle already answers — and a worse one: a
+     * user with two roles, one granting it and one not, was judged by
+     * whichever the plugin happened to look at. Moodle's own resolution
+     * allows unless something prohibits, so it is what decides here now.
      *
      * Course context rather than each activity's: asking per activity would
      * mean one capability query per module on a campus that has millions.
