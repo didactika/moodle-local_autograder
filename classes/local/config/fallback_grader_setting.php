@@ -196,13 +196,19 @@ class fallback_grader_setting extends \admin_setting {
         // Progressive enhancement only — the plain select above already works
         // without it. See the class docblock for what to do once a static
         // option list stops being the right shape for this site.
+        //
+        // The arguments are positional and easy to get wrong: selector, tags,
+        // ajax module, placeholder, case sensitive, and then *show
+        // suggestions*, which has to be true or the field takes a search term
+        // and never offers anything for it — a picker that looks empty no
+        // matter how many users the select behind it holds.
         $PAGE->requires->js_call_amd('core/form-autocomplete', 'enhance', [
             '#' . $elementid,
             false,
             '',
             get_string('setting:fallback_grader_placeholder', 'local_autograder'),
             false,
-            false,
+            true,
         ]);
 
         return format_admin_setting(
