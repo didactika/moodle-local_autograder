@@ -142,7 +142,7 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
         new xmldb_field('delayseconds', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'),
     ];
 
-    // v2's own schema already indexed cmid and courseid somehow (a plain
+    // The v2 schema already indexed cmid and courseid somehow (a plain
     // index, or a key that is index-backed either way), and a column type
     // change is refused outright while any index still depends on it. Both
     // are recreated a few lines below regardless (see $courseidindex,

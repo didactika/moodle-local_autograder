@@ -73,6 +73,13 @@ if ($hassiteconfig) {
         0,
     ));
 
+    $general->add(new admin_setting_configcheckbox(
+        'local_autograder/notifystudent',
+        get_string('setting:notifystudent', 'local_autograder'),
+        get_string('setting:notifystudent_desc', 'local_autograder'),
+        0,
+    ));
+
     $settings->add($general);
 
     $modules = new admin_settingpage('local_autograder_modules', get_string('settings:modulestab', 'local_autograder'));

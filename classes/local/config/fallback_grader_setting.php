@@ -19,7 +19,8 @@ namespace local_autograder\local\config;
 /**
  * The site setting for `fallback_grader`: a single user, chosen
  * from a searchable dropdown that only ever lists users who could plausibly
- * grade something — holders of `moodle/grade:edit` at system context.
+ * grade something — holders of `local/autograder:gradeonbehalf` at system
+ * context.
  *
  * Renders as a plain `<select>` (so the setting works with JavaScript off)
  * progressively enhanced into a type-ahead search by `core/form-autocomplete`,
@@ -61,14 +62,14 @@ class fallback_grader_setting extends \admin_setting {
 
     /**
      * Every user this setting may ever point to: holders of
-     * `moodle/grade:edit` at system context, ordered by name.
+     * `local/autograder:gradeonbehalf` at system context, ordered by name.
      *
      * @return array<int, string> User id => fully-formatted name.
      */
     public static function eligible_users(): array {
         $users = get_users_by_capability(
             \context_system::instance(),
-            'moodle/grade:edit',
+            'local/autograder:gradeonbehalf',
             'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename',
         );
 

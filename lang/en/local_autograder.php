@@ -115,6 +115,8 @@ $string['setting:modules_disable'] = 'Disable autograder for {$a}';
 $string['setting:modules_enable'] = 'Enable autograder for {$a}';
 $string['setting:modules_enabled_column'] = 'Enabled';
 $string['setting:modules_heading'] = 'Choose which activity types can have autograder configured on the <a href="{$a->url}">autogradable activities page</a>.';
+$string['setting:notifystudent'] = 'Notify the student';
+$string['setting:notifystudent_desc'] = 'Uses the assignment module\'s own "notify students" option when autograder posts a grade — the same choice a teacher has when grading by hand. Only assignments support this natively; other activity types are unaffected. Off by default.';
 $string['setting:retentiondays'] = 'Retention (days)';
 $string['setting:retentiondays_desc'] = 'How long a finished decision and its grading log are kept before being purged.';
 $string['setting:tiebreak'] = 'Tie-break rule';

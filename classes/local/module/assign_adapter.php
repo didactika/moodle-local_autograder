@@ -185,7 +185,7 @@ class assign_adapter extends module_adapter {
                 'attemptnumber' => -1,
                 'addattempt' => false,
                 'applytoall' => false,
-                'sendstudentnotifications' => false,
+                'sendstudentnotifications' => (bool) get_config('local_autograder', 'notifystudent'),
             ];
 
             // Marking workflow is deliberately left alone: assign only reads
