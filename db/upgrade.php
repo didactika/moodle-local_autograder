@@ -62,7 +62,52 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091300, 'local', 'autograder');
     }
 
+    if ($oldversion < 2026091602) {
+        // A savepoint whose only job is to exist. The `gradeonbehalf`
+        // capability was dropped from `db/access.php` without the version
+        // moving, so `update_capabilities()` never ran and the site kept a
+        // capability no plugin declares any more — which Moodle then reports
+        // as a missing language string every time it lists the role's
+        // permissions. Bumping the version is what actually removes it.
+        upgrade_plugin_savepoint(true, 2026091602, 'local', 'autograder');
+    }
+
+    if ($oldversion < 2026091603) {
+        upgrade_local_autograder_adopt_teacher_settings();
+
+        upgrade_plugin_savepoint(true, 2026091603, 'local', 'autograder');
+    }
+
     return true;
+}
+
+/**
+ * Gives autograder its own answer to "which roles teach a course".
+ *
+ * It used to read another plugin's settings for this. Sites already running
+ * that way have the answer written down somewhere, and starting from a fresh
+ * default would silently change whose name their grades carry — so whatever
+ * they had is copied across once, and only a site that had nothing gets the
+ * defaults the settings page offers.
+ */
+function upgrade_local_autograder_adopt_teacher_settings(): void {
+    $adopted = [
+        'teacher_roles' => 'editingteacher,teacher',
+        'coordinator_roles' => 'editingteacher',
+        'subject_course_category' => '1',
+        'program_course_category' => '1',
+    ];
+
+    foreach ($adopted as $name => $fallback) {
+        if (get_config('local_autograder', $name) !== false) {
+            // Already answered here, on an upgrade run more than once.
+            continue;
+        }
+
+        $previous = get_config('local_resume', $name);
+
+        set_config($name, $previous === false ? $fallback : $previous, 'local_autograder');
+    }
 }
 
 /**

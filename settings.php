@@ -83,6 +83,71 @@ if ($hassiteconfig) {
 
     $settings->add($general);
 
+    // Who counts as a teacher is what decides whose name every grade carries,
+    // so a site says it here rather than autograder reading it out of another
+    // plugin's configuration — where a corrector role could be added, appear
+    // on the course, and still leave autograder thinking nobody taught it.
+    $teachers = new admin_settingpage(
+        'local_autograder_teachers',
+        get_string('settings:teacherstab', 'local_autograder')
+    );
+
+    $teachers->add(new admin_setting_heading(
+        'local_autograder/teachers_heading',
+        '',
+        get_string('setting:teachers_heading', 'local_autograder'),
+    ));
+
+    $roleoptions = [];
+    $teacherarchetypes = [];
+
+    foreach (role_fix_names(get_all_roles(), null, ROLENAME_ORIGINAL) as $role) {
+        $roleoptions[$role->shortname] = $role->localname . ' (' . $role->shortname . ')';
+
+        if (in_array($role->archetype, ['editingteacher', 'teacher'], true)) {
+            $teacherarchetypes[] = $role->shortname;
+        }
+    }
+
+    // Every role built on a teacher archetype, ticked to begin with: a site
+    // that names a corrector role almost always builds it on one, and the
+    // alternative default — the two stock roles — is exactly what left such a
+    // role out and the course with no teacher.
+    $teachers->add(new admin_setting_configmultiselect(
+        'local_autograder/teacher_roles',
+        get_string('setting:teacher_roles', 'local_autograder'),
+        get_string('setting:teacher_roles_desc', 'local_autograder'),
+        $teacherarchetypes,
+        $roleoptions,
+    ));
+
+    $teachers->add(new admin_setting_configmultiselect(
+        'local_autograder/coordinator_roles',
+        get_string('setting:coordinator_roles', 'local_autograder'),
+        get_string('setting:coordinator_roles_desc', 'local_autograder'),
+        $teacherarchetypes,
+        $roleoptions,
+    ));
+
+    // Both default to the site's top category, which is what core's own
+    // picker offers; a site that does not split its courses this way simply
+    // leaves them equal, and every course is then read as a subject.
+    $teachers->add(new admin_settings_coursecat_select(
+        'local_autograder/subject_course_category',
+        get_string('setting:subject_course_category', 'local_autograder'),
+        get_string('setting:subject_course_category_desc', 'local_autograder'),
+        1,
+    ));
+
+    $teachers->add(new admin_settings_coursecat_select(
+        'local_autograder/program_course_category',
+        get_string('setting:program_course_category', 'local_autograder'),
+        get_string('setting:program_course_category_desc', 'local_autograder'),
+        1,
+    ));
+
+    $settings->add($teachers);
+
     $modules = new admin_settingpage('local_autograder_modules', get_string('settings:modulestab', 'local_autograder'));
     $modules->add(new admin_setting_heading(
         'local_autograder/modules_heading',

@@ -19,8 +19,8 @@ namespace local_autograder\local\grading;
 /**
  * Select the associated teacher whose name an automatic grade is posted under.
  *
- * Association is {@see teacher_source}'s answer — local_resume's rule — and
- * that is the whole of the selection. No grading capability is consulted, for
+ * Who teaches the student is {@see teacher_source}'s answer, and that is the
+ * whole of the selection. No grading capability is consulted, for
  * two reasons. It decides nothing: the grade is written through
  * `component_gradeitem::store_grade_from_formdata()`, which checks no
  * capability at all, so a check here forbids what the write would have allowed.

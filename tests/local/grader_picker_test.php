@@ -51,7 +51,7 @@ final class grader_picker_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setAdminUser();
 
-        set_config('teacher_roles', 'editingteacher,teacher', 'local_resume');
+        set_config('teacher_roles', 'editingteacher,teacher', 'local_autograder');
         $generator = $this->getDataGenerator();
         $this->course = $generator->create_course();
         $this->student = $generator->create_and_enrol($this->course, 'student');
@@ -98,7 +98,7 @@ final class grader_picker_test extends \advanced_testcase {
      */
     public function test_the_site_fallback_stands_in_for_a_course_with_nobody(): void {
         $standin = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        set_config('teacher_roles', 'editingteacher', 'local_resume');
+        set_config('teacher_roles', 'editingteacher', 'local_autograder');
         set_config('fallback_grader', $standin->id, 'local_autograder');
 
         $this->assertNull(
@@ -306,9 +306,9 @@ final class grader_picker_test extends \advanced_testcase {
     /**
      * Groups narrow the choice by the course's rule, not the activity's.
      *
-     * Separate groups plus a default grouping is what local_resume reads, and
-     * it is the rule the student is shown their own teachers by. An activity
-     * carries its own group mode, but letting that narrow the choice as well
+     * Separate groups plus a default grouping is the course's own rule, and
+     * the one the student is shown their teachers by. An activity carries
+     * its own group mode, but letting that narrow the choice as well
      * produced a second, contradictory answer: a teacher the student sees as
      * theirs, refused on the activity, for a grade the activity would have
      * accepted.
@@ -333,7 +333,7 @@ final class grader_picker_test extends \advanced_testcase {
         $this->prevent('moodle/site:accessallgroups');
 
         // Nobody shares the student's group yet, so the whole course stands —
-        // the same widening local_resume does rather than showing no teacher.
+        // the same widening the rule does rather than showing no teacher.
         \cache_helper::purge_all();
         $this->assertContains(
             grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
@@ -356,10 +356,10 @@ final class grader_picker_test extends \advanced_testcase {
     public function test_programme_uses_coordinator_roles(): void {
         $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $coordinator = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        set_config('teacher_roles', 'editingteacher', 'local_resume');
-        set_config('coordinator_roles', 'teacher', 'local_resume');
-        set_config('subject_course_category', -1, 'local_resume');
-        set_config('program_course_category', $this->course->category, 'local_resume');
+        set_config('teacher_roles', 'editingteacher', 'local_autograder');
+        set_config('coordinator_roles', 'teacher', 'local_autograder');
+        set_config('subject_course_category', -1, 'local_autograder');
+        set_config('program_course_category', $this->course->category, 'local_autograder');
         $this->assertSame(
             (int) $coordinator->id,
             grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
