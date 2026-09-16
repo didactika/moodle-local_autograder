@@ -101,13 +101,56 @@ final class grader_picker {
      * @return int|null
      */
     public static function pick_for_course(int $courseid, int $studentid): ?int {
-        $candidates = self::teachers_of($courseid, $studentid);
+        // The student's own teachers first, and only if there are none does
+        // anyone else who merely may grade the course come into it. Otherwise
+        // the tie-break — lowest id, say — could sign the grade with somebody
+        // who teaches a different group, or does not teach at all.
+        $preferred = self::usable(teacher_source::preferred_teachers_of($courseid, $studentid));
+
+        if (!empty($preferred)) {
+            return self::tie_break(array_flip($preferred), $courseid);
+        }
+
+        $candidates = self::candidates_for_course($courseid, $studentid);
 
         if (empty($candidates)) {
             return null;
         }
 
         return self::tie_break(array_flip($candidates), $courseid);
+    }
+
+    /**
+     * Those of a list who may actually be chosen.
+     *
+     * @param int[] $userids
+     * @return int[]
+     */
+    private static function usable(array $userids): array {
+        $usable = [];
+
+        foreach ($userids as $userid) {
+            if (!self::must_never_grade($userid) && !self::has_opted_out($userid)) {
+                $usable[] = (int) $userid;
+            }
+        }
+
+        return $usable;
+    }
+
+    /**
+     * Everybody who could be chosen for this student, not just the one who is.
+     *
+     * What a report shows when it is asked who might grade a course: the
+     * choice can change between now and the moment the grade is due, so the
+     * honest answer is the whole set rather than today's pick.
+     *
+     * @param int $courseid
+     * @param int $studentid
+     * @return int[]
+     */
+    public static function candidates_for_course(int $courseid, int $studentid): array {
+        return self::teachers_of($courseid, $studentid);
     }
 
     /**
@@ -297,14 +340,12 @@ final class grader_picker {
      * @return bool
      */
     private static function has_opted_out(int $userid): bool {
-        // The site decides whether the preference counts at all. Somewhere it
-        // was once offered and then switched off, a teacher's old answer must
-        // stop taking them out of the rota — otherwise the site would still be
-        // honouring an option it no longer admits to having.
-        if (!get_config('local_autograder', 'allowoptout')) {
-            return false;
-        }
-
+        // Honoured whenever it is set, and only then. Somebody who may grade
+        // is assumed willing to be graded on behalf of; the one thing that
+        // changes that is their own answer saying otherwise. The site setting
+        // decides whether the preference is *offered*, not whether an answer
+        // already given still counts — withdrawing the offer must not start
+        // putting grades in the name of somebody who asked us not to.
         return (bool) get_user_preferences('local_autograder_optout', false, $userid);
     }
 }

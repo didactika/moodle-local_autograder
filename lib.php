@@ -79,11 +79,11 @@ function local_autograder_extend_navigation_user_settings($parentnode, $user, $u
         return;
     }
 
-    // Shown to everyone the site does offer it to: `local/autograder:gradeonbehalf`
-    // is granted per module context, so there is no single context here that
-    // could answer "could this user ever be graded on behalf of anyone"
-    // cheaply and correctly. Offering the page to a teacher it never applies
-    // to is a harmless no-op, not a wrong answer.
+    // Shown to everyone the site offers it to. Whether this particular user
+    // could ever be chosen depends on `moodle/grade:edit` in some course of
+    // theirs, and there is no single context here that answers that cheaply.
+    // Offering the page to somebody it never applies to is a harmless no-op,
+    // not a wrong answer.
     $parentnode->add(
         get_string('preference:heading', 'local_autograder'),
         new moodle_url('/local/autograder/optout.php', ['userid' => $user->id]),

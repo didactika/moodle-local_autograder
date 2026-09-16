@@ -57,13 +57,93 @@ final class teacher_source {
     }
 
     /**
-     * The teachers of one student in one course.
+     * Everybody who could grade in one course.
+     *
+     * The union of two answers, because either alone leaves out somebody a
+     * site would expect to see:
+     *
+     * - local_resume's teachers of this student, which is the list the
+     *   student is shown as their own and so the one a grade should
+     *   normally be signed with;
+     * - anyone holding `local/autograder:gradeonbehalf` in the course, which
+     *   is how a site says "this person may grade here" without going
+     *   through a teacher role at all.
+     *
+     * Ordered so that the student's own teachers come first: they are who
+     * should be picked when there is a choice, and the caller takes the
+     * first that works.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[] Their user ids.
      */
     public static function teachers_of(int $courseid, int $studentid): array {
+        $teachers = self::preferred_teachers_of($courseid, $studentid);
+
+        foreach (self::capable_graders($courseid) as $graderid) {
+            if (!in_array($graderid, $teachers, true)) {
+                $teachers[] = $graderid;
+            }
+        }
+
+        return $teachers;
+    }
+
+    /**
+     * The student's own teachers, and only those.
+     *
+     * Who the grade should be signed with when there is a choice: these are
+     * the people the student is shown as their teachers, already narrowed to
+     * the ones sharing a group with them where the course separates groups.
+     * Everybody else in {@see self::teachers_of()} merely *could* grade —
+     * they are who is left when this list is empty.
+     *
+     * @param int $courseid
+     * @param int $studentid
+     * @return int[]
+     */
+    public static function preferred_teachers_of(int $courseid, int $studentid): array {
+        return self::resume_teachers($courseid, $studentid);
+    }
+
+    /**
+     * Everybody Moodle itself says may grade in one course.
+     *
+     * `moodle/grade:edit` and nothing of this plugin's own. Autograder used to
+     * define a `gradeonbehalf` capability and ask for that instead, which was
+     * a second answer to a question Moodle already answers — and a worse one:
+     * a user with two roles, one granting it and one not, was judged by
+     * whichever the plugin happened to look at. `has_capability()` has always
+     * resolved that properly, allowing unless something prohibits, so it is
+     * what decides here now.
+     *
+     * Course context rather than each activity's: asking per activity would
+     * mean one capability query per module on a campus that has millions.
+     *
+     * @param int $courseid
+     * @return int[]
+     */
+    private static function capable_graders(int $courseid): array {
+        $context = \context_course::instance($courseid, IGNORE_MISSING);
+
+        if (!$context) {
+            return [];
+        }
+
+        return array_map(
+            'intval',
+            array_keys(get_users_by_capability($context, 'moodle/grade:edit', 'u.id'))
+        );
+    }
+
+    /**
+     * The student's own teachers, as local_resume names them.
+     *
+     * @param int $courseid
+     * @param int $studentid
+     * @return int[]
+     */
+    private static function resume_teachers(int $courseid, int $studentid): array {
         if (!self::is_available()) {
             return [];
         }

@@ -25,21 +25,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// There is deliberately no "may be graded on behalf of" capability here any
+// more. Whether somebody may grade is a question Moodle already answers —
+// `moodle/grade:edit` — and answering it a second time was worse, not better:
+// a user with two roles, one granting it and one not, was judged by whichever
+// this plugin happened to look at, where has_capability() resolves the pair
+// properly. The only thing left on top of Moodle's answer is the user's own
+// preference asking not to be chosen; everybody else is assumed willing.
 $capabilities = [
-    // Held by a teacher = the autograder may post a grade as that teacher for
-    // an activity of theirs. Granted to editingteacher by default; taken away
-    // by a role override wherever a teacher (or their institution) opts out.
-    // This is the whole mechanism: there is no separate site setting
-    // listing "grader roles".
-    'local/autograder:gradeonbehalf' => [
-        'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => [
-            'editingteacher' => CAP_ALLOW,
-        ],
-    ],
-
     // Turning autograder on or off for one activity, from its settings form.
     'local/autograder:configure' => [
         'captype' => 'write',

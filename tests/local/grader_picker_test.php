@@ -129,11 +129,14 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * A teacher who asked not to be graded on behalf of is left out — but only
-     * where the site offers that preference at all. Somewhere it was offered,
-     * answered and then switched off, the old answer must stop counting.
+     * A teacher who asked not to be graded on behalf of is left out, and stays
+     * left out even if the site later stops offering the preference.
+     *
+     * Everybody who may grade is assumed willing; the one thing that changes
+     * that is their own answer. Withdrawing the offer must not start posting
+     * grades in the name of somebody who asked us not to.
      */
-    public function test_the_opt_out_counts_only_while_the_site_offers_it(): void {
+    public function test_the_opt_out_is_honoured_whenever_it_is_set(): void {
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         set_user_preference('local_autograder_optout', 1, $teacher);
 
@@ -145,10 +148,9 @@ final class grader_picker_test extends \advanced_testcase {
 
         set_config('allowoptout', 0, 'local_autograder');
         \cache_helper::purge_all();
-        $this->assertSame(
-            (int) $teacher->id,
+        $this->assertNull(
             grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
-            'With the preference switched off site-wide, an old answer cannot keep taking them out.'
+            'And it stays honoured once the site stops offering the preference.'
         );
     }
 

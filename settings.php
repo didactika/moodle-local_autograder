@@ -17,10 +17,11 @@
 /**
  * Admin settings for local_autograder.
  *
- * Who gets to grade is not configured here — see the
- * `local/autograder:gradeonbehalf` capability and the `local_autograder_optout`
- * user preference. `fallback_grader` below is the one exception:
- * the last resort when the course itself has nobody eligible.
+ * Who gets to grade is not configured here. It is whoever Moodle already says
+ * may grade — `moodle/grade:edit` — minus anyone whose own
+ * `local_autograder_optout` preference asks not to be chosen.
+ * `fallback_grader` below is the one exception: the last resort when the
+ * course itself has nobody eligible.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org

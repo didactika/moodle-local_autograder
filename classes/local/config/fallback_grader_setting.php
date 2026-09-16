@@ -19,7 +19,7 @@ namespace local_autograder\local\config;
 /**
  * The site setting for `fallback_grader`: a single user, chosen
  * from a searchable dropdown that only ever lists users who could plausibly
- * grade something — holders of `local/autograder:gradeonbehalf`, wherever
+ * grade something — holders of `moodle/grade:edit`, wherever
  * that actually comes from.
  *
  * Almost never at system context: a teacher holds this the way they hold
@@ -42,8 +42,14 @@ namespace local_autograder\local\config;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fallback_grader_setting extends \admin_setting {
-    /** The capability {@see eligible_users()} looks for a holder of. */
-    private const CAPABILITY = 'local/autograder:gradeonbehalf';
+    /**
+     * The capability {@see eligible_users()} looks for a holder of.
+     *
+     * Moodle's own, not one of this plugin's: whether somebody may grade is
+     * a question Moodle already answers, and answering it twice only made the
+     * two answers disagree.
+     */
+    private const CAPABILITY = 'moodle/grade:edit';
 
     /**
      * Whether the setting has ever been given a value.
