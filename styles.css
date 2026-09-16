@@ -73,3 +73,23 @@
         white-space: normal;
     }
 }
+
+/* Match the report's control spacing while retaining Moodle form layouts. */
+#page-local-autograder-modules .btn,
+#page-local-autograder-advanced .mform .btn,
+#page-local-autograder-optout .mform .btn,
+#id_autogradersection input[type="text"],
+#id_autogradersection select {
+    min-height: 2.75rem;
+    border-radius: 0.375rem;
+}
+
+#local-autograder-modules th,
+#local-autograder-modules td {
+    padding: 0.75rem;
+}
+
+#page-local-autograder-advanced .mform,
+#page-local-autograder-optout .mform {
+    max-width: 100%;
+}

@@ -16,6 +16,8 @@
 
 namespace local_autograder\local\grading;
 
+use local_autograder\local\decision\decision_repository;
+
 /**
  * The audit trail of every grading attempt.
  *
@@ -120,12 +122,31 @@ final class grade_log_repository {
      * @param int $before Unix timestamp.
      * @return int Rows deleted.
      */
-    public static function purge_before(int $before): int {
+    public static function purge_before(int $before, int $limit = decision_repository::PURGE_CEILING): int {
         global $DB;
 
-        $count = $DB->count_records_select('local_autograder_grade_log', 'timecreated < ?', [$before]);
-        $DB->delete_records_select('local_autograder_grade_log', 'timecreated < ?', [$before]);
+        $deleted = 0;
 
-        return $count;
+        // Batched and capped for the same reason the decisions are: this table
+        // gains a row per grading attempt on the campus, so a year of it is
+        // the one table here that really can hold millions, and deleting them
+        // in a single statement is how a nightly task becomes an outage.
+        while ($deleted < $limit) {
+            $ids = array_keys($DB->get_records_sql(
+                'SELECT id FROM {local_autograder_grade_log} WHERE timecreated < ? ORDER BY id',
+                [$before],
+                0,
+                min(decision_repository::PURGE_BATCH, $limit - $deleted)
+            ));
+
+            if (!$ids) {
+                break;
+            }
+
+            $DB->delete_records_list('local_autograder_grade_log', 'id', $ids);
+            $deleted += count($ids);
+        }
+
+        return $deleted;
     }
 }

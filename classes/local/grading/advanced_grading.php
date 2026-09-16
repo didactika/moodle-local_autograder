@@ -245,7 +245,7 @@ final class advanced_grading {
      * Wraps a per-criterion filling for storage, in the shape the grading
      * form instance will later be handed verbatim.
      *
-     * @param array<int, array<string, mixed>> $criteria
+     * @param array $criteria Each criterion's filling, by criterion id.
      * @return string|null Null when there is nothing to store.
      */
     public static function encode(array $criteria): ?string {

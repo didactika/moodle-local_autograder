@@ -53,6 +53,7 @@ class grade_student extends \core\task\adhoc_task {
      * Re-checks everything, then grades — or decides not to.
      */
     public function execute(): void {
+        grader_picker::reset_caches();
         $data = $this->get_custom_data();
         $decision = decision_repository::get((int) ($data->decisionid ?? 0));
 
@@ -125,22 +126,38 @@ class grade_student extends \core\task\adhoc_task {
         module_adapter $adapter,
     ): void {
         $userid = (int) $decision->userid;
+
         $graderid = grader_picker::pick_for((int) $cm->id, $userid);
+        $fallback = grader_picker::fallback_for();
+
+        if ($graderid === null) {
+            $graderid = $fallback;
+        }
 
         if ($graderid === null) {
             $this->fail($decision, $cm, 'no_grader');
-
             return;
         }
 
+        // Nothing was asked in advance about whether this teacher may post the
+        // grade, so the attempt is what finds out. A refusal hands over to the
+        // site's stand-in once, and only a stand-in that is refused too — or
+        // missing — leaves the decision failing.
         try {
             $posted = $adapter->write_grade($userid, $graderid);
         } catch (\Throwable $e) {
-            // One student's grade failing must not take the rest down with it,
-            // so this is recorded and left, not rethrown.
-            $this->fail($decision, $cm, 'grade_write_failed', $e->getMessage());
+            if ($fallback === null || $fallback === $graderid) {
+                $this->fail($decision, $cm, 'grade_write_failed', $e->getMessage());
+                return;
+            }
 
-            return;
+            try {
+                $posted = $adapter->write_grade($userid, $fallback);
+                $graderid = $fallback;
+            } catch (\Throwable $second) {
+                $this->fail($decision, $cm, 'grade_write_failed', $second->getMessage());
+                return;
+            }
         }
 
         decision_repository::settle(

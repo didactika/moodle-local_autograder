@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * The web services this plugin answers.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -25,9 +25,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
-$plugin->version = 2026091606;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
-$plugin->maturity = MATURITY_ALPHA;
-$plugin->supported = [405, 502];
+$functions = [
+    'local_autograder_search_graders' => [
+        'classname' => 'local_autograder\external\search_graders',
+        'description' => 'Searches the users who could stand in as the site\'s fallback grader.',
+        'type' => 'read',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
+];

@@ -62,7 +62,62 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091300, 'local', 'autograder');
     }
 
+    if ($oldversion < 2026091602) {
+        // A savepoint whose only job is to exist. The `gradeonbehalf`
+        // capability was dropped from `db/access.php` without the version
+        // moving, so `update_capabilities()` never ran and the site kept a
+        // capability no plugin declares any more — which Moodle then reports
+        // as a missing language string every time it lists the role's
+        // permissions. Bumping the version is what actually removes it.
+        upgrade_plugin_savepoint(true, 2026091602, 'local', 'autograder');
+    }
+
+    if ($oldversion < 2026091604) {
+        upgrade_local_autograder_adopt_teacher_settings();
+
+        upgrade_plugin_savepoint(true, 2026091604, 'local', 'autograder');
+    }
+
+    if ($oldversion < 2026091606) {
+        // A course is a course here. Splitting them into programmes and
+        // subjects by category, and keeping a second role list for the
+        // programmes, is a distinction another plugin makes about its own
+        // courses — repeating it only gave a site two places to configure the
+        // same thing and one of them to get wrong. Nothing reads these any
+        // more, so they are cleared rather than left behind to confuse the
+        // next person who reads the config table.
+        foreach (['coordinator_roles', 'subject_course_category', 'program_course_category'] as $orphaned) {
+            unset_config($orphaned, 'local_autograder');
+        }
+
+        upgrade_plugin_savepoint(true, 2026091606, 'local', 'autograder');
+    }
+
     return true;
+}
+
+/**
+ * Gives autograder its own answer to "which roles teach a course".
+ *
+ * It used to read another plugin's settings for this. Sites already running
+ * that way have the answer written down somewhere, and starting from a fresh
+ * default would silently change whose name their grades carry — so whatever
+ * they had is copied across once, and only a site that had nothing gets the
+ * defaults the settings page offers.
+ */
+function upgrade_local_autograder_adopt_teacher_settings(): void {
+    if (get_config('local_autograder', 'teacher_roles') !== false) {
+        // Already answered here, on an upgrade run more than once.
+        return;
+    }
+
+    $previous = get_config('local_resume', 'teacher_roles');
+
+    set_config(
+        'teacher_roles',
+        $previous === false ? 'editingteacher,teacher' : $previous,
+        'local_autograder'
+    );
 }
 
 /**
@@ -142,7 +197,7 @@ function upgrade_local_autograder_from_v2(database_manager $dbman): void {
         new xmldb_field('delayseconds', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0'),
     ];
 
-    // v2's own schema already indexed cmid and courseid somehow (a plain
+    // The v2 schema already indexed cmid and courseid somehow (a plain
     // index, or a key that is index-backed either way), and a column type
     // change is refused outright while any index still depends on it. Both
     // are recreated a few lines below regardless (see $courseidindex,

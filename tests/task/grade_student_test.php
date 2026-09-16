@@ -205,21 +205,23 @@ final class grade_student_test extends \advanced_testcase {
     }
 
     /**
-     * With nobody able to grade on the student's behalf, the decision fails
-     * loudly rather than silently doing nothing.
+     * With no teacher of the student's own and no fallback either, the
+     * decision fails loudly rather than silently doing nothing — and above
+     * all rather than reaching for an administrator, who could have posted it.
      */
     public function test_no_eligible_grader_is_recorded_as_a_failure(): void {
         $this->configure(true, 70.0);
         $this->run_catch_up();
         $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
 
-        $role = $this->teacher_role_id();
-        role_change_permission(
-            $role,
-            \context_course::instance($this->course->id),
-            'local/autograder:gradeonbehalf',
-            CAP_PROHIBIT
+        // The teacher leaves the course, so the student has none. No fallback
+        // is configured, and the administrator is never a candidate.
+        role_unassign(
+            $this->teacher_role_id(),
+            (int) $this->teacher->id,
+            \context_course::instance($this->course->id)->id
         );
+        \cache_helper::purge_all();
 
         $sink = $this->redirectEvents();
         $this->run_grading($decision);
@@ -235,6 +237,50 @@ final class grade_student_test extends \advanced_testcase {
             return $event instanceof \local_autograder\event\grading_failed;
         });
         $this->assertCount(1, $failures);
+    }
+
+    /**
+     * A teacher who turns out not to be able to post the grade hands over to
+     * the fallback, rather than the decision failing.
+     *
+     * Nothing is checked in advance, so this is the path that finds out: the
+     * write is attempted as the teacher, refused, and attempted again as the
+     * site's stand-in.
+     */
+    public function test_a_teacher_who_cannot_post_hands_over_to_the_fallback(): void {
+        global $DB;
+
+        // A manager, not another teacher of this course: the point is somebody
+        // who can post the grade but is not one of the student's own teachers,
+        // and who keeps that ability when the teacher role loses it below.
+        $standin = $this->getDataGenerator()->create_user();
+        role_assign(
+            (int) $DB->get_field('role', 'id', ['shortname' => 'manager'], MUST_EXIST),
+            (int) $standin->id,
+            \context_system::instance()->id
+        );
+        set_config('fallback_grader', $standin->id, 'local_autograder');
+
+        $this->configure(true, 70.0);
+        $this->run_catch_up();
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+
+        // The student's own teacher loses the ability to grade this activity,
+        // which only shows up when the grade is actually posted.
+        role_change_permission(
+            $this->teacher_role_id(),
+            \context_course::instance($this->course->id),
+            'mod/assign:grade',
+            CAP_PROHIBIT
+        );
+        \cache_helper::purge_all();
+
+        $this->run_grading($decision);
+
+        $settled = decision_repository::get((int) $decision->id);
+
+        $this->assertSame(decision_repository::STATUS_GRADED, $settled->status);
+        $this->assertEquals((int) $standin->id, (int) $settled->graderid);
     }
 
     /**

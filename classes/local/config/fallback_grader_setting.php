@@ -19,14 +19,23 @@ namespace local_autograder\local\config;
 /**
  * The site setting for `fallback_grader`: a single user, chosen
  * from a searchable dropdown that only ever lists users who could plausibly
- * grade something — holders of `moodle/grade:edit` at system context.
+ * grade something — holders of `moodle/grade:edit`, wherever
+ * that actually comes from.
  *
- * Renders as a plain `<select>` (so the setting works with JavaScript off)
- * progressively enhanced into a type-ahead search by `core/form-autocomplete`,
- * the same module Moodle's own pickers use, filtering client-side over the
- * options already in the list. If a site's pool of graders grows large enough
- * that a static list stops being practical, replace the plain option list with
- * an AJAX-backed instance of the same module — nothing else here would change.
+ * Almost never at system context: a teacher holds this the way they hold
+ * any other teaching capability, through a role assigned in one course (or a
+ * category), not a role assigned site-wide. `context_system::instance()`
+ * alone would list only genuine site-wide holders — managers, mostly — and
+ * leave the picker looking empty on an ordinary site. See
+ * {@see grader_search} for how the search actually looks past that.
+ *
+ * Renders as a plain `<select>` holding only the user already chosen, so the
+ * setting still submits with JavaScript off, enhanced into a type-ahead search
+ * by `core/form-autocomplete` reading `local_autograder/grader_search`. The
+ * list it offers comes from the server a screenful at a time: it used to hold
+ * every eligible user on the campus, which on a large site meant a settings
+ * page carrying a hundred thousand options, each one's name formatted and
+ * collated in PHP first.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -60,39 +69,13 @@ class fallback_grader_setting extends \admin_setting {
     }
 
     /**
-     * Every user this setting may ever point to: holders of
-     * `moodle/grade:edit` at system context, ordered by name.
-     *
-     * @return array<int, string> User id => fully-formatted name.
-     */
-    public static function eligible_users(): array {
-        $users = get_users_by_capability(
-            \context_system::instance(),
-            'moodle/grade:edit',
-            'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename',
-        );
-
-        $options = [];
-
-        foreach ($users as $user) {
-            $options[(int) $user->id] = fullname($user);
-        }
-
-        \core_collator::asort($options);
-
-        return $options;
-    }
-
-    /**
-     * Whether a user is still one of {@see eligible_users()} — checked again
-     * at save time, since the list rendered to the admin may be stale by the
-     * time the form is submitted.
+     * Whether a user may still be pointed at, checked again at save time.
      *
      * @param int $userid
      * @return bool
      */
     private function is_eligible(int $userid): bool {
-        return array_key_exists($userid, self::eligible_users());
+        return grader_search::name_of($userid) !== null;
     }
 
     /**
@@ -106,7 +89,18 @@ class fallback_grader_setting extends \admin_setting {
         global $OUTPUT, $PAGE;
 
         $current = (int) $data;
-        $options = ['0' => get_string('setting:fallback_grader_none', 'local_autograder')] + self::eligible_users();
+        $options = ['0' => get_string('setting:fallback_grader_none', 'local_autograder')];
+        $chosen = grader_search::name_of($current);
+
+        if ($chosen !== null) {
+            $options[(string) $current] = $chosen;
+        }
+
+        // Only the user already chosen, so that the select can show them. The
+        // rest arrive from the search below as the administrator types: this
+        // list used to hold everybody on the campus who could grade, and a
+        // settings page cannot be made to render a hundred thousand options
+        // however fast the query behind them is.
         $elementid = 'id_s_' . $this->name;
 
         $select = \html_writer::select($options, $this->get_full_name(), (string) $current, false, [
@@ -114,16 +108,21 @@ class fallback_grader_setting extends \admin_setting {
             'class' => 'form-select',
         ]);
 
-        // Progressive enhancement only — the plain select above already works
-        // without it. See the class docblock for what to do once a static
-        // option list stops being the right shape for this site.
+        // Progressive enhancement only — the plain select above still submits
+        // whatever it already holds without it.
+        //
+        // The arguments are positional and easy to get wrong: selector, tags,
+        // ajax module, placeholder, case sensitive, and then *show
+        // suggestions*, which has to be true or the field takes a search term
+        // and never offers anything for it — a picker that looks empty no
+        // matter how many users would have matched.
         $PAGE->requires->js_call_amd('core/form-autocomplete', 'enhance', [
             '#' . $elementid,
             false,
-            '',
+            'local_autograder/grader_search',
             get_string('setting:fallback_grader_placeholder', 'local_autograder'),
             false,
-            false,
+            true,
         ]);
 
         return format_admin_setting(
