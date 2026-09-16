@@ -52,5 +52,12 @@ class reconcile_pending extends \core\task\scheduled_task {
         if (!empty($orphans)) {
             mtrace('local_autograder: requeued ' . count($orphans) . ' decision(s) that had lost their task.');
         }
+
+        if (count($orphans) === decision_repository::RECONCILE_BATCH) {
+            // A full batch means there were probably more. Said out loud so
+            // that a site rebuilding a large backlog can see it is working
+            // through it rather than stuck.
+            mtrace('local_autograder: the batch was full; the next run will continue.');
+        }
     }
 }

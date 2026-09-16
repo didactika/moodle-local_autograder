@@ -352,22 +352,6 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * Programme courses use coordinators, not the union of both role lists.
-     */
-    public function test_programme_uses_coordinator_roles(): void {
-        $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
-        $coordinator = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        $this->choose_roles('editingteacher');
-        set_config('coordinator_roles', 'teacher', 'local_autograder');
-        set_config('subject_course_category', -1, 'local_autograder');
-        set_config('program_course_category', $this->course->category, 'local_autograder');
-        $this->assertSame(
-            (int) $coordinator->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
-        );
-    }
-
-    /**
      * The choice is the same in every activity of one course.
      */
     public function test_every_activity_of_a_course_picks_the_same_teacher(): void {

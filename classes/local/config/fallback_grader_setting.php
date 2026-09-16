@@ -27,14 +27,15 @@ namespace local_autograder\local\config;
  * category), not a role assigned site-wide. `context_system::instance()`
  * alone would list only genuine site-wide holders — managers, mostly — and
  * leave the picker looking empty on an ordinary site. See
- * {@see eligible_users()} for how the search actually looks past that.
+ * {@see grader_search} for how the search actually looks past that.
  *
- * Renders as a plain `<select>` (so the setting works with JavaScript off)
- * progressively enhanced into a type-ahead search by `core/form-autocomplete`,
- * the same module Moodle's own pickers use, filtering client-side over the
- * options already in the list. If a site's pool of graders grows large enough
- * that a static list stops being practical, replace the plain option list with
- * an AJAX-backed instance of the same module — nothing else here would change.
+ * Renders as a plain `<select>` holding only the user already chosen, so the
+ * setting still submits with JavaScript off, enhanced into a type-ahead search
+ * by `core/form-autocomplete` reading `local_autograder/grader_search`. The
+ * list it offers comes from the server a screenful at a time: it used to hold
+ * every eligible user on the campus, which on a large site meant a settings
+ * page carrying a hundred thousand options, each one's name formatted and
+ * collated in PHP first.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -42,15 +43,6 @@ namespace local_autograder\local\config;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fallback_grader_setting extends \admin_setting {
-    /**
-     * The capability {@see eligible_users()} looks for a holder of.
-     *
-     * Moodle's own, not one of this plugin's: whether somebody may grade is
-     * a question Moodle already answers, and answering it twice only made the
-     * two answers disagree.
-     */
-    private const CAPABILITY = 'moodle/grade:edit';
-
     /**
      * Whether the setting has ever been given a value.
      *
@@ -77,107 +69,13 @@ class fallback_grader_setting extends \admin_setting {
     }
 
     /**
-     * Every user this setting may ever point to: holders of
-     * {@see CAPABILITY}, ordered by name — whether that comes from a role
-     * assigned at system context, or one assigned in a single course and
-     * nowhere else, and whether the role grants it by its own default or
-     * only through an override made somewhere.
-     *
-     * Two searches, unioned, because neither alone covers both shapes:
-     *
-     * - {@see get_users_by_capability()} at system context is Moodle's own,
-     *   fully correct resolution — it is what actually decides the question
-     *   for a role assigned at system context, prohibits and every other
-     *   subtlety included — but a context check only ever looks *up* the
-     *   context tree, so it cannot see a role assigned down in one course.
-     * - a plain scan of `role_capabilities` for a role that grants it
-     *   `CAP_ALLOW` anywhere, joined to `role_assignments`, is what finds
-     *   that course-only teacher — every role that could ever grant it,
-     *   in one cheap query, rather than one call per course on the site.
-     *   It cannot weigh a user's own assignment against the specific
-     *   context an override was made in, so a role prevented from grading
-     *   in one particular course still names a teacher whose only
-     *   assignment is that course — the trade a single, site-wide query
-     *   makes instead of one per course.
-     *
-     * @return array<int, string> User id => fully-formatted name.
-     */
-    public static function eligible_users(): array {
-        global $DB;
-
-        $options = [];
-
-        foreach (self::system_context_holders() as $user) {
-            $options[(int) $user->id] = fullname($user);
-        }
-
-        foreach (self::role_based_holders() as $user) {
-            $options[(int) $user->id] = fullname($user);
-        }
-
-        \core_collator::asort($options);
-
-        return $options;
-    }
-
-    /**
-     * Every user {@see get_users_by_capability()} itself says holds
-     * {@see CAPABILITY} at system context — the authoritative answer for a
-     * role assigned there, but blind to one assigned only in a course.
-     *
-     * @return \stdClass[]
-     */
-    private static function system_context_holders(): array {
-        return get_users_by_capability(
-            \context_system::instance(),
-            self::CAPABILITY,
-            'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename',
-        );
-    }
-
-    /**
-     * Every user holding a role that grants {@see CAPABILITY} `CAP_ALLOW`
-     * somewhere, wherever that role happens to be assigned to them — the
-     * only way to reach a teacher whose sole assignment is one course,
-     * without a query per course on the whole site.
-     *
-     * @return \stdClass[]
-     */
-    private static function role_based_holders(): array {
-        global $DB;
-
-        $roleids = $DB->get_fieldset_select(
-            'role_capabilities',
-            'DISTINCT roleid',
-            'capability = :capability AND permission = :allow',
-            ['capability' => self::CAPABILITY, 'allow' => CAP_ALLOW],
-        );
-
-        if (empty($roleids)) {
-            return [];
-        }
-
-        [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
-
-        $fields = 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename';
-        $sql = "SELECT DISTINCT {$fields}"
-            . ' FROM {user} u'
-            . ' JOIN {role_assignments} ra ON ra.userid = u.id'
-            . " WHERE ra.roleid {$insql} AND u.deleted = 0 AND u.suspended = 0";
-
-        return $DB->get_records_sql($sql, $params);
-    }
-
-    /**
-     * Whether a user is still one of {@see eligible_users()} — checked again
-     * at save time, since the list rendered to the admin may be stale by the
-     * time the form is submitted.
+     * Whether a user may still be pointed at, checked again at save time.
      *
      * @param int $userid
      * @return bool
      */
     private function is_eligible(int $userid): bool {
-        return array_key_exists($userid, self::eligible_users());
+        return grader_search::name_of($userid) !== null;
     }
 
     /**
@@ -191,7 +89,18 @@ class fallback_grader_setting extends \admin_setting {
         global $OUTPUT, $PAGE;
 
         $current = (int) $data;
-        $options = ['0' => get_string('setting:fallback_grader_none', 'local_autograder')] + self::eligible_users();
+        $options = ['0' => get_string('setting:fallback_grader_none', 'local_autograder')];
+        $chosen = grader_search::name_of($current);
+
+        if ($chosen !== null) {
+            $options[(string) $current] = $chosen;
+        }
+
+        // Only the user already chosen, so that the select can show them. The
+        // rest arrive from the search below as the administrator types: this
+        // list used to hold everybody on the campus who could grade, and a
+        // settings page cannot be made to render a hundred thousand options
+        // however fast the query behind them is.
         $elementid = 'id_s_' . $this->name;
 
         $select = \html_writer::select($options, $this->get_full_name(), (string) $current, false, [
@@ -199,19 +108,18 @@ class fallback_grader_setting extends \admin_setting {
             'class' => 'form-select',
         ]);
 
-        // Progressive enhancement only — the plain select above already works
-        // without it. See the class docblock for what to do once a static
-        // option list stops being the right shape for this site.
+        // Progressive enhancement only — the plain select above still submits
+        // whatever it already holds without it.
         //
         // The arguments are positional and easy to get wrong: selector, tags,
         // ajax module, placeholder, case sensitive, and then *show
         // suggestions*, which has to be true or the field takes a search term
         // and never offers anything for it — a picker that looks empty no
-        // matter how many users the select behind it holds.
+        // matter how many users would have matched.
         $PAGE->requires->js_call_amd('core/form-autocomplete', 'enhance', [
             '#' . $elementid,
             false,
-            '',
+            'local_autograder/grader_search',
             get_string('setting:fallback_grader_placeholder', 'local_autograder'),
             false,
             true,

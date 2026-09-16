@@ -74,7 +74,7 @@ final class teacher_source {
         }
 
         $context = \context_course::instance($courseid);
-        $roleids = self::teaching_roles($courseid);
+        $roleids = self::teaching_roles();
         $teachers = [];
 
         if ($roleids !== []) {
@@ -98,27 +98,24 @@ final class teacher_source {
     }
 
     /**
-     * The roles that teach one course, as ids.
+     * The roles that teach a course, as ids.
      *
-     * @param int $courseid
+     * One answer for the whole site either way, so it is worked out once
+     * however many courses a report walks.
+     *
      * @return int[]
      */
-    private static function teaching_roles(int $courseid): array {
+    private static function teaching_roles(): array {
         $chosen = get_config('local_autograder', 'teacher_source_mode') === self::MODE_CHOSEN_ROLES;
         $cache = self::request_cache();
-        // The automatic answer is one list for the whole site, so it is worked
-        // out once however many courses a report walks. Only the hand-picked
-        // answer varies per course, and then only between two lists.
-        $key = $chosen ? 'roles-chosen-' . (int) self::is_programme($courseid) : 'roles-grading';
+        $key = $chosen ? 'roles-chosen' : 'roles-grading';
         $cached = $cache->get($key);
 
         if ($cached !== false) {
             return $cached;
         }
 
-        $roleids = $chosen
-            ? self::chosen_roles(self::is_programme($courseid))
-            : self::grading_roles();
+        $roleids = $chosen ? self::chosen_roles() : self::grading_roles();
 
         $cache->set($key, $roleids);
 
@@ -159,13 +156,18 @@ final class teacher_source {
     /**
      * The roles the site named by hand, as ids.
      *
-     * @param bool $programme Read the programme list instead of the subject one.
+     * One list. Autograder used to keep a second for programme courses,
+     * picked by course category, which is a distinction another plugin makes
+     * about its own courses and not one this plugin has any business
+     * repeating: here a course has teachers, and they are whoever holds a
+     * teaching role in it.
+     *
      * @return int[]
      */
-    private static function chosen_roles(bool $programme): array {
+    private static function chosen_roles(): array {
         global $DB;
 
-        $setting = get_config('local_autograder', $programme ? 'coordinator_roles' : 'teacher_roles');
+        $setting = get_config('local_autograder', 'teacher_roles');
         $shortnames = array_values(array_filter(array_map('trim', explode(',', (string) $setting))));
 
         if ($shortnames === []) {
@@ -296,26 +298,6 @@ final class teacher_source {
         return $course;
     }
 
-    /**
-     * Whether this course is a programme rather than a subject.
-     *
-     * A site can name one category for each. A course in neither, or in a
-     * category named for both, is read as a subject: subjects are what most
-     * courses are, and the teacher roles are the safer of the two lists to
-     * fall back on.
-     *
-     * @param int $courseid
-     * @return bool
-     */
-    private static function is_programme(int $courseid): bool {
-        $course = self::course($courseid);
-        $subject = get_config('local_autograder', 'subject_course_category');
-        $programme = get_config('local_autograder', 'program_course_category');
-
-        return $programme !== false && $programme !== ''
-            && $course->category != $subject
-            && $course->category == $programme;
-    }
 
     /**
      * The request-only cache this class keeps its answers in.

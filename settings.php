@@ -137,41 +137,14 @@ if ($hassiteconfig) {
         $roleoptions,
     ));
 
-    $teachers->add(new admin_setting_configmultiselect(
-        'local_autograder/coordinator_roles',
-        get_string('setting:coordinator_roles', 'local_autograder'),
-        get_string('setting:coordinator_roles_desc', 'local_autograder'),
-        $teacherarchetypes,
-        $roleoptions,
-    ));
-
-    // Both default to the site's top category, which is what core's own
-    // picker offers; a site that does not split its courses this way simply
-    // leaves them equal, and every course is then read as a subject.
-    $teachers->add(new admin_settings_coursecat_select(
-        'local_autograder/subject_course_category',
-        get_string('setting:subject_course_category', 'local_autograder'),
-        get_string('setting:subject_course_category_desc', 'local_autograder'),
-        1,
-    ));
-
-    $teachers->add(new admin_settings_coursecat_select(
-        'local_autograder/program_course_category',
-        get_string('setting:program_course_category', 'local_autograder'),
-        get_string('setting:program_course_category_desc', 'local_autograder'),
-        1,
-    ));
-
-    // Everything below the mode belongs to the hand-picked answer, so it only
-    // appears once a site has asked for that.
-    foreach (['teacher_roles', 'coordinator_roles', 'subject_course_category', 'program_course_category'] as $name) {
-        $teachers->hide_if(
-            'local_autograder/' . $name,
-            'local_autograder/teacher_source_mode',
-            'neq',
-            \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES,
-        );
-    }
+    // The role list belongs to the hand-picked answer, so it is not on screen
+    // at all while the roles are being worked out.
+    $teachers->hide_if(
+        'local_autograder/teacher_roles',
+        'local_autograder/teacher_source_mode',
+        'neq',
+        \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES,
+    );
 
     $settings->add($teachers);
 

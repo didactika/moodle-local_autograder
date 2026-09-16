@@ -35,6 +35,15 @@ use local_autograder\task\grade_student;
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class decision_repository {
+    /** @var int Decisions requeued by one reconcile run. */
+    public const RECONCILE_BATCH = 500;
+
+    /** @var int Rows deleted by one DELETE while purging. */
+    public const PURGE_BATCH = 1000;
+
+    /** @var int Rows one purge run will delete before leaving the rest to the next. */
+    public const PURGE_CEILING = 50000;
+
     /** @var string Waiting for its moment to grade. */
     public const STATUS_PENDING = 'pending';
 
@@ -134,17 +143,29 @@ final class decision_repository {
      * @param int $now
      * @return \stdClass[]
      */
-    public static function orphaned_pending(int $now): array {
+    public static function orphaned_pending(int $now, int $limit = self::RECONCILE_BATCH): array {
         global $DB;
 
+        // Capped, and oldest first. Something that loses a task usually loses
+        // it along with everything else queued at the same moment — a purged
+        // task table, a failed upgrade — so the honest size of this answer is
+        // "every pending decision on the campus". Requeueing a bounded number
+        // per run puts the oldest back first and lets the next run continue,
+        // instead of one cron trying to rebuild millions of tasks at once.
         $sql = "SELECT d.*
                   FROM {local_autograder_decision} d
              LEFT JOIN {task_adhoc} t ON t.id = d.adhoctaskid
                  WHERE d.status = :status
                    AND d.scheduledgradetime <= :now
-                   AND t.id IS NULL";
+                   AND t.id IS NULL
+              ORDER BY d.scheduledgradetime, d.id";
 
-        return $DB->get_records_sql($sql, ['status' => self::STATUS_PENDING, 'now' => $now]);
+        return $DB->get_records_sql(
+            $sql,
+            ['status' => self::STATUS_PENDING, 'now' => $now],
+            0,
+            max(1, $limit)
+        );
     }
 
     /**
@@ -419,16 +440,36 @@ final class decision_repository {
      * @param int $before
      * @return int Rows deleted.
      */
-    public static function purge_settled_before(int $before): int {
+    public static function purge_settled_before(int $before, int $limit = self::PURGE_CEILING): int {
         global $DB;
 
         [$insql, $params] = $DB->get_in_or_equal(self::terminal_statuses(), SQL_PARAMS_NAMED);
         $params['before'] = $before;
 
         $select = "status {$insql} AND timemodified < :before";
-        $count = $DB->count_records_select('local_autograder_decision', $select, $params);
-        $DB->delete_records_select('local_autograder_decision', $select, $params);
+        $deleted = 0;
 
-        return $count;
+        // In batches, with a ceiling per run. One statement deleting a year of
+        // a large campus's decisions holds its locks for as long as it takes
+        // and leaves the table to be vacuumed afterwards; a run that does not
+        // finish simply continues on the next one, since what it deletes is
+        // decided by age rather than by where it left off.
+        while ($deleted < $limit) {
+            $ids = array_keys($DB->get_records_sql(
+                "SELECT id FROM {local_autograder_decision} WHERE {$select} ORDER BY id",
+                $params,
+                0,
+                min(self::PURGE_BATCH, $limit - $deleted)
+            ));
+
+            if (!$ids) {
+                break;
+            }
+
+            $DB->delete_records_list('local_autograder_decision', 'id', $ids);
+            $deleted += count($ids);
+        }
+
+        return $deleted;
     }
 }

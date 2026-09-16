@@ -78,6 +78,21 @@ function xmldb_local_autograder_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026091604, 'local', 'autograder');
     }
 
+    if ($oldversion < 2026091606) {
+        // A course is a course here. Splitting them into programmes and
+        // subjects by category, and keeping a second role list for the
+        // programmes, is a distinction another plugin makes about its own
+        // courses — repeating it only gave a site two places to configure the
+        // same thing and one of them to get wrong. Nothing reads these any
+        // more, so they are cleared rather than left behind to confuse the
+        // next person who reads the config table.
+        foreach (['coordinator_roles', 'subject_course_category', 'program_course_category'] as $orphaned) {
+            unset_config($orphaned, 'local_autograder');
+        }
+
+        upgrade_plugin_savepoint(true, 2026091606, 'local', 'autograder');
+    }
+
     return true;
 }
 
@@ -91,23 +106,18 @@ function xmldb_local_autograder_upgrade($oldversion) {
  * defaults the settings page offers.
  */
 function upgrade_local_autograder_adopt_teacher_settings(): void {
-    $adopted = [
-        'teacher_roles' => 'editingteacher,teacher',
-        'coordinator_roles' => 'editingteacher',
-        'subject_course_category' => '1',
-        'program_course_category' => '1',
-    ];
-
-    foreach ($adopted as $name => $fallback) {
-        if (get_config('local_autograder', $name) !== false) {
-            // Already answered here, on an upgrade run more than once.
-            continue;
-        }
-
-        $previous = get_config('local_resume', $name);
-
-        set_config($name, $previous === false ? $fallback : $previous, 'local_autograder');
+    if (get_config('local_autograder', 'teacher_roles') !== false) {
+        // Already answered here, on an upgrade run more than once.
+        return;
     }
+
+    $previous = get_config('local_resume', 'teacher_roles');
+
+    set_config(
+        'teacher_roles',
+        $previous === false ? 'editingteacher,teacher' : $previous,
+        'local_autograder'
+    );
 }
 
 /**
