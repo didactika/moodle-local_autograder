@@ -72,24 +72,72 @@ class fallback_grader_setting extends \admin_setting {
 
     /**
      * Every user this setting may ever point to: holders of
-     * {@see CAPABILITY}, ordered by name.
+     * {@see CAPABILITY}, ordered by name — whether that comes from a role
+     * assigned at system context, or one assigned in a single course and
+     * nowhere else, and whether the role grants it by its own default or
+     * only through an override made somewhere.
      *
-     * Found by role rather than by asking each context in turn: every role
-     * that grants it — by its own default, or through an override made
-     * anywhere, in either direction — names itself in `role_capabilities`
-     * regardless of which context the override was made in, so one query
-     * against that table finds every such role, and a second finds every
-     * user holding one of them, in any context at all. What this does not
-     * do is weigh a user's *own* assignment against the specific context it
-     * was made in — a role prevented from grading in one particular course
-     * still lists a teacher whose only assignment is that course, the same
-     * approximation {@see get_users_by_capability()} itself would not make
-     * for a single context, but the only one that stays a single, cheap
-     * query across the whole site instead of one per course.
+     * Two searches, unioned, because neither alone covers both shapes:
+     *
+     * - {@see get_users_by_capability()} at system context is Moodle's own,
+     *   fully correct resolution — it is what actually decides the question
+     *   for a role assigned at system context, prohibits and every other
+     *   subtlety included — but a context check only ever looks *up* the
+     *   context tree, so it cannot see a role assigned down in one course.
+     * - a plain scan of `role_capabilities` for a role that grants it
+     *   `CAP_ALLOW` anywhere, joined to `role_assignments`, is what finds
+     *   that course-only teacher — every role that could ever grant it,
+     *   in one cheap query, rather than one call per course on the site.
+     *   It cannot weigh a user's own assignment against the specific
+     *   context an override was made in, so a role prevented from grading
+     *   in one particular course still names a teacher whose only
+     *   assignment is that course — the trade a single, site-wide query
+     *   makes instead of one per course.
      *
      * @return array<int, string> User id => fully-formatted name.
      */
     public static function eligible_users(): array {
+        global $DB;
+
+        $options = [];
+
+        foreach (self::system_context_holders() as $user) {
+            $options[(int) $user->id] = fullname($user);
+        }
+
+        foreach (self::role_based_holders() as $user) {
+            $options[(int) $user->id] = fullname($user);
+        }
+
+        \core_collator::asort($options);
+
+        return $options;
+    }
+
+    /**
+     * Every user {@see get_users_by_capability()} itself says holds
+     * {@see CAPABILITY} at system context — the authoritative answer for a
+     * role assigned there, but blind to one assigned only in a course.
+     *
+     * @return \stdClass[]
+     */
+    private static function system_context_holders(): array {
+        return get_users_by_capability(
+            \context_system::instance(),
+            self::CAPABILITY,
+            'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename',
+        );
+    }
+
+    /**
+     * Every user holding a role that grants {@see CAPABILITY} `CAP_ALLOW`
+     * somewhere, wherever that role happens to be assigned to them — the
+     * only way to reach a teacher whose sole assignment is one course,
+     * without a query per course on the whole site.
+     *
+     * @return \stdClass[]
+     */
+    private static function role_based_holders(): array {
         global $DB;
 
         $roleids = $DB->get_fieldset_select(
@@ -111,17 +159,7 @@ class fallback_grader_setting extends \admin_setting {
             . ' JOIN {role_assignments} ra ON ra.userid = u.id'
             . " WHERE ra.roleid {$insql} AND u.deleted = 0 AND u.suspended = 0";
 
-        $users = $DB->get_records_sql($sql, $params);
-
-        $options = [];
-
-        foreach ($users as $user) {
-            $options[(int) $user->id] = fullname($user);
-        }
-
-        \core_collator::asort($options);
-
-        return $options;
+        return $DB->get_records_sql($sql, $params);
     }
 
     /**
