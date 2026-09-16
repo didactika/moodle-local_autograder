@@ -137,16 +137,22 @@ if ($hassiteconfig) {
         $roleoptions,
     ));
 
+    $settings->add($teachers);
+
     // The role list belongs to the hand-picked answer, so it is not on screen
     // at all while the roles are being worked out.
-    $teachers->hide_if(
+    //
+    // Registered on the tabs page and after the tab is added, not on the tab
+    // itself: theme_boost_admin_settingspage_tabs::add_tab() copies a tab's
+    // settings up to the parent but not its dependencies, and admin/settings.php
+    // reads them off the parent — so a hide_if left on the tab was simply
+    // never handed to the browser, and the setting stayed visible in every mode.
+    $settings->hide_if(
         'local_autograder/teacher_roles',
         'local_autograder/teacher_source_mode',
         'neq',
         \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES,
     );
-
-    $settings->add($teachers);
 
     $modules = new admin_settingpage('local_autograder_modules', get_string('settings:modulestab', 'local_autograder'));
     $modules->add(new admin_setting_heading(

@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_autograder';
 $plugin->release = '3.0.0';
-$plugin->version = 2026091607;
+$plugin->version = 2026091608;
 $plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
 $plugin->maturity = MATURITY_STABLE;
 $plugin->supported = [405, 502];
