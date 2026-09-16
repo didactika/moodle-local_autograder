@@ -86,13 +86,28 @@ final class grader_picker {
             return null;
         }
 
-        $candidates = self::teachers_of($cm, $studentid);
+        return self::pick_for_course((int) $cm->course, $studentid);
+    }
+
+    /**
+     * The same choice, made from the course rather than one of its activities.
+     *
+     * Who a student's teachers are is a fact about the course, so nothing in
+     * the answer needs the activity — which is what lets a report show, for a
+     * whole course at once, who would be grading whom.
+     *
+     * @param int $courseid
+     * @param int $studentid
+     * @return int|null
+     */
+    public static function pick_for_course(int $courseid, int $studentid): ?int {
+        $candidates = self::teachers_of($courseid, $studentid);
 
         if (empty($candidates)) {
             return null;
         }
 
-        return self::tie_break(array_flip($candidates), (int) $cm->course);
+        return self::tie_break(array_flip($candidates), $courseid);
     }
 
     /**
@@ -102,13 +117,13 @@ final class grader_picker {
      * local_resume several queries and one activity's catch-up asks it for
      * every student on the course.
      *
-     * @param \cm_info|\stdClass $cm
+     * @param int $courseid
      * @param int $studentid
      * @return int[]
      */
-    private static function teachers_of(\cm_info|\stdClass $cm, int $studentid): array {
+    private static function teachers_of(int $courseid, int $studentid): array {
         $cache = self::request_cache();
-        $key = 'teachers-' . (int) $cm->course . '-' . $studentid;
+        $key = 'teachers-' . $courseid . '-' . $studentid;
         $cached = $cache->get($key);
 
         if ($cached !== false) {
@@ -117,7 +132,7 @@ final class grader_picker {
 
         $teachers = [];
 
-        foreach (teacher_source::teachers_of((int) $cm->course, $studentid) as $teacherid) {
+        foreach (teacher_source::teachers_of($courseid, $studentid) as $teacherid) {
             if (self::must_never_grade($teacherid) || self::has_opted_out($teacherid)) {
                 continue;
             }
@@ -153,9 +168,9 @@ final class grader_picker {
      * @return int|null
      */
     public static function fallback_for(int $cmid): ?int {
-        $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING);
+        unset($cmid);
 
-        return $cm ? self::fallback_grader($cm) : null;
+        return self::fallback_grader();
     }
 
     /**
@@ -180,12 +195,9 @@ final class grader_picker {
      * teacher of their own — or whose teacher turned out not to be able to
      * post the grade.
      *
-     * @param \cm_info|\stdClass $cm Unused; kept so callers need not care.
      * @return int|null
      */
-    private static function fallback_grader(\cm_info|\stdClass $cm): ?int {
-        unset($cm);
-
+    private static function fallback_grader(): ?int {
         $fallbackid = (int) get_config('local_autograder', 'fallback_grader');
 
         if (self::must_never_grade($fallbackid) || self::has_opted_out($fallbackid)) {
