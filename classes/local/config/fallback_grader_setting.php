@@ -105,14 +105,13 @@ class fallback_grader_setting extends \admin_setting {
 
         [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
 
-        $users = $DB->get_records_sql(
-            "SELECT DISTINCT u.id, u.firstname, u.lastname, u.firstnamephonetic,
-                    u.lastnamephonetic, u.middlename, u.alternatename
-               FROM {user} u
-               JOIN {role_assignments} ra ON ra.userid = u.id
-              WHERE ra.roleid {$insql} AND u.deleted = 0 AND u.suspended = 0",
-            $params,
-        );
+        $fields = 'u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename';
+        $sql = "SELECT DISTINCT {$fields}"
+            . ' FROM {user} u'
+            . ' JOIN {role_assignments} ra ON ra.userid = u.id'
+            . " WHERE ra.roleid {$insql} AND u.deleted = 0 AND u.suspended = 0";
+
+        $users = $DB->get_records_sql($sql, $params);
 
         $options = [];
 
