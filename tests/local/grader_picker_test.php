@@ -75,28 +75,56 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * Somebody who may not grade the activity is not a candidate, however else
-     * they are set up: Moodle would refuse the grade in their name.
+     * Whether the teacher can really post the grade is not asked while
+     * choosing them — it is found out by posting it. So a teacher whose
+     * grading capability has been taken away is still the one chosen; it is
+     * grade_student that then falls back, and fails if that does not work
+     * either.
      */
-    public function test_somebody_who_cannot_grade_the_activity_is_not_chosen(): void {
+    public function test_the_capability_is_not_checked_while_choosing(): void {
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $this->prevent('mod/assign:grade');
 
-        $this->assertNull(grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id));
-        $this->assertNotNull($teacher, 'The teacher exists; it is the capability that does not.');
+        $this->assertSame(
+            (int) $teacher->id,
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
+        );
     }
 
     /**
-     * A course with nobody eligible falls back to the site's configured
-     * grader — as long as they could really grade this activity.
+     * A course with no teacher of the student's own falls back to the site's
+     * configured grader.
      */
     public function test_the_site_fallback_stands_in_for_a_course_with_nobody(): void {
+        $standin = $this->getDataGenerator()->create_user();
+        set_config('fallback_grader', $standin->id, 'local_autograder');
+
+        $this->assertNull(
+            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
+            'The student has no teacher, so there is nobody to pick.'
+        );
+        $this->assertSame(
+            (int) $standin->id,
+            grader_picker::fallback_for((int) $this->cm->id),
+            'And the fallback is who grade_student turns to next.'
+        );
+    }
+
+    /**
+     * An administrator is never chosen, as a teacher or as the fallback.
+     *
+     * They hold every capability in every course, so any rule phrased in
+     * capabilities reaches them everywhere — and a grade signed by the
+     * administrator account says nothing true about who taught the student.
+     */
+    public function test_an_administrator_is_never_chosen(): void {
         $admin = get_admin();
         set_config('fallback_grader', $admin->id, 'local_autograder');
 
-        $this->assertSame(
-            (int) $admin->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
+        $this->assertTrue(grader_picker::must_never_grade((int) $admin->id));
+        $this->assertNull(
+            grader_picker::fallback_for((int) $this->cm->id),
+            'Configured or not, the administrator never grades.'
         );
     }
 

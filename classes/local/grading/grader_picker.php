@@ -19,14 +19,22 @@ namespace local_autograder\local\grading;
 /**
  * Which teacher autograder grades a given student on behalf of.
  *
- * The group/grouping narrowing is the same logic
- * `local_resume\local\teachers::get_user_teachers_by_groups` uses to decide
- * which teachers a student may see — reimplemented here, not depended on,
- * because the two plugins are independent. The starting pool is different on
- * purpose: `local_resume` starts from a configured list of teacher roles;
- * this starts from who holds the `local/autograder:gradeonbehalf` capability —
- * a permission, not a role list, so a site adjusts it with an ordinary role
- * override instead of a setting.
+ * The answer is `local_resume`'s, asked through {@see teacher_source} rather
+ * than worked out again here. It used to be worked out here, from who held
+ * `local/autograder:gradeonbehalf`, and that produced a different list from
+ * the one the student is shown as their own teachers — a grade signed by
+ * somebody the student has never been told is their teacher.
+ *
+ * Three rules settle the rest, in order:
+ *
+ * - A site administrator is never chosen, for anything. They hold every
+ *   capability in every course, so any rule phrased in capabilities picks
+ *   them everywhere, and their name on a grade says nothing true.
+ * - A student with no teacher falls to the site's configured fallback grader.
+ * - With no fallback either, the decision fails and says so. Nothing is
+ *   posted in a name that was not really behind it.
+ *
+ * No capability is checked while choosing — see {@see self::pick_for()}.
  *
  * @package     local_autograder
  * @copyright  2026 Didactika.org
@@ -51,15 +59,25 @@ final class grader_picker {
 
     /**
      * Picks the teacher to grade one student in one course module, or null
-     * when nobody qualifies.
+     * when the student has none.
+     *
+     * Who a student's teachers are is not decided here: it is
+     * `local_resume`'s answer, asked through {@see teacher_source}, so that
+     * the name on the grade is one of the names the student is shown as their
+     * own teachers. Nothing else would be defensible to either of them.
+     *
+     * No capability is checked while choosing. Whether the chosen teacher can
+     * really post the grade is settled by trying, at the moment of grading —
+     * see {@see \local_autograder\task\grade_student}, which falls back and
+     * then fails rather than guessing in advance.
      *
      * Deliberately called at the moment of grading, not when the decision is
-     * created — a teacher can join or leave the course, a group, or the
-     * capability in the days a decision waits to be due.
+     * created: a teacher can join or leave the course, or a group, in the days
+     * a decision waits to be due.
      *
      * @param int $cmid
      * @param int $studentid
-     * @return int|null The chosen user id, or null when nobody does.
+     * @return int|null The chosen user id, or null when the student has no teacher.
      */
     public static function pick_for(int $cmid, int $studentid): ?int {
         $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING);
@@ -68,145 +86,76 @@ final class grader_picker {
             return null;
         }
 
-        $candidates = self::candidates_for($cm);
-        $candidates = self::narrow_by_groups($cm, $studentid, $candidates);
+        $candidates = self::teachers_of($cm, $studentid);
 
         if (empty($candidates)) {
-            return self::fallback_grader($cm);
+            return null;
         }
 
-        return self::tie_break($candidates, $cm->course);
+        return self::tie_break(array_flip($candidates), (int) $cm->course);
     }
 
     /**
-     * Every user who could plausibly grade this module: holds
-     * `local/autograder:gradeonbehalf` and the module's own real grading
-     * capability, in its context, and has not opted out.
+     * The student's teachers, minus the ones who must never be chosen.
      *
-     * @param \cm_info|\stdClass $cm
-     * @return array<int, \stdClass> Candidate users keyed by id.
-     */
-    private static function candidates_for(\cm_info|\stdClass $cm): array {
-        $cache = self::request_cache();
-        $key = 'candidates-' . (int) $cm->id;
-        $cached = $cache->get($key);
-
-        if ($cached !== false) {
-            return $cached;
-        }
-
-        $modulecontext = \context_module::instance($cm->id);
-        $gradecapability = self::grade_capability_for($cm->modname);
-
-        $permitted = get_users_by_capability($modulecontext, 'local/autograder:gradeonbehalf');
-        $graders = get_users_by_capability($modulecontext, $gradecapability);
-
-        $candidates = [];
-
-        foreach ($permitted as $userid => $user) {
-            if (!isset($graders[$userid])) {
-                continue;
-            }
-
-            if (self::has_opted_out((int) $userid)) {
-                continue;
-            }
-
-            $candidates[$userid] = $user;
-        }
-
-        $cache->set($key, $candidates);
-
-        return $candidates;
-    }
-
-    /**
-     * Narrows candidates to those who share a group with the student, when
-     * the course actually separates by group — otherwise a no-op.
-     *
-     * A candidate with `moodle/site:accessallgroups` in the course is never
-     * filtered out: they can grade anyone regardless of group. If the group
-     * filter would leave nobody, it is discarded and every candidate stands —
-     * a course misconfigured with no shared group is not reason to grade
-     * nobody.
+     * Cached per request and per student, because the answer costs
+     * local_resume several queries and one activity's catch-up asks it for
+     * every student on the course.
      *
      * @param \cm_info|\stdClass $cm
      * @param int $studentid
-     * @param array<int, \stdClass> $candidates
-     * @return array<int, \stdClass>
+     * @return int[]
      */
-    private static function narrow_by_groups(\cm_info|\stdClass $cm, int $studentid, array $candidates): array {
-        if (empty($candidates)) {
-            return $candidates;
-        }
-
-        $course = get_course($cm->course);
-
-        if ((int) groups_get_course_groupmode($course) !== SEPARATEGROUPS || empty($course->defaultgroupingid)) {
-            return $candidates;
-        }
-
-        $membership = self::grouping_membership((int) $cm->course, (int) $course->defaultgroupingid);
-        $studentgroupids = $membership[$studentid] ?? [];
-
-        if (empty($studentgroupids)) {
-            return $candidates;
-        }
-
-        $coursecontext = \context_course::instance($cm->course);
-        $filtered = [];
-
-        foreach ($candidates as $candidateid => $candidate) {
-            if (has_capability('moodle/site:accessallgroups', $coursecontext, $candidateid)) {
-                $filtered[$candidateid] = $candidate;
-
-                continue;
-            }
-
-            if (array_intersect($studentgroupids, $membership[(int) $candidateid] ?? [])) {
-                $filtered[$candidateid] = $candidate;
-            }
-        }
-
-        return empty($filtered) ? $candidates : $filtered;
-    }
-
-    /**
-     * Who belongs to which group of one grouping, as a single map.
-     *
-     * Read in one go rather than once per person: the student and every
-     * candidate are weighed against the same grouping, and the report asks
-     * this question for a whole page of students at a time.
-     *
-     * @param int $courseid
-     * @param int $groupingid
-     * @return array<int, int[]> Group ids, by user id.
-     */
-    private static function grouping_membership(int $courseid, int $groupingid): array {
-        global $DB;
-
+    private static function teachers_of(\cm_info|\stdClass $cm, int $studentid): array {
         $cache = self::request_cache();
-        $key = "grouping-{$courseid}-{$groupingid}";
+        $key = 'teachers-' . (int) $cm->course . '-' . $studentid;
         $cached = $cache->get($key);
 
         if ($cached !== false) {
             return $cached;
         }
 
-        $sql = "SELECT gm.id, gm.userid, gm.groupid
-                  FROM {groups_members} gm
-                  JOIN {groups} g ON g.id = gm.groupid
-                  JOIN {groupings_groups} gg ON gg.groupid = g.id
-                 WHERE g.courseid = :courseid AND gg.groupingid = :groupingid";
-        $membership = [];
+        $teachers = [];
 
-        foreach ($DB->get_records_sql($sql, ['courseid' => $courseid, 'groupingid' => $groupingid]) as $row) {
-            $membership[(int) $row->userid][] = (int) $row->groupid;
+        foreach (teacher_source::teachers_of((int) $cm->course, $studentid) as $teacherid) {
+            if (self::must_never_grade($teacherid) || self::has_opted_out($teacherid)) {
+                continue;
+            }
+
+            $teachers[] = $teacherid;
         }
 
-        $cache->set($key, $membership);
+        $cache->set($key, $teachers);
 
-        return $membership;
+        return $teachers;
+    }
+
+    /**
+     * Whether a user must never have a grade posted in their name.
+     *
+     * A site administrator never grades. They hold every capability
+     * everywhere, so any rule written in terms of capabilities picks them for
+     * every course on the site — and a grade signed by the administrator
+     * account tells a student nothing true about who taught them.
+     *
+     * @param int $userid
+     * @return bool
+     */
+    public static function must_never_grade(int $userid): bool {
+        return $userid <= 0 || is_siteadmin($userid) || isguestuser($userid);
+    }
+
+    /**
+     * The site's configured last resort, for when the student has no teacher
+     * who could post the grade.
+     *
+     * @param int $cmid
+     * @return int|null
+     */
+    public static function fallback_for(int $cmid): ?int {
+        $cm = get_coursemodule_from_id(null, $cmid, 0, false, IGNORE_MISSING);
+
+        return $cm ? self::fallback_grader($cm) : null;
     }
 
     /**
@@ -227,31 +176,26 @@ final class grader_picker {
     }
 
     /**
-     * The site's configured last resort, when the course itself has nobody
-     * eligible — revalidated against the module's own grading capability
-     * — a user holding `moodle/grade:edit` site-wide is not guaranteed to
-     * still hold it once a role override narrows it back down in one course
-     * or category. `local/autograder:gradeonbehalf` is deliberately not
-     * required of the fallback grader — they stand in exactly because the
-     * course has nobody who holds it.
+     * The site's configured last resort, for a student whose course has no
+     * teacher of their own — or whose teacher turned out not to be able to
+     * post the grade.
      *
-     * @param \cm_info|\stdClass $cm
+     * @param \cm_info|\stdClass $cm Unused; kept so callers need not care.
      * @return int|null
      */
     private static function fallback_grader(\cm_info|\stdClass $cm): ?int {
+        unset($cm);
+
         $fallbackid = (int) get_config('local_autograder', 'fallback_grader');
 
-        if ($fallbackid <= 0 || self::has_opted_out($fallbackid)) {
+        if (self::must_never_grade($fallbackid) || self::has_opted_out($fallbackid)) {
             return null;
         }
 
-        $modulecontext = \context_module::instance($cm->id);
-        $gradecapability = self::grade_capability_for($cm->modname);
-
-        if (!has_capability($gradecapability, $modulecontext, $fallbackid)) {
-            return null;
-        }
-
+        // No capability check here either: whether they can really post this
+        // grade is settled by posting it. If they cannot, there is nobody left
+        // and the decision fails — which is the honest outcome, and the one an
+        // administrator would otherwise have been silently used to hide.
         return $fallbackid;
     }
 
