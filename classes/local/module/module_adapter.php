@@ -16,7 +16,9 @@
 
 namespace local_autograder\local\module;
 
+use local_autograder\local\grading\acting_as;
 use local_autograder\local\grading\advanced_grading;
+use local_autograder\local\grading\grader_picker;
 
 /**
  * What autograder needs to know about one activity type: when it closes, what
@@ -138,6 +140,13 @@ abstract class module_adapter {
      * @throws \moodle_exception When the grade could not be posted.
      */
     final public function write_grade(int $userid, int $graderid): float {
+        // Never a site administrator, whatever the caller handed in: the
+        // picker already refuses them, and this is the last door before the
+        // grade is written, so it refuses them too.
+        if (grader_picker::must_never_grade($graderid)) {
+            throw new \moodle_exception('error:gradewritefailed', 'local_autograder');
+        }
+
         // Nothing is asked in advance about whether this teacher may post it.
         // The write itself is the answer: it either stores the grade or throws,
         // and the caller then falls back and finally fails. Guessing here only
@@ -145,7 +154,16 @@ abstract class module_adapter {
         self::$writing = true;
 
         try {
-            return $this->post_grade($userid, $graderid);
+            // Every write happens as the teacher, not only the ones whose API
+            // asks for `$USER`. Core fills in whoever it cannot find from the
+            // current user: the forum hands the gradebook its grades without
+            // saying who graded them, so `update_raw_grade()` stamped
+            // `usermodified` with the task's own user — the site administrator
+            // cron runs as — and the gradebook showed the administrator as the
+            // grader of every autograded forum while this plugin's own records
+            // named the right teacher. Grade history and the graded events read
+            // `$USER` the same way.
+            return acting_as::user($graderid, fn(): float => $this->post_grade($userid, $graderid));
         } finally {
             self::$writing = false;
         }

@@ -28,9 +28,11 @@ use local_autograder\local\grading\acting_as;
  * guide when the activity uses one.
  *
  * That API reads the grader off the global `$USER` (it checks
- * `mod/assign:grade` against it and stamps `$grade->grader` with it), so the
- * call is wrapped in {@see acting_as::user()}. It is the one adapter that
- * needs to.
+ * `mod/assign:grade` against it and stamps `$grade->grader` with it).
+ * {@see module_adapter::write_grade()} already runs every write as the
+ * teacher; this one wraps its own call as well because it is the adapter
+ * whose API would grade as the wrong person without it, and it should not
+ * rely on its caller to be right.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org

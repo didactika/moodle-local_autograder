@@ -22,9 +22,12 @@ use core_grades\component_gradeitem;
  * Forum (whole-activity grading, not post ratings).
  *
  * Forum is the one activity type here that implements Moodle's modern
- * `component_gradeitem` API, which takes the grader as an argument instead of
- * reading `$USER` — so no impersonation is needed, and rubric/guide fillings
- * are handled by the same call.
+ * `component_gradeitem` API, which takes the grader as an argument, and
+ * rubric/guide fillings are handled by the same call. That argument reaches
+ * the forum's own grade but not the gradebook: core copies the grade across
+ * without saying who gave it, and the gradebook fills that in from `$USER`.
+ * {@see module_adapter::write_grade()} runs every write as the teacher for
+ * exactly that reason.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
