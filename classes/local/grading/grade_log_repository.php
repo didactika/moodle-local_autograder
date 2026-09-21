@@ -27,8 +27,8 @@ use local_autograder\local\decision\decision_repository;
  * March" answerable in June.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class grade_log_repository {
@@ -128,8 +128,8 @@ final class grade_log_repository {
         $deleted = 0;
 
         // Batched and capped for the same reason the decisions are: this table
-        // gains a row per grading attempt on the campus, so a year of it is
-        // the one table here that really can hold millions, and deleting them
+        // gains a row per grading attempt on the site, so a year of it is the
+        // one table here that really can hold millions, and deleting them
         // in a single statement is how a nightly task becomes an outage.
         while ($deleted < $limit) {
             $ids = array_keys($DB->get_records_sql(

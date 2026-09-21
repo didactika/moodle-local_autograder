@@ -33,8 +33,8 @@ namespace local_autograder\local\grading;
  *
  * A teacher is therefore assumed willing and able unless one of two things
  * says otherwise — they are an administrator or guest, or they have set the
- * opt-out preference. With no teacher left the site fallback signs it, and
- * with no fallback the decision fails and says so.
+ * opt-out preference on a site that offers it. With no teacher left the site
+ * fallback signs it, and with no fallback the decision fails and says so.
  *
  * @package local_autograder
  * @copyright 2026 Didactika.org
@@ -85,6 +85,11 @@ final class grader_picker {
     /**
      * Active, non-administrator accounts that have not opted out.
      *
+     * The opt-out preference is only honoured while the site offers it. A site
+     * that turns the preference off is saying it decides who grades, not the
+     * teachers, and a preference set before that — or by a teacher who no
+     * longer means it — must not go on quietly removing somebody.
+     *
      * @param int[] $userids
      * @return int[]
      */
@@ -110,11 +115,16 @@ final class grader_picker {
               WHERE u.id {$insql} AND u.deleted = 0 AND u.suspended = 0",
             $params
         );
+        $honouroptout = !empty(get_config('local_autograder', 'allowoptout'));
         $usable = [];
         foreach ($users as $user) {
-            if (!self::must_never_grade((int) $user->id) && empty($user->optout)) {
-                $usable[] = (int) $user->id;
+            if (self::must_never_grade((int) $user->id)) {
+                continue;
             }
+            if ($honouroptout && !empty($user->optout)) {
+                continue;
+            }
+            $usable[] = (int) $user->id;
         }
         $cache->set($key, $usable);
         return $usable;
@@ -164,7 +174,7 @@ final class grader_picker {
      *
      * The generic gradebook one plus each module type's own. Used to work out
      * which roles teach a course — a role that grants one of these is a role
-     * that grades — so that a site naming a new corrector role does not also
+     * that grades — so that a site defining its own grading role does not also
      * have to tell autograder about it.
      *
      * @return string[]

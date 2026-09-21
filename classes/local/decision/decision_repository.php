@@ -17,6 +17,7 @@
 namespace local_autograder\local\decision;
 
 use local_autograder\event\decision_cancelled;
+use local_autograder\local\config\eligibility;
 use local_autograder\local\grading\grade_log_repository;
 use local_autograder\task\grade_student;
 
@@ -30,8 +31,8 @@ use local_autograder\task\grade_student;
  * task would fire on data that no longer says what it said.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class decision_repository {
@@ -137,6 +138,29 @@ final class decision_repository {
     }
 
     /**
+     * The activities of one module type that still have somebody waiting.
+     *
+     * Asked when a site withdraws a whole activity type, to call off only the
+     * activities that actually have something queued instead of sweeping every
+     * course the type appears in.
+     *
+     * @param string $modname
+     * @return int[] Their course module ids.
+     */
+    public static function pending_cmids_of_type(string $modname): array {
+        global $DB;
+
+        return array_map('intval', $DB->get_fieldset_sql(
+            "SELECT DISTINCT d.cmid
+               FROM {local_autograder_decision} d
+               JOIN {course_modules} cm ON cm.id = d.cmid
+               JOIN {modules} m ON m.id = cm.module
+              WHERE d.status = :status AND m.name = :modname",
+            ['status' => self::STATUS_PENDING, 'modname' => $modname]
+        ));
+    }
+
+    /**
      * Pending decisions that are already due but have no live task behind
      * them — what the safety net looks for.
      *
@@ -149,7 +173,7 @@ final class decision_repository {
         // Capped, and oldest first. Something that loses a task usually loses
         // it along with everything else queued at the same moment — a purged
         // task table, a failed upgrade — so the honest size of this answer is
-        // "every pending decision on the campus". Requeueing a bounded number
+        // "every pending decision on the site". Requeueing a bounded number
         // per run puts the oldest back first and lets the next run continue,
         // instead of one cron trying to rebuild millions of tasks at once.
         $sql = "SELECT d.*
@@ -187,6 +211,21 @@ final class decision_repository {
             // Somebody's grade is on it — autograder's own or a teacher's —
             // and that is the one thing this never takes back.
             return $existing;
+        }
+
+        if (!eligibility::is_module_type_enabled((string) $cm->modname)) {
+            // The site has withdrawn the whole activity type: nothing more is
+            // planned, and anything still waiting is called off. The
+            // activity's own configuration is left exactly as its teacher
+            // saved it — the type can come back, and a cancelled decision is
+            // not a final one, so when it does the activity picks up where it
+            // left off instead of every teacher having to switch theirs on
+            // again.
+            if ($existing) {
+                self::cancel($existing, 'moduletypeoff');
+            }
+
+            return null;
         }
 
         $plan = decision_planner::plan($cm, $config, $userid);
@@ -450,7 +489,7 @@ final class decision_repository {
         $deleted = 0;
 
         // In batches, with a ceiling per run. One statement deleting a year of
-        // a large campus's decisions holds its locks for as long as it takes
+        // a large site's decisions holds its locks for as long as it takes
         // and leaves the table to be vacuumed afterwards; a run that does not
         // finish simply continues on the next one, since what it deletes is
         // decided by age rather than by where it left off.

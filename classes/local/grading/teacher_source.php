@@ -28,10 +28,11 @@ namespace local_autograder\local\grading;
  * What makes a role a teaching role is worked out, not listed. By default it
  * is any role that grants one of the capabilities a grade is actually written
  * through ({@see grader_picker::grade_capabilities()}), which means a site
- * that invents a corrector role gets it recognised the moment the role
- * exists. Naming roles by hand is what broke this before: the list held the
- * two stock roles, a site added its own corrector, and every course it taught
- * reported that nobody could grade it — with nothing on screen to say why.
+ * that defines its own marking role gets it recognised the moment the role
+ * exists. Naming roles by hand is the failure this avoids: a list holding the
+ * two stock roles, a site adding a third that grades, and every course it
+ * teaches reporting that nobody can grade it — with nothing on screen to say
+ * why.
  *
  * A site that wants the choice pinned can still make it by hand; the setting
  * is a fallback from the automatic rule, not the normal way to run it.
@@ -156,11 +157,12 @@ final class teacher_source {
     /**
      * The roles the site named by hand, as ids.
      *
-     * One list. Autograder used to keep a second for programme courses,
-     * picked by course category, which is a distinction another plugin makes
-     * about its own courses and not one this plugin has any business
-     * repeating: here a course has teachers, and they are whoever holds a
-     * teaching role in it.
+     * One list for the whole site: a course has teachers, and they are
+     * whoever holds one of these roles in it. Nothing here sorts courses into
+     * kinds and gives each kind its own list — that is a distinction a site
+     * makes about its own courses, and repeating it would only give an
+     * administrator two places to configure the same thing and one of them to
+     * get wrong.
      *
      * @return int[]
      */

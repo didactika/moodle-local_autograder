@@ -17,15 +17,21 @@
 /**
  * Admin settings for local_autograder.
  *
- * Who gets to grade is not configured here. It is whoever Moodle already says
- * may grade — `moodle/grade:edit` — minus anyone whose own
- * `local_autograder_optout` preference asks not to be chosen.
- * `fallback_grader` below is the one exception: the last resort when the
- * course itself has nobody eligible.
+ * The Teachers tab is where a site says whose name an automatic grade carries.
+ * By default autograder works that out rather than being told: a role counts as
+ * teaching if it grants one of the capabilities a grade is written through —
+ * `moodle/grade:edit`, or a module's own `mod/<name>:grade` — and a course's
+ * teachers are whoever holds such a role assigned in the course itself. The
+ * capability is read off the role, once per site, and never checked per user;
+ * see {@see \local_autograder\local\grading\teacher_source} for why, and
+ * {@see \local_autograder\local\grading\grader_picker} for who is then left out
+ * — administrators, guests, and opt-outs while the site offers the preference.
+ *
+ * `fallback_grader` is the last resort, for a student with no teacher left.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -40,38 +46,22 @@ if ($hassiteconfig) {
         get_string('pluginname', 'local_autograder'),
     );
 
+    // Two tabs, because a site answers two separate questions here: what
+    // autograder applies to and what it leaves behind (General), and who a
+    // grade ends up signed by (Teachers). Activity types and data retention
+    // were tabs of their own holding one control each, which made the reader
+    // open three pages to read four settings.
     $general = new admin_settingpage('local_autograder_general', get_string('settings:generaltab', 'local_autograder'));
 
-    $general->add(new admin_setting_configselect(
-        'local_autograder/tiebreak',
-        get_string('setting:tiebreak', 'local_autograder'),
-        get_string('setting:tiebreak_desc', 'local_autograder'),
-        'lowest_userid',
-        [
-            'lowest_userid' => get_string('setting:tiebreak_lowest_userid', 'local_autograder'),
-            'last_course_access' => get_string('setting:tiebreak_last_course_access', 'local_autograder'),
-        ],
-    ));
-
-    // Defaulted to user id 0, "no fallback grader": there is no sensible
-    // non-zero user to pick on a site's behalf.
-    $general->add(new \local_autograder\local\config\fallback_grader_setting(
-        'local_autograder/fallback_grader',
-        get_string('setting:fallback_grader', 'local_autograder'),
-        get_string('setting:fallback_grader_desc', 'local_autograder'),
-        0,
-    ));
-
-    // Off unless a site decides otherwise: letting teachers take themselves
-    // out of the rota changes who gets graded and when, and on a site with few
-    // eligible teachers it can leave an activity with nobody to grade as. A
-    // site that wants to offer it can, and until then the preference is
-    // neither shown nor honoured.
-    $general->add(new admin_setting_configcheckbox(
-        'local_autograder/allowoptout',
-        get_string('setting:allowoptout', 'local_autograder'),
-        get_string('setting:allowoptout_desc', 'local_autograder'),
-        0,
+    // Both blocks on this tab are titled. An admin_setting_heading with no
+    // title renders its description on its own, outside the label/control grid
+    // every real setting sits in — which put the text hard against the left
+    // margin with the settings below it indented, reading as a stray label
+    // rather than a section of its own.
+    $general->add(new admin_setting_heading(
+        'local_autograder/grading_heading',
+        get_string('setting:grading_heading', 'local_autograder'),
+        '',
     ));
 
     $general->add(new admin_setting_configcheckbox(
@@ -81,12 +71,35 @@ if ($hassiteconfig) {
         0,
     ));
 
+    // Digits only, rather than PARAM_INT, which accepts a minus sign. A
+    // negative number of days is not a shorter retention, and the task reads
+    // it as the same "keep everything" that 0 means — so it is refused at the
+    // form rather than saved and quietly meaning something else than it says.
+    $general->add(new admin_setting_configtext(
+        'local_autograder/retentiondays',
+        get_string('setting:retentiondays', 'local_autograder'),
+        get_string('setting:retentiondays_desc', 'local_autograder'),
+        '120',
+        '/^\d+$/',
+    ));
+
+    // Last, because it is the one block on this tab that is not a setting: a
+    // way out to the page that holds them, after everything that can actually
+    // be changed here.
+    $general->add(new admin_setting_heading(
+        'local_autograder/modules_heading',
+        get_string('settings:modulestab', 'local_autograder'),
+        get_string('setting:modules_heading', 'local_autograder', [
+            'url' => (new \moodle_url('/local/autograder/modules.php'))->out(),
+        ]),
+    ));
+
     $settings->add($general);
 
     // Who counts as a teacher is what decides whose name every grade carries,
-    // so a site says it here rather than autograder reading it out of another
-    // plugin's configuration — where a corrector role could be added, appear
-    // on the course, and still leave autograder thinking nobody taught it.
+    // so a site says it here — in one place, in this plugin's own settings.
+    // Read out of somewhere else and a role could be added, be assigned on the
+    // course, and still leave autograder thinking nobody taught it.
     $teachers = new admin_settingpage(
         'local_autograder_teachers',
         get_string('settings:teacherstab', 'local_autograder')
@@ -99,8 +112,9 @@ if ($hassiteconfig) {
     ));
 
     // Worked out rather than listed, by default. Naming the roles by hand is
-    // what broke this: a site added a corrector role, every course it taught
-    // reported that nobody could grade it, and nothing on screen said why.
+    // the failure this avoids: a site defines a third role that grades, leaves
+    // it off the list, and every course it teaches reports that nobody can
+    // grade it with nothing on screen to say why.
     $teachers->add(new admin_setting_configselect(
         'local_autograder/teacher_source_mode',
         get_string('setting:teacher_source_mode', 'local_autograder'),
@@ -126,15 +140,47 @@ if ($hassiteconfig) {
     }
 
     // Every role built on a teacher archetype, ticked to begin with: a site
-    // that names a corrector role almost always builds it on one, and the
-    // alternative default — the two stock roles — is exactly what left such a
-    // role out and the course with no teacher.
+    // defining its own marking role almost always builds it on one, and the
+    // alternative default — the two stock roles — is exactly what would leave
+    // such a role out and the course with no teacher.
     $teachers->add(new admin_setting_configmultiselect(
         'local_autograder/teacher_roles',
         get_string('setting:teacher_roles', 'local_autograder'),
         get_string('setting:teacher_roles_desc', 'local_autograder'),
         $teacherarchetypes,
         $roleoptions,
+    ));
+
+    $teachers->add(new admin_setting_configselect(
+        'local_autograder/tiebreak',
+        get_string('setting:tiebreak', 'local_autograder'),
+        get_string('setting:tiebreak_desc', 'local_autograder'),
+        'lowest_userid',
+        [
+            'lowest_userid' => get_string('setting:tiebreak_lowest_userid', 'local_autograder'),
+            'last_course_access' => get_string('setting:tiebreak_last_course_access', 'local_autograder'),
+        ],
+    ));
+
+    // Defaulted to user id 0, "no fallback grader": there is no sensible
+    // non-zero user to pick on a site's behalf.
+    $teachers->add(new \local_autograder\local\config\fallback_grader_setting(
+        'local_autograder/fallback_grader',
+        get_string('setting:fallback_grader', 'local_autograder'),
+        get_string('setting:fallback_grader_desc', 'local_autograder'),
+        0,
+    ));
+
+    // Off unless a site decides otherwise: letting teachers take themselves
+    // out of the rota changes who gets graded and when, and on a site with few
+    // eligible teachers it can leave an activity with nobody to grade as. A
+    // site that wants to offer it can, and until then the preference is
+    // neither shown nor honoured.
+    $teachers->add(new admin_setting_configcheckbox(
+        'local_autograder/allowoptout',
+        get_string('setting:allowoptout', 'local_autograder'),
+        get_string('setting:allowoptout_desc', 'local_autograder'),
+        0,
     ));
 
     $settings->add($teachers);
@@ -153,26 +199,6 @@ if ($hassiteconfig) {
         'neq',
         \local_autograder\local\grading\teacher_source::MODE_CHOSEN_ROLES,
     );
-
-    $modules = new admin_settingpage('local_autograder_modules', get_string('settings:modulestab', 'local_autograder'));
-    $modules->add(new admin_setting_heading(
-        'local_autograder/modules_heading',
-        '',
-        get_string('setting:modules_heading', 'local_autograder', [
-            'url' => (new \moodle_url('/local/autograder/modules.php'))->out(),
-        ]),
-    ));
-    $settings->add($modules);
-
-    $retention = new admin_settingpage('local_autograder_retention', get_string('settings:retentiontab', 'local_autograder'));
-    $retention->add(new admin_setting_configtext(
-        'local_autograder/retentiondays',
-        get_string('setting:retentiondays', 'local_autograder'),
-        get_string('setting:retentiondays_desc', 'local_autograder'),
-        '120',
-        PARAM_INT,
-    ));
-    $settings->add($retention);
 
     $ADMIN->add('localplugins', $settings);
     $ADMIN->add('localplugins', new admin_externalpage(

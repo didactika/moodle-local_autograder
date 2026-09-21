@@ -19,6 +19,7 @@ namespace local_autograder\task;
 use local_autograder\event\grading_failed;
 use local_autograder\event\student_graded;
 use local_autograder\local\config\config_repository;
+use local_autograder\local\config\eligibility;
 use local_autograder\local\decision\decision_planner;
 use local_autograder\local\decision\decision_repository;
 use local_autograder\local\grading\grade_log_repository;
@@ -37,8 +38,8 @@ use local_autograder\local\module\module_adapter;
  * again here, because days may have passed.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class grade_student extends \core\task\adhoc_task {
@@ -66,6 +67,13 @@ class grade_student extends \core\task\adhoc_task {
 
         if (!$cm) {
             decision_repository::cancel($decision, 'modulegone');
+
+            return;
+        }
+
+        if (!eligibility::is_module_type_enabled((string) $cm->modname)) {
+            // The site withdrew the whole activity type while this waited.
+            decision_repository::cancel($decision, 'moduletypeoff');
 
             return;
         }

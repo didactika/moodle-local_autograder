@@ -18,13 +18,13 @@
  *
  * The shape core/form-autocomplete asks of an ajax handler: transport fetches,
  * processResults shapes. The setting used to render every eligible user as an
- * option and let the module filter them in the browser, which on a campus with
- * a hundred thousand teachers meant a hundred thousand options in the page
+ * option and let the module filter them in the browser, which on a site with a
+ * hundred thousand teachers meant a hundred thousand options in the page
  * before anybody typed anything.
  *
  * @module     local_autograder/grader_search
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

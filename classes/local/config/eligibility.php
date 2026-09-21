@@ -16,13 +16,17 @@
 
 namespace local_autograder\local\config;
 
+use local_autograder\local\decision\decision_repository;
+use local_autograder\task\cancel_module;
+use local_autograder\task\catch_up_module;
+
 /**
  * Whether a course module may have autograder configured at all, and which of
  * the four grading methods (point, scale, rubric, guide) its grade item uses.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class eligibility {
@@ -38,6 +42,13 @@ final class eligibility {
         'assign' => ['component' => 'mod_assign', 'area' => 'submissions'],
         'forum' => ['component' => 'mod_forum', 'area' => 'forum'],
     ];
+
+    /**
+     * What a site that has never visited the activity types page allows.
+     *
+     * @var string[]
+     */
+    private const DEFAULT_MODULE_TYPES = ['assign', 'forum', 'quiz'];
 
     /**
      * Which grade item of a module type is the one for the activity as a
@@ -70,16 +81,21 @@ final class eligibility {
      * The module types this site currently allows, in the order they were
      * configured. Defaults to assign, forum and quiz on a fresh install.
      *
+     * An unset setting and an empty one are different answers: the first is a
+     * site that has never said, and gets the defaults, while the second is a
+     * site that has switched every type off — which must mean none rather than
+     * quietly turning three back on.
+     *
      * @return string[]
      */
     public static function enabled_module_types(): array {
         $raw = get_config('local_autograder', 'enabled_modules');
 
-        if ($raw === false || $raw === '') {
-            return ['assign', 'forum', 'quiz'];
+        if ($raw === false) {
+            return self::DEFAULT_MODULE_TYPES;
         }
 
-        return array_filter(array_map('trim', explode(',', $raw)));
+        return array_values(array_filter(array_map('trim', explode(',', (string) $raw))));
     }
 
     /**
@@ -90,6 +106,10 @@ final class eligibility {
      * @param bool $enabled
      */
     public static function set_module_type_enabled(string $modname, bool $enabled): void {
+        if (self::is_module_type_enabled($modname) === $enabled) {
+            return;
+        }
+
         $current = self::enabled_module_types();
 
         if ($enabled) {
@@ -99,6 +119,50 @@ final class eligibility {
         }
 
         set_config('enabled_modules', implode(',', array_unique($current)), 'local_autograder');
+
+        self::apply_type_switch($modname, $enabled);
+    }
+
+    /**
+     * Acts on a whole activity type being switched on or off.
+     *
+     * Hiding the settings on the activity form is not enough on its own:
+     * without this, an activity already configured would go on being graded by
+     * a type the site has withdrawn, and its teacher would have no form left
+     * to switch it off with. So everything still waiting on that type is
+     * called off.
+     *
+     * What no part of this touches is an activity's own configuration. It
+     * stays saved as its teacher left it, and switching the type back on
+     * catches those activities up rather than leaving them enabled and grading
+     * nobody — or asking every teacher to find their activity and tick the box
+     * a second time. A cancelled decision is not a final one, which is what
+     * makes resuming possible; only a grade that was actually recorded stops a
+     * student being looked at again.
+     *
+     * Queued per activity rather than done here, because one type covers every
+     * course on the site and this runs while somebody waits for a page.
+     *
+     * @param string $modname
+     * @param bool $enabled
+     */
+    private static function apply_type_switch(string $modname, bool $enabled): void {
+        $cmids = $enabled
+            ? config_repository::enabled_cmids_of_type($modname)
+            : decision_repository::pending_cmids_of_type($modname);
+
+        foreach ($cmids as $cmid) {
+            if ($enabled) {
+                $task = new catch_up_module();
+                $task->set_custom_data((object) ['cmid' => $cmid]);
+            } else {
+                $task = new cancel_module();
+                $task->set_custom_data((object) ['cmid' => $cmid, 'reason' => 'moduletypeoff']);
+            }
+
+            // Deduplicated: toggling a type twice in a row earns one pass.
+            \core\task\manager::queue_adhoc_task($task, true);
+        }
     }
 
     /**

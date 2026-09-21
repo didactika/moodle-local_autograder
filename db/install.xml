@@ -4,7 +4,7 @@
        xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
-        <TABLE NAME="local_autograder_config" COMMENT="One row per course module with autograder configured. Replaces the v2 local_autograder table.">
+        <TABLE NAME="local_autograder_config" COMMENT="One row per course module with autograder configured: whether it is on, what grade it assigns and how long it waits.">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -59,7 +59,7 @@
                 <INDEX NAME="adhoctaskid" UNIQUE="false" FIELDS="adhoctaskid"/>
             </INDEXES>
         </TABLE>
-        <TABLE NAME="local_autograder_grade_log" COMMENT="Audit trail of every grading attempt, kept independently of the decision (survives its retention purge). Feeds report_autograder and support.">
+        <TABLE NAME="local_autograder_grade_log" COMMENT="Audit trail of every grading attempt, kept independently of the decision (survives its retention purge). What reporting and support questions are answered from.">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="decisionid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Nullable: this row outlives the decision once it is purged."/>

@@ -18,16 +18,16 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_autograder';
-$plugin->release = '3.0.0';
 $plugin->version = 2026091608;
-$plugin->requires = 2023042400; // Moodle 4.2, floor for the oldest branch in $supported.
+$plugin->requires = 2024100700;
 $plugin->maturity = MATURITY_STABLE;
+$plugin->release = '3.0.0';
 $plugin->supported = [405, 502];

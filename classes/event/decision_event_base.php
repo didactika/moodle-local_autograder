@@ -20,13 +20,13 @@ namespace local_autograder\event;
  * What every announcement about one student's autograder decision has in
  * common.
  *
- * Nothing inside this plugin listens to these — they exist for
- * `report_autograder`, auditing, and any integration that wants to know what
+ * Nothing inside this plugin listens to these — they exist for the site's log,
+ * for auditing, and for any report or integration that wants to know what
  * autograder did and to whom.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class decision_event_base extends \core\event\base {

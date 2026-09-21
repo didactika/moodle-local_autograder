@@ -21,8 +21,8 @@ namespace local_autograder\local\config;
  * autograder configured.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class config_repository {
@@ -60,6 +60,29 @@ final class config_repository {
         global $DB;
 
         return $DB->get_records('local_autograder_config', ['enabled' => 1]);
+    }
+
+    /**
+     * The activities of one module type autograder is switched on for.
+     *
+     * The type is a fact about the course module rather than about this
+     * plugin's own row, so it is joined for rather than stored twice.
+     *
+     * @param string $modname
+     * @return int[] Their course module ids.
+     */
+    public static function enabled_cmids_of_type(string $modname): array {
+        global $DB;
+
+        return array_map('intval', $DB->get_fieldset_sql(
+            "SELECT c.cmid
+               FROM {local_autograder_config} c
+               JOIN {course_modules} cm ON cm.id = c.cmid
+               JOIN {modules} m ON m.id = cm.module
+              WHERE c.enabled = 1 AND m.name = :modname
+           ORDER BY c.cmid",
+            ['modname' => $modname]
+        ));
     }
 
     /**

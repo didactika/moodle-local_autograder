@@ -23,8 +23,8 @@
  * link, because none of those mean anything for this page's one job.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -42,8 +42,8 @@ if ($modname !== '' && $enabled !== null && confirm_sesskey()) {
     eligibility::set_module_type_enabled($modname, (bool) $enabled);
 
     $notice = $enabled
-        ? get_string('setting:modules_enable', 'local_autograder', get_string('modulename', $modname))
-        : get_string('setting:modules_disable', 'local_autograder', get_string('modulename', $modname));
+        ? get_string('setting:modules_enabled', 'local_autograder', get_string('modulename', $modname))
+        : get_string('setting:modules_disabled', 'local_autograder', get_string('modulename', $modname));
 
     redirect(
         new moodle_url('/local/autograder/modules.php'),

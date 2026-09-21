@@ -41,8 +41,8 @@ require_once($CFG->libdir . '/formslib.php');
  * written afterwards on Moodle's own advanced grading page.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class advanced_grading_form extends \moodleform {

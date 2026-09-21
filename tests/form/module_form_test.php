@@ -30,8 +30,8 @@ use local_autograder\local\config\config_repository;
  * `$PAGE` can only be set up once per process, so there is one form per test.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\form\autograder_section::add_elements
  */

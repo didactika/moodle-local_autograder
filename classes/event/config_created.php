@@ -22,8 +22,8 @@ namespace local_autograder\event;
  * `other` carries: `grademethod`, `gradevalue`, `delayseconds`, `enabled`.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class config_created extends config_event_base {

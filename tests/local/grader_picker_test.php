@@ -28,8 +28,8 @@ use local_autograder\local\grading\teacher_source;
  * teacher who asked not to be chosen must not be.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\local\grading\grader_picker
  */
@@ -132,14 +132,16 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * A teacher who asked not to be graded on behalf of is left out, and stays
-     * left out even if the site later stops offering the preference.
+     * A teacher who asked not to be graded on behalf of is left out — while the
+     * site offers the preference, and only then.
      *
-     * Everybody who may grade is assumed willing; the one thing that changes
-     * that is their own answer. Withdrawing the offer must not start posting
-     * grades in the name of somebody who asked us not to.
+     * The preference is the site's to offer. A site that withdraws it is saying
+     * it decides who grades, and a stored answer must not go on removing
+     * somebody from every course after the question stopped being asked: the
+     * setting says the preference is neither shown nor honoured, and a teacher
+     * who cannot see it cannot take it back either.
      */
-    public function test_the_opt_out_is_honoured_whenever_it_is_set(): void {
+    public function test_the_opt_out_is_honoured_while_the_site_offers_it(): void {
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         set_user_preference('local_autograder_optout', 1, $teacher);
 
@@ -151,9 +153,10 @@ final class grader_picker_test extends \advanced_testcase {
 
         set_config('allowoptout', 0, 'local_autograder');
         \cache_helper::purge_all();
-        $this->assertNull(
+        $this->assertSame(
+            (int) $teacher,
             grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
-            'And it stays honoured once the site stops offering the preference.'
+            'Once the site stops offering the preference, the stored answer is ignored.'
         );
     }
 

@@ -36,12 +36,12 @@ use local_autograder\task\recalculate_module;
  * the real method from the grade_item that exists by the time it runs (the
  * module has already been created). A teacher who picks scale, rubric or
  * guide for the very module they configure autograder on in that same step
- * gets a mismatched `gradevalue` — a known, narrow gap, no worse than what
- * v2 did.
+ * gets a mismatched `gradevalue` — a known, narrow gap, and one reopening the
+ * activity's settings corrects.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class autograder_section {
@@ -84,12 +84,12 @@ final class autograder_section {
         } else {
             // A brand new activity: there is no grade_item yet to read a
             // method from — the grade fields on this very form have not been
-            // saved anywhere. Offer plain point grading, the common case and
-            // what v2 always did; save() re-derives the real method once the
-            // module (and its grade_item) exist. A teacher who picks scale,
-            // rubric or guide for a module they configure autograder on in
-            // this same step gets a mismatched gradevalue — a known,
-            // documented gap, no worse than v2's own.
+            // saved anywhere. Offer plain point grading, the common case;
+            // save() re-derives the real method once the module (and its
+            // grade_item) exist. A teacher who picks scale, rubric or guide
+            // for a module they configure autograder on in this same step gets
+            // a mismatched gradevalue — a known, documented gap, corrected by
+            // reopening the activity's settings.
             if (!has_capability('local/autograder:configure', \context_course::instance((int) $current->course))) {
                 return;
             }

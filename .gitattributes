@@ -1,0 +1,8 @@
+# Moodle's coding style requires LF, and the plugin directory's checker
+# enforces it (moodle.Files.LineEndings). Normalise on commit and check out
+# with LF on every platform, so an editor writing CRLF cannot put it back.
+* text=auto eol=lf
+
+# Built AMD output is generated from amd/src; keep it out of language stats
+# and diffs so a rebuild does not read as a source change.
+amd/build/** linguist-generated=true

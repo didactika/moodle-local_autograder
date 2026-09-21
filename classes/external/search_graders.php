@@ -27,15 +27,15 @@ use local_autograder\local\config\grader_search;
  * Searches for a user who could stand in as the site's fallback grader.
  *
  * Asked from the settings page as the administrator types, rather than the
- * page listing everybody who qualifies. On a campus with a hundred thousand
+ * page listing everybody who qualifies. On a site with a hundred thousand
  * teachers that list was a hundred thousand `<option>` elements, every one of
  * their names formatted and collated in PHP before the settings page could
- * render at all — and it grew with the campus. This answers the same question
- * a screenful at a time, and costs the same whatever the campus holds.
+ * render at all — and it grew with the site. This answers the same question a
+ * screenful at a time, and costs the same however many users there are.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class search_graders extends external_api {

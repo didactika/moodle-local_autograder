@@ -31,8 +31,8 @@ use local_autograder\task\catch_up_module;
  * settled it no longer holds.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\local\decision\decision_repository::ensure
  */

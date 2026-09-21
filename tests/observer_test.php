@@ -27,8 +27,8 @@ use local_autograder\local\decision\decision_repository;
  * that does not exist would pass a direct call and fail a site.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\observer
  */

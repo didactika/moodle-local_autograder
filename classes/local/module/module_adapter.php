@@ -26,8 +26,8 @@ use local_autograder\local\grading\advanced_grading;
  * One subclass per activity type that needs its own answer; {@see generic_adapter} covers everything else through the gradebook.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class module_adapter {

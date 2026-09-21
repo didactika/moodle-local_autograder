@@ -28,8 +28,8 @@ use local_autograder\local\grading\grade_log_repository;
  * What the plugin hands over, and what it removes, when asked.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers      \local_autograder\privacy\provider
  */

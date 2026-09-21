@@ -18,12 +18,12 @@ namespace local_autograder\event;
 
 /**
  * What every announcement about a module's autograder configuration has in
- * common. Nothing inside this plugin listens to these —
- * they exist for `report_autograder`, auditing, and any future integration.
+ * common. Nothing inside this plugin listens to these — they exist for the
+ * site's log, for auditing, and for any report or integration built on them.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class config_event_base extends \core\event\base {

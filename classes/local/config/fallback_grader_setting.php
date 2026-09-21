@@ -17,29 +17,30 @@
 namespace local_autograder\local\config;
 
 /**
- * The site setting for `fallback_grader`: a single user, chosen
- * from a searchable dropdown that only ever lists users who could plausibly
- * grade something — holders of `moodle/grade:edit`, wherever
- * that actually comes from.
+ * The site setting for `fallback_grader`: a single user, chosen from a
+ * searchable dropdown that only ever lists users who could plausibly grade
+ * something — holders of a role granting one of the capabilities a grade is
+ * written through, wherever that role was assigned. Site administrators are
+ * not among them, here or at grading time.
  *
- * Almost never at system context: a teacher holds this the way they hold
- * any other teaching capability, through a role assigned in one course (or a
- * category), not a role assigned site-wide. `context_system::instance()`
- * alone would list only genuine site-wide holders — managers, mostly — and
- * leave the picker looking empty on an ordinary site. See
- * {@see grader_search} for how the search actually looks past that.
+ * Such a capability is almost never held at system context: a teacher holds it
+ * the way they hold any other teaching capability, through a role assigned in
+ * one course (or a category), not a role assigned site-wide.
+ * `context_system::instance()` alone would list only genuine site-wide holders
+ * — managers, mostly — and leave the picker looking empty on an ordinary site.
+ * See {@see grader_search} for how the search actually looks past that.
  *
  * Renders as a plain `<select>` holding only the user already chosen, so the
  * setting still submits with JavaScript off, enhanced into a type-ahead search
  * by `core/form-autocomplete` reading `local_autograder/grader_search`. The
  * list it offers comes from the server a screenful at a time: it used to hold
- * every eligible user on the campus, which on a large site meant a settings
- * page carrying a hundred thousand options, each one's name formatted and
- * collated in PHP first.
+ * every eligible user on the site, which on a large one meant a settings page
+ * carrying a hundred thousand options, each one's name formatted and collated
+ * in PHP first.
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class fallback_grader_setting extends \admin_setting {
@@ -98,7 +99,7 @@ class fallback_grader_setting extends \admin_setting {
 
         // Only the user already chosen, so that the select can show them. The
         // rest arrive from the search below as the administrator types: this
-        // list used to hold everybody on the campus who could grade, and a
+        // list used to hold everybody on the site who could grade, and a
         // settings page cannot be made to render a hundred thousand options
         // however fast the query behind them is.
         $elementid = 'id_s_' . $this->name;

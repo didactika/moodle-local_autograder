@@ -25,8 +25,8 @@ require_once($CFG->libdir . '/formslib.php');
  * "Do not let the autograder post grades in my name".
  *
  * @package     local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class optout_form extends \moodleform {

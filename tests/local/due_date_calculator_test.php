@@ -18,8 +18,8 @@
  * The grading rules, in isolation from Moodle entirely.
  *
  * @package local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_autograder\local;
@@ -30,8 +30,8 @@ use local_autograder\local\decision\due_date_calculator;
  * Exercises the grading rules directly, one behaviour per test.
  *
  * @package local_autograder
- * @copyright  2026 Didactika.org
- * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
+ * @copyright   2026 Didactika.org
+ * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \local_autograder\local\decision\due_date_calculator
  */
