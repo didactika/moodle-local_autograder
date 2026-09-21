@@ -20,14 +20,24 @@ namespace local_autograder\local\grading;
  * Runs a piece of work as if a given teacher were the logged-in user, then
  * puts the previous user back.
  *
- * Needed only where a module's own grading API reads the grader off the
- * global `$USER` instead of taking it as an argument. `mod_assign` is the
- * case in point: `assign::save_grade()` both checks `mod/assign:grade`
- * against `$USER` and stamps `$grade->grader = $USER->id`, so there is no way
- * to grade "as" someone else without becoming them for the duration. The
- * gradebook path (`grade_item::update_final_grade()`) and the modern
- * component_gradeitem path both take the grader explicitly and must NOT use
- * this.
+ * Every grade autograder writes goes through this — see
+ * {@see \local_autograder\local\module\module_adapter::write_grade()} — and
+ * not only the ones whose API reads `$USER`. Telling core who graded is not
+ * enough on its own, because core fills in from the current user every place
+ * it was not told about:
+ *
+ * - `assign::save_grade()` is never told at all. It checks `mod/assign:grade`
+ *   against `$USER` and stamps `$grade->grader` with it, so there is no way to
+ *   grade as somebody else without becoming them for the duration.
+ * - The forum takes its grader as an argument, but core then copies the grade
+ *   into the gradebook without carrying it, and `update_raw_grade()` stamps
+ *   `usermodified` from `$USER`.
+ * - `grade_item::update_final_grade()` does take the grader, and still writes
+ *   `grade_grades_history.loggeduser` from `$USER` — so the grade names the
+ *   teacher while its history names whoever cron ran as.
+ *
+ * That last one is the trap: an explicit grader argument is not evidence that
+ * this wrapper is unnecessary. `grader_identity_test` pins all three.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
