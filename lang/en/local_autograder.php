@@ -118,7 +118,7 @@ $string['setting:modules_enabled'] = 'Autograder enabled for {$a}.';
 $string['setting:modules_enabled_column'] = 'Enabled';
 $string['setting:modules_heading'] = 'Choose which activity types can use Autograder on the <a href="{$a->url}">Activity types</a> page.';
 $string['setting:notifystudent'] = 'Notify students';
-$string['setting:notifystudent_desc'] = 'Sends the student Moodle\'s grading notification when Autograder grades an assignment, as if a teacher had ticked "Notify student". Only assignments support this natively; other activity types are not affected.';
+$string['setting:notifystudent_desc'] = 'Sends the student Moodle\'s grading notification when Autograder grades an assignment or a forum, as if a teacher had chosen to notify while grading. Only assignments and forums are affected.';
 $string['setting:retentiondays'] = 'Keep history for (days)';
 $string['setting:retentiondays_desc'] = 'Finished decisions (graded, cancelled, failed…) and grading log entries older than this are deleted daily by a scheduled task. Pending decisions are never deleted. Enter 0 to keep everything.';
 $string['setting:teacher_roles'] = 'Selected teaching roles';

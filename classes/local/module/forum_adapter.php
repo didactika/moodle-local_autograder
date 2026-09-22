@@ -129,6 +129,17 @@ class forum_adapter extends module_adapter {
             throw new \moodle_exception('error:gradewritefailed', 'local_autograder');
         }
 
+        // Asked for separately, because storing a grade does not send it.
+        // Core's own grading panel does the same thing in the same order —
+        // each of its four `store` web services calls this after the write —
+        // so a forum graded here notifies exactly as one graded by hand does.
+        //
+        // After the write, and only on success: a notification for a grade
+        // that was never stored is worse than none at all.
+        if (get_config('local_autograder', 'notifystudent')) {
+            $gradeitem->send_student_notification($gradeduser, $grader);
+        }
+
         return $grade;
     }
 }
