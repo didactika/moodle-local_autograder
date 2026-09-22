@@ -201,25 +201,35 @@ class provider implements
             $cmid = (int) $context->instanceid;
             $subcontext = [get_string('pluginname', 'local_autograder')];
 
-            $decisions = $DB->get_records_select(
+            $decisionrows = $DB->get_records_select(
                 'local_autograder_decision',
                 'cmid = :cmid AND (userid = :userid OR graderid = :graderid)',
-                ['cmid' => $cmid, 'userid' => $userid, 'graderid' => $userid]
+                ['cmid' => $cmid, 'userid' => $userid, 'graderid' => $userid],
+                'timemodified ASC'
             );
+            $decisions = [];
 
-            foreach ($decisions as $decision) {
+            foreach ($decisionrows as $decision) {
+                $decisions[] = (object) [
+                    'status' => $decision->status,
+                    'duedatereason' => $decision->duedatereason,
+                    'baselineduedate' => transform::datetime($decision->baselineduedate),
+                    'scheduledgradetime' => transform::datetime($decision->scheduledgradetime),
+                    'gradedvalue' => $decision->gradedvalue,
+                    'failurereason' => $decision->failurereason,
+                    'wasgradedas' => transform::yesno((int) $decision->graderid === $userid),
+                    'timemodified' => transform::datetime($decision->timemodified),
+                ];
+            }
+
+            // Written once, as a list, rather than once per row. A subcontext
+            // is a path to a `data.json`, so exporting each decision to the
+            // same path overwrites the one before it — and a teacher who
+            // graded thirty students here is on thirty of these rows.
+            if (!empty($decisions)) {
                 writer::with_context($context)->export_data(
                     array_merge($subcontext, [get_string('privacy:path:decision', 'local_autograder')]),
-                    (object) [
-                        'status' => $decision->status,
-                        'duedatereason' => $decision->duedatereason,
-                        'baselineduedate' => transform::datetime($decision->baselineduedate),
-                        'scheduledgradetime' => transform::datetime($decision->scheduledgradetime),
-                        'gradedvalue' => $decision->gradedvalue,
-                        'failurereason' => $decision->failurereason,
-                        'wasgradedas' => transform::yesno((int) $decision->graderid === $userid),
-                        'timemodified' => transform::datetime($decision->timemodified),
-                    ]
+                    (object) ['decisions' => $decisions]
                 );
             }
 

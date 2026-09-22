@@ -142,8 +142,63 @@ final class provider_test extends \advanced_testcase {
             get_string('pluginname', 'local_autograder'),
             get_string('privacy:path:decision', 'local_autograder'),
         ]);
-        $this->assertSame(decision_repository::STATUS_GRADED, $exported->status);
-        $this->assertEquals(70.0, (float) $exported->gradedvalue);
+        $this->assertCount(1, $exported->decisions);
+        $this->assertSame(decision_repository::STATUS_GRADED, $exported->decisions[0]->status);
+        $this->assertEquals(70.0, (float) $exported->decisions[0]->gradedvalue);
+    }
+
+    /**
+     * Every decision a person appears on is exported, not just the last one.
+     *
+     * A subcontext is a path to one `data.json`, so a row written to the same
+     * path replaces the row before it. A student has a single decision per
+     * activity and would never notice; the teacher those decisions name as
+     * their grader is on every one of them.
+     */
+    public function test_export_keeps_every_decision_a_teacher_graded(): void {
+        global $DB;
+
+        $others = [];
+
+        foreach ([71.0, 72.0, 73.0] as $index => $value) {
+            $classmate = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+            $now = time() + $index;
+
+            $others[] = $DB->insert_record('local_autograder_decision', (object) [
+                'cmid' => $this->cm->id,
+                'courseid' => $this->course->id,
+                'userid' => $classmate->id,
+                'status' => decision_repository::STATUS_GRADED,
+                'baselineduedate' => $now,
+                'duedatereason' => 'submission',
+                'scheduledgradetime' => $now,
+                'graderid' => $this->teacher->id,
+                'gradedvalue' => $value,
+                'timecreated' => $now,
+                'timemodified' => $now,
+            ]);
+        }
+
+        provider::export_user_data(new approved_contextlist(
+            $this->teacher,
+            'local_autograder',
+            [$this->context->id]
+        ));
+
+        $exported = writer::with_context($this->context)->get_data([
+            get_string('pluginname', 'local_autograder'),
+            get_string('privacy:path:decision', 'local_autograder'),
+        ]);
+
+        // The three graded here, plus whatever the fixture already named this
+        // teacher on.
+        $this->assertGreaterThanOrEqual(count($others), count($exported->decisions));
+
+        $values = array_map(static fn($decision): float => (float) $decision->gradedvalue, $exported->decisions);
+
+        foreach ([71.0, 72.0, 73.0] as $expected) {
+            $this->assertContains($expected, $values, "The grade {$expected} is in the export.");
+        }
     }
 
     /**
