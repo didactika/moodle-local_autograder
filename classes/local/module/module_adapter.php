@@ -114,17 +114,25 @@ abstract class module_adapter {
     }
 
     /**
-     * The closing instant an exception grants this student personally, or
-     * null when no user-level exception applies.
+     * The closing instant an exception grants this student personally.
+     *
+     * Three answers, and the third is easy to lose: an exception can take the
+     * deadline away rather than move it, which Moodle writes as a zero.
+     * Reporting that as "no exception" would hand the student back the
+     * deadline they were excused from.
      *
      * @param int $userid
-     * @return int|null
+     * @return int|null The closing instant, 0 where an exception lifts the
+     *                  deadline, null where none touches the closing date.
      */
     abstract public function user_override_date(int $userid): ?int;
 
     /**
-     * Every closing instant an exception grants one of these groups. The
-     * caller (the due-date rule) takes the most permissive.
+     * Every closing instant an exception grants one of these groups.
+     *
+     * A 0 among them is a group with no deadline, and the caller (the due-date
+     * rule) takes that over any date the others name — otherwise the most
+     * permissive date wins.
      *
      * @param int[] $groupids
      * @return int[]

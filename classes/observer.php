@@ -240,7 +240,22 @@ class observer {
      * @param int $cmid
      */
     private static function queue_recalculation(int $cmid): void {
-        if ($cmid === 0 || !config_repository::get_for_cm($cmid)) {
+        if ($cmid === 0) {
+            return;
+        }
+
+        $config = config_repository::get_for_cm($cmid);
+
+        // Switched off means nothing is waiting to be moved — turning it off
+        // called everything off. Asked here rather than left to the task,
+        // which would only load the same row to reach the same answer: an
+        // activity whose dates are edited often is a steady trickle of tasks
+        // that exist to do nothing.
+        //
+        // Safe to read now: core saves this plugin's configuration in
+        // edit_module_post_actions() before it fires course_module_updated,
+        // so what is in the table here is what the teacher just saved.
+        if (!$config || empty($config->enabled)) {
             return;
         }
 

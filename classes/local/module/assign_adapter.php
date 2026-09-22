@@ -155,11 +155,21 @@ class assign_adapter extends module_adapter {
      * @return int|null
      */
     private static function override_close_date(\stdClass $override): ?int {
+        // Same preference as close_date(): the cut-off is what shuts an
+        // assignment, and the due date stands in where there is none.
         if (!empty($override->cutoffdate)) {
             return (int) $override->cutoffdate;
         }
 
-        return !empty($override->duedate) ? (int) $override->duedate : null;
+        if (!empty($override->duedate)) {
+            return (int) $override->duedate;
+        }
+
+        // Neither names a date, so either this override leaves the closing
+        // dates alone — both null — or it took them away, written as a zero.
+        // The difference decides whether the assignment's own dates still
+        // apply to this student, so it cannot be collapsed into one answer.
+        return $override->cutoffdate === null && $override->duedate === null ? null : 0;
     }
 
     /**

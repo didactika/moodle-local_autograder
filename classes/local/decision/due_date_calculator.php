@@ -63,6 +63,11 @@ final class due_date_calculator {
      * *when* to grade — it never waives the requirement that they did the
      * activity at all.
      *
+     * An override can also take the deadline away rather than move it, which
+     * Moodle writes as a zero and this reads the same way. A student with no
+     * deadline is counted from the moment they engaged, because that is the
+     * only instant left that is about them.
+     *
      * @param int|null $completedat When the student completed the activity,
      *                              or null when completion is not tracked here
      *                              or they have not completed it.
@@ -72,11 +77,14 @@ final class due_date_calculator {
      * @param int|null $closedate The module's own close date, or null if it
      *                            has none (e.g. `cutoffdate`/`duedate` = 0).
      * @param int|null $useroverridedate The close date from an override
-     *                                    targeting this student by user id, or
-     *                                    null if there is none.
+     *                                    targeting this student by user id;
+     *                                    0 where the override lifts the
+     *                                    deadline, null where there is none.
      * @param int[] $groupoverridedates The close dates from every override
      *                                   targeting a group this student belongs
-     *                                   to. Empty if there are none.
+     *                                   to, a 0 among them meaning one of
+     *                                   those groups has no deadline. Empty if
+     *                                   there are none.
      * @return array{baselineduedate: int, duedatereason: string}|null Null
      *         when the student has neither completed nor submitted — no
      *         decision should exist for them at all.
@@ -96,22 +104,57 @@ final class due_date_calculator {
             return null;
         }
 
-        if ($useroverridedate !== null) {
-            return self::result($useroverridedate, self::REASON_USER_OVERRIDE);
-        }
+        $closes = self::effective_close_date($closedate, $useroverridedate, $groupoverridedates);
 
-        if (!empty($groupoverridedates)) {
-            return self::result(max($groupoverridedates), self::REASON_GROUP_OVERRIDE);
-        }
-
-        if ($closedate !== null) {
-            return self::result($closedate, self::REASON_DUEDATE);
+        if ($closes !== null) {
+            return self::result($closes['date'], $closes['reason']);
         }
 
         return self::result(
             $engagedat,
             $completedat !== null ? self::REASON_COMPLETION : self::REASON_SUBMISSION,
         );
+    }
+
+    /**
+     * The instant this activity closes for this student, or null when nothing
+     * closes it.
+     *
+     * Null here is not "no override": it is the answer both to an activity
+     * with no deadline at all and to a student whose deadline was taken away.
+     * The two are the same thing once the exceptions have been read, which is
+     * why they are settled together and in one place.
+     *
+     * @param int|null $closedate
+     * @param int|null $useroverridedate
+     * @param int[] $groupoverridedates
+     * @return array{date: int, reason: string}|null
+     */
+    private static function effective_close_date(
+        ?int $closedate,
+        ?int $useroverridedate,
+        array $groupoverridedates,
+    ): ?array {
+        // A user override settles it on its own, group overrides included —
+        // whether it names a date or takes the deadline away.
+        if ($useroverridedate !== null) {
+            return $useroverridedate > 0
+                ? ['date' => $useroverridedate, 'reason' => self::REASON_USER_OVERRIDE]
+                : null;
+        }
+
+        if ($groupoverridedates !== []) {
+            // One group with no deadline lifts it, however many others name a
+            // date — the same way core combines them, and the only way round
+            // that does not take back what a group was granted.
+            return in_array(0, $groupoverridedates, true)
+                ? null
+                : ['date' => max($groupoverridedates), 'reason' => self::REASON_GROUP_OVERRIDE];
+        }
+
+        return $closedate !== null && $closedate > 0
+            ? ['date' => $closedate, 'reason' => self::REASON_DUEDATE]
+            : null;
     }
 
     /**

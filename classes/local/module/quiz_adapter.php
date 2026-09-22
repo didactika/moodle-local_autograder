@@ -71,8 +71,16 @@ class quiz_adapter extends module_adapter {
     /**
      * The `timeclose` a user override grants this student.
      *
+     * Three answers, not two, because the column carries three. No row at all
+     * and a row that overrides something else — the time limit, say — leave
+     * the close date alone, and both read as null. A row holding 0 is an
+     * override that took the deadline away, which is the opposite of having
+     * none: read as "no override" it would hand the student back the very
+     * deadline they were excused from.
+     *
      * @param int $userid
-     * @return int|null
+     * @return int|null The close date, 0 where the deadline was lifted, null
+     *                  where the close date is not overridden.
      */
     public function user_override_date(int $userid): ?int {
         global $DB;
@@ -84,7 +92,12 @@ class quiz_adapter extends module_adapter {
             IGNORE_MULTIPLE,
         );
 
-        return $timeclose ? (int) $timeclose : null;
+        // False is no row; null is a row leaving timeclose alone.
+        if ($timeclose === false || $timeclose === null) {
+            return null;
+        }
+
+        return (int) $timeclose;
     }
 
     /**
@@ -103,10 +116,13 @@ class quiz_adapter extends module_adapter {
         [$insql, $params] = $DB->get_in_or_equal($groupids, SQL_PARAMS_NAMED);
         $params['quiz'] = $this->cm->instance;
 
+        // Zeroes are kept, not filtered: a group excused from the deadline
+        // says so with one, and dropping it would leave the student closing at
+        // whatever date the other groups happen to name.
         $dates = $DB->get_fieldset_sql(
             "SELECT timeclose
                FROM {quiz_overrides}
-              WHERE quiz = :quiz AND groupid {$insql} AND timeclose IS NOT NULL AND timeclose > 0",
+              WHERE quiz = :quiz AND groupid {$insql} AND timeclose IS NOT NULL",
             $params,
         );
 
