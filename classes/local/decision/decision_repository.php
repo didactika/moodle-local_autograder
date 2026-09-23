@@ -165,6 +165,7 @@ final class decision_repository {
      * them — what the safety net looks for.
      *
      * @param int $now
+     * @param int $limit How many to return at most.
      * @return \stdClass[]
      */
     public static function orphaned_pending(int $now, int $limit = self::RECONCILE_BATCH): array {
@@ -223,6 +224,17 @@ final class decision_repository {
             // again.
             if ($existing) {
                 self::cancel($existing, 'moduletypeoff');
+            }
+
+            return null;
+        }
+
+        if (!decision_planner::is_gradable_student($cm, $userid)) {
+            // A teacher posting in a forum, or anyone enrolled without a
+            // graded role, completes and submits like a student does. None of
+            // them is on the grader report, and none of them is graded.
+            if ($existing) {
+                self::cancel($existing, 'notastudent');
             }
 
             return null;
@@ -477,6 +489,7 @@ final class decision_repository {
      * retention task walks.
      *
      * @param int $before
+     * @param int $limit How many to delete at most in one call.
      * @return int Rows deleted.
      */
     public static function purge_settled_before(int $before, int $limit = self::PURGE_CEILING): int {

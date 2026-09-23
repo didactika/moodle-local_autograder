@@ -92,6 +92,14 @@ class grade_student extends \core\task\adhoc_task {
             return;
         }
 
+        if (!decision_planner::is_gradable_student($cm, (int) $decision->userid)) {
+            // Checked again here, not trusted from when the decision was made:
+            // a role can change in the weeks before the grade is due.
+            decision_repository::cancel($decision, 'notastudent');
+
+            return;
+        }
+
         $plan = decision_planner::plan($cm, $config, (int) $decision->userid);
 
         if ($plan === null) {

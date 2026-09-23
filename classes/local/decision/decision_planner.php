@@ -16,6 +16,7 @@
 
 namespace local_autograder\local\decision;
 
+use local_autograder\local\grading\grader_picker;
 use local_autograder\local\module\module_adapter;
 
 /**
@@ -127,5 +128,52 @@ final class decision_planner {
      */
     public static function is_still_enrolled(\cm_info|\stdClass $cm, int $userid): bool {
         return is_enrolled(\context_course::instance($cm->course), $userid, '', true);
+    }
+
+    /**
+     * Whether a user is someone this activity grades at all.
+     *
+     * The rule is the gradebook's own: an active enrolment and one of the
+     * site's graded roles ($CFG->gradebookroles), assigned in the course or
+     * above it — exactly the people the grader report lists. On top of that,
+     * never somebody who grades the activity themselves.
+     *
+     * @param \cm_info|\stdClass $cm
+     * @param int $userid
+     * @return bool
+     */
+    public static function is_gradable_student(\cm_info|\stdClass $cm, int $userid): bool {
+        global $CFG, $DB;
+
+        $context = \context_course::instance($cm->course);
+
+        if (!is_enrolled($context, $userid, '', true)) {
+            return false;
+        }
+
+        $roleids = array_filter(array_map('intval', explode(',', (string) ($CFG->gradebookroles ?? ''))));
+
+        if (!$roleids) {
+            return false;
+        }
+
+        [$rolesql, $roleparams] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'grbr');
+        [$contextsql, $contextparams] = $DB->get_in_or_equal(
+            $context->get_parent_context_ids(true),
+            SQL_PARAMS_NAMED,
+            'ctx'
+        );
+
+        $hasgradedrole = $DB->record_exists_select(
+            'role_assignments',
+            "userid = :userid AND roleid $rolesql AND contextid $contextsql",
+            ['userid' => $userid] + $roleparams + $contextparams
+        );
+
+        if (!$hasgradedrole) {
+            return false;
+        }
+
+        return !grader_picker::grades_this_module($cm, $userid);
     }
 }
