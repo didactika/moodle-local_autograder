@@ -24,43 +24,47 @@
  */
 
 require_once(__DIR__ . '/../../config.php');
+require_once($CFG->dirroot . '/user/editlib.php');
 
 use local_autograder\form\optout_form;
 
 $userid = optional_param('userid', $USER->id, PARAM_INT);
 
-require_login();
+// Set before the setup below, which may redirect to the login page.
+$PAGE->set_url(new moodle_url('/local/autograder/optout.php', ['userid' => $userid]));
+
+// The same setup every one of core's own preference pages does, rather than a
+// hand-rolled subset of it. Editing somebody else's preference is not only a
+// matter of holding `moodle/user:editprofile` over them: guests cannot be
+// edited at all, nor can deleted or remote accounts, an administrator may only
+// be edited by another administrator, and editing your own still asks for
+// `moodle/user:editownprofile`. None of that is this plugin's rule to invent.
+[$user, $unusedcourse] = useredit_setup_preference_page($userid, SITEID);
 
 if (!get_config('local_autograder', 'allowoptout')) {
     // The site does not offer this to its users, so the page is not there to
-    // be reached by typing its address either.
+    // be reached by typing its address either. Asked after the access checks
+    // above, so that somebody who may not be here is told that first.
     throw new moodle_exception('preference:notoffered', 'local_autograder');
 }
 
-$user = $userid === (int) $USER->id ? $USER : core_user::get_user($userid, '*', MUST_EXIST);
-$usercontext = context_user::instance($user->id);
-
-$PAGE->set_context($usercontext);
-$PAGE->set_url(new moodle_url('/local/autograder/optout.php', ['userid' => $userid]));
 $PAGE->set_title(get_string('preference:heading', 'local_autograder'));
 
-if ($userid !== (int) $USER->id) {
-    require_capability('moodle/user:editprofile', $usercontext);
-}
-
+// The user the setup settled on, rather than the id that came off the URL:
+// that one is only a request, and this one is the account it was allowed to be.
 $form = new optout_form();
 $form->set_data([
-    'userid' => $userid,
-    'optout' => (bool) get_user_preferences('local_autograder_optout', false, $userid),
+    'userid' => $user->id,
+    'optout' => (bool) get_user_preferences('local_autograder_optout', false, $user->id),
 ]);
 
 if ($form->is_cancelled()) {
-    redirect(new moodle_url('/user/preferences.php', ['userid' => $userid]));
+    redirect(new moodle_url('/user/preferences.php', ['userid' => $user->id]));
 } else if ($data = $form->get_data()) {
-    set_user_preference('local_autograder_optout', !empty($data->optout), $userid);
+    set_user_preference('local_autograder_optout', !empty($data->optout), $user->id);
 
     redirect(
-        new moodle_url('/user/preferences.php', ['userid' => $userid]),
+        new moodle_url('/user/preferences.php', ['userid' => $user->id]),
         get_string('preference:saved', 'local_autograder'),
         null,
         \core\output\notification::NOTIFY_SUCCESS,
