@@ -332,8 +332,15 @@ final class autograder_section {
         $current = ($config && $grademethod === 'scale') ? (int) $config->gradevalue : null;
         $selectedscale = $cm ? self::current_scale_id($cm) : null;
 
-        foreach (get_scales_menu($courseid) as $scaleid => $scalename) {
-            $items = self::scale_items_of($scaleid);
+        $menu = get_scales_menu($courseid);
+
+        // Every scale's items read in one query, not one per scale: a course
+        // sees the site's standard scales as well as its own, and this runs
+        // each time the activity's settings are opened.
+        $allitems = self::items_of_scales(array_keys($menu));
+
+        foreach ($menu as $scaleid => $scalename) {
+            $items = $allitems[$scaleid] ?? [];
 
             if (empty($items)) {
                 continue;
@@ -904,18 +911,30 @@ final class autograder_section {
      * @return array<int, string>
      */
     private static function scale_items_of(int $scaleid): array {
+        return self::items_of_scales([$scaleid])[$scaleid] ?? [];
+    }
+
+    /**
+     * Several scales' items at once, in a single query.
+     *
+     * @param int[] $scaleids
+     * @return array<int, array<int, string>> Scale id => its items, keyed from 1.
+     *         A scale that does not exist is simply absent.
+     */
+    private static function items_of_scales(array $scaleids): array {
         global $DB;
 
-        $scale = $DB->get_record('scale', ['id' => $scaleid]);
-
-        if (!$scale) {
+        if (empty($scaleids)) {
             return [];
         }
 
+        $scales = $DB->get_records_list('scale', 'id', array_map('intval', $scaleids), '', 'id, scale');
         $items = [];
 
-        foreach (explode(',', $scale->scale) as $index => $label) {
-            $items[$index + 1] = format_string(trim($label));
+        foreach ($scales as $scale) {
+            foreach (explode(',', $scale->scale) as $index => $label) {
+                $items[(int) $scale->id][$index + 1] = format_string(trim($label));
+            }
         }
 
         return $items;
