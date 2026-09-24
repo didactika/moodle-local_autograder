@@ -71,6 +71,18 @@ if ($hassiteconfig) {
         0,
     ));
 
+    // Off unless a site asks for it, like every other message this plugin
+    // can send. Switching it on starts the count from that moment, so the
+    // first summary is not every failure the site has ever had.
+    $notifyfailures = new admin_setting_configcheckbox(
+        'local_autograder/notifyfailures',
+        get_string('setting:notifyfailures', 'local_autograder'),
+        get_string('setting:notifyfailures_desc', 'local_autograder'),
+        0,
+    );
+    $notifyfailures->set_updatedcallback('\\local_autograder\\task\\notify_failures::setting_changed');
+    $general->add($notifyfailures);
+
     // Digits only, rather than PARAM_INT, which accepts a minus sign. A
     // negative number of days is not a shorter retention, and the task reads
     // it as the same "keep everything" that 0 means — so it is refused at the

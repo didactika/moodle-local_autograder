@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * The messages this plugin sends.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
@@ -25,9 +25,16 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_autograder';
-$plugin->version = 2026092400;
-$plugin->requires = 2024100700;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '3.0.0';
-$plugin->supported = [405, 502];
+$messageproviders = [
+    // Deliberately without a capability. Core checks a provider's capability
+    // at system context (message_get_providers_for_user()), and the one that
+    // decides who hears about a failure — local/autograder:configure — is held
+    // through a role in a course. Declared here, it would hide the provider
+    // from every teacher it exists for. The task picks the recipients instead.
+    'failuredigest' => [
+        'defaults' => [
+            'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_ENABLED,
+        ],
+    ],
+];

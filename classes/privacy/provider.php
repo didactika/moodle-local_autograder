@@ -95,6 +95,10 @@ class provider implements
             'privacy:metadata:preference:optout'
         );
 
+        // The failure summaries go out through Moodle's own messaging, which
+        // keeps and exports them itself; this plugin stores nothing of them.
+        $collection->add_subsystem_link('core_message', [], 'privacy:metadata:core_message');
+
         return $collection;
     }
 

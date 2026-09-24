@@ -18,8 +18,8 @@
  * The scheduled tasks of this plugin.
  *
  * Grading itself is not here: each decision gets its own adhoc task, queued
- * for the exact moment it comes due. These two only tidy up
- * after it.
+ * for the exact moment it comes due. These tidy up after it, and tell the
+ * teachers concerned about what it could not do.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
@@ -46,6 +46,19 @@ $tasks = [
         'hour' => '3',
         'day' => '*',
         'dayofweek' => '*',
+        'month' => '*',
+    ],
+    [
+        // Weekly, on Monday morning: often enough to catch a problem while the
+        // students it affects are still in the course, seldom enough not to be
+        // noise. A site that wants it daily changes it in the task schedule
+        // rather than in a setting of this plugin.
+        'classname' => 'local_autograder\task\notify_failures',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '7',
+        'day' => '*',
+        'dayofweek' => '1',
         'month' => '*',
     ],
 ];
