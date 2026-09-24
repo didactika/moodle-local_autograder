@@ -28,9 +28,17 @@ require_once($CFG->dirroot . '/user/editlib.php');
 
 use local_autograder\form\optout_form;
 
+// A full login, not only a session. The preference setup below settles who may
+// edit whose preference, but on the site course it asks no more than whether
+// somebody is logged in — leaving out what require_login() also enforces: the
+// site policy, a forced password change, an incomplete profile. Core's own
+// user/contentbank.php pairs the two the same way.
+require_login();
+
 $userid = optional_param('userid', $USER->id, PARAM_INT);
 
-// Set before the setup below, which may redirect to the login page.
+// Set before the setup below, which builds the navigation from it and, for a
+// deleted account, prints a whole page.
 $PAGE->set_url(new moodle_url('/local/autograder/optout.php', ['userid' => $userid]));
 
 // The same setup every one of core's own preference pages does, rather than a
@@ -40,6 +48,14 @@ $PAGE->set_url(new moodle_url('/local/autograder/optout.php', ['userid' => $user
 // be edited by another administrator, and editing your own still asks for
 // `moodle/user:editownprofile`. None of that is this plugin's rule to invent.
 [$user, $unusedcourse] = useredit_setup_preference_page($userid, SITEID);
+
+// Core's setup above already enforces these; they are repeated here so that
+// the page states the rule it depends on rather than leaving it implicit.
+if ((int) $user->id === (int) $USER->id) {
+    require_capability('moodle/user:editownprofile', context_system::instance());
+} else {
+    require_capability('moodle/user:editprofile', context_user::instance($user->id));
+}
 
 if (!get_config('local_autograder', 'allowoptout')) {
     // The site does not offer this to its users, so the page is not there to
