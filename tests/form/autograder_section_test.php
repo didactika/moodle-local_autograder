@@ -291,6 +291,62 @@ final class autograder_section_test extends \advanced_testcase {
     }
 
     /**
+     * Ticking the box is not enough on its own: saved with nothing chosen on
+     * the rubric, autograder comes back switched off.
+     *
+     * Validation lets this through on purpose — a rubric the teacher has not
+     * written yet is not held against them, and on a brand new activity there
+     * is nothing to check at all. It is the save that has the module, its
+     * grading method and its definition all in front of it, and so it is the
+     * save that refuses to store a configuration that could only ever fail.
+     */
+    public function test_a_rubric_with_nothing_chosen_is_saved_switched_off(): void {
+        $cm = $this->rubric_activity();
+
+        autograder_section::save((object) [
+            'modulename' => 'assign',
+            'coursemodule' => (int) $cm->id,
+            'course' => (int) $cm->course,
+            'autograder_enabled' => 1,
+            'autograder_days' => 0,
+            'autograder_hours' => 0,
+            'autograder_minutes' => 0,
+        ]);
+
+        $config = config_repository::get_for_cm((int) $cm->id);
+
+        $this->assertNotFalse($config, 'The configuration is still saved, so the teacher finds it.');
+        $this->assertSame('rubric', $config->grademethod);
+        $this->assertEquals(0, (int) $config->enabled, 'But switched off: there is nothing to mark.');
+    }
+
+    /**
+     * And once the levels are chosen, the same save switches it on and keeps
+     * what it was told to mark.
+     */
+    public function test_a_rubric_with_levels_chosen_is_saved_switched_on(): void {
+        $cm = $this->rubric_activity();
+        $this->store_rubric_filling($cm);
+
+        $stored = config_repository::get_for_cm((int) $cm->id)->advancedgrading;
+
+        autograder_section::save((object) [
+            'modulename' => 'assign',
+            'coursemodule' => (int) $cm->id,
+            'course' => (int) $cm->course,
+            'autograder_enabled' => 1,
+            'autograder_days' => 0,
+            'autograder_hours' => 0,
+            'autograder_minutes' => 0,
+        ]);
+
+        $config = config_repository::get_for_cm((int) $cm->id);
+
+        $this->assertEquals(1, (int) $config->enabled);
+        $this->assertSame($stored, $config->advancedgrading, 'A save elsewhere on the form does not wipe it.');
+    }
+
+    /**
      * An assignment with a rubric defined but nothing chosen on it yet.
      *
      * @return \stdClass The course module.

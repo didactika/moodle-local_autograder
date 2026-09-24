@@ -730,18 +730,46 @@ final class autograder_section {
 
         $advanced = ($grademethod === 'rubric' || $grademethod === 'guide');
 
+        // The per-criterion filling is set on its own page, not here, so carry
+        // whatever is already stored rather than wiping it.
+        $filling = $advanced && $existing ? $existing->advancedgrading : null;
+
+        // Switched on only where there is something to grade with. The tick
+        // and the filling are saved in two different places — the filling has
+        // a page of its own, because choosing levels on an eight-criterion
+        // rubric does not fit in a checkbox — and nothing stopped the first
+        // being saved without the second. An activity left in that state
+        // creates a decision per student and fails every one of them at
+        // whatever moment each came due, with nothing said beforehand.
+        //
+        // Asked of the rubric that exists now rather than the one the form was
+        // built against, so that a method changed in this very save is judged
+        // on what it actually became.
+        $enabled = !empty($data->autograder_enabled)
+            && (!$advanced || advanced_grading::filling_is_current($cm, $filling));
+
         $config = config_repository::upsert_for_cm(
             $cmid,
             (int) $data->course,
-            !empty($data->autograder_enabled),
+            $enabled,
             $grademethod,
             $advanced ? null : self::submitted_grade_value($data, $grademethod, $cm),
-            // The per-criterion filling is set on its own page, not here, so
-            // carry whatever is already stored rather than wiping it.
-            $advanced && $existing ? $existing->advancedgrading : null,
+            $filling,
             $delayseconds,
             (int) $USER->id,
         );
+
+        // Never silently: a teacher who ticked the box and finds it clear
+        // afterwards is owed the reason, and where to go and fix it. This is
+        // also what a save about something else entirely — a due date, say —
+        // says when the rubric changed underneath it in the meantime.
+        if (!empty($data->autograder_enabled) && !$enabled) {
+            \core\notification::warning(get_string(
+                'form:notenabled_advanced',
+                'local_autograder',
+                (new \moodle_url('/local/autograder/advanced.php', ['cmid' => $cmid]))->out()
+            ));
+        }
 
         $context = \context_module::instance($cmid);
         $eventclass = $existing ? config_updated::class : config_created::class;

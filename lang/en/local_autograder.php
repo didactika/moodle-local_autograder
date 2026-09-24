@@ -68,6 +68,7 @@ $string['form:grade_range'] = 'This activity is graded out of {$a}.';
 $string['form:heading'] = 'Autograder';
 $string['form:hours_to_complete'] = 'Hours';
 $string['form:minutes_to_complete'] = 'Minutes';
+$string['form:notenabled_advanced'] = 'Autograder was left switched off: it has not been told what to mark on this activity\'s rubric or marking guide. <a href="{$a}">Choose that first</a>, then switch it on.';
 $string['form:time_to_complete'] = 'Time to wait before grading';
 $string['form:time_to_complete_help'] = 'How long to wait, after the due date, before grading.';
 $string['modules:intro'] = 'Autograder can only be turned on for activities of the types enabled here. Disabling a type hides the Autograder settings on those activities and cancels the grading still pending for them. Each activity keeps its own Autograder setting, so enabling the type again resumes them — except where a grade was already recorded.';
