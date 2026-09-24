@@ -154,7 +154,7 @@ final class grader_picker_test extends \advanced_testcase {
         set_config('allowoptout', 0, 'local_autograder');
         \cache_helper::purge_all();
         $this->assertSame(
-            (int) $teacher,
+            (int) $teacher->id,
             grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
             'Once the site stops offering the preference, the stored answer is ignored.'
         );
