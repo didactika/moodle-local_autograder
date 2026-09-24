@@ -182,7 +182,7 @@ final class notify_failures_test extends \advanced_testcase {
     /**
      * A manager of the whole site or of the category holds the capability in
      * every course beneath them. Told about every one, they would get every
-     * failure on the campus each week — so unless enrolled, they are not.
+     * failure on the site each week — so unless enrolled, they are not.
      */
     public function test_managers_above_the_course_are_not_told(): void {
         global $DB;

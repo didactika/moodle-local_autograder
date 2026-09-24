@@ -203,7 +203,7 @@ class notify_failures extends \core\task\scheduled_task {
      * What is left out is everybody whose only claim is a role held above the
      * course. A manager of the site or of a category holds the capability in
      * every course beneath them, and would otherwise be sent every failure on
-     * the campus each week; that view is a report's job, not a message's.
+     * the site each week; that view is a report's job, not a message's.
      *
      * Site administrators are measured the same way. Core's enrolled-users
      * query resolves the capability on roles alone, so the blanket yes an

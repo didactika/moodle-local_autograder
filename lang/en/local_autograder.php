@@ -88,7 +88,6 @@ $string['preference:notoffered'] = 'This site does not allow teachers to opt out
 $string['preference:optout'] = 'Never record automatic grades in my name';
 $string['preference:optout_help'] = 'Autograder will never record grades as you, even in courses you teach.';
 $string['preference:saved'] = 'Preference saved.';
-$string['privacy:metadata'] = 'Autograder keeps, per student, whether and when they are due to be graded automatically, and a log of every grading attempt.';
 $string['privacy:metadata:config'] = 'What a teacher configured Autograder to do on an activity.';
 $string['privacy:metadata:config:cmid'] = 'The activity the configuration belongs to.';
 $string['privacy:metadata:config:timemodified'] = 'When the configuration was last saved.';
