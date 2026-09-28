@@ -6,3 +6,10 @@
 # Built AMD output is generated from amd/src; keep it out of language stats
 # and diffs so a rebuild does not read as a source change.
 amd/build/** linguist-generated=true
+
+# Files excluded from `git archive` output (the release package built by
+# .github/workflows/release.yml). These are development/CI/VCS-only files
+# that should not ship inside the installable plugin zip.
+/.github        export-ignore
+/.gitignore     export-ignore
+/.gitattributes export-ignore
