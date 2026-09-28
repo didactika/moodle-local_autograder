@@ -191,6 +191,12 @@ final class decision_planner_test extends \advanced_testcase {
      * @return array
      */
     public static function lesson_completion_provider(): array {
+        global $CFG;
+
+        // Providers run before any test, when nothing has loaded the
+        // constants below yet.
+        require_once($CFG->libdir . '/completionlib.php');
+
         return [
             'no completion' => [[], false],
             'the student marks it done' => [['completion' => COMPLETION_TRACKING_MANUAL], true],
