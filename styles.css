@@ -1,0 +1,95 @@
+/* Limit these rules to autograder's own pages and activity settings section. */
+.local-autograder-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    contain: inline-size;
+}
+
+.local-autograder-table-scroll:focus-visible {
+    outline: 2px solid var(--primary, #0f6cbf);
+    outline-offset: 2px;
+}
+
+#local-autograder-modules {
+    width: 100%;
+}
+
+#local-autograder-modules td {
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+#local-autograder-modules td:last-child {
+    width: 5rem;
+}
+
+#local-autograder-modules form {
+    margin: 0;
+}
+
+#id_autogradersection .felement,
+#page-local-autograder-advanced .felement,
+#page-local-autograder-optout .felement {
+    min-width: 0;
+}
+
+#id_autogradersection input[type="text"],
+#id_autogradersection select {
+    max-width: 100%;
+}
+
+#id_autogradersection .form-static,
+#page-local-autograder-advanced p {
+    overflow-wrap: anywhere;
+}
+
+/* Core rubrics need space for their levels; scroll only the grading field,
+   keeping the page heading and the save/cancel buttons within the viewport. */
+#page-local-autograder-advanced #fitem_id_advancedgrading .felement {
+    overflow-x: auto;
+    contain: inline-size;
+}
+
+#page-local-autograder-advanced .gradingform_rubric,
+#page-local-autograder-advanced .gradingform_guide {
+    width: 100%;
+    min-width: 0;
+}
+
+#page-local-autograder-advanced .gradingform_rubric .criterion .levels .level {
+    min-width: 8rem;
+}
+
+@media (max-width: 767.98px) {
+    #id_autogradersection input[type="text"],
+    #id_autogradersection select {
+        width: 100%;
+        min-height: 2.75rem;
+    }
+
+    #page-local-autograder-advanced .mform .btn,
+    #page-local-autograder-optout .mform .btn {
+        min-height: 2.75rem;
+        white-space: normal;
+    }
+}
+
+/* Match the report's control spacing while retaining Moodle form layouts. */
+#page-local-autograder-modules .btn,
+#page-local-autograder-advanced .mform .btn,
+#page-local-autograder-optout .mform .btn,
+#id_autogradersection input[type="text"],
+#id_autogradersection select {
+    min-height: 2.75rem;
+    border-radius: 0.375rem;
+}
+
+#local-autograder-modules th,
+#local-autograder-modules td {
+    padding: 0.75rem;
+}
+
+#page-local-autograder-advanced .mform,
+#page-local-autograder-optout .mform {
+    max-width: 100%;
+}

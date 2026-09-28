@@ -5,3 +5,8 @@
 lang/*
 !lang/en/
 !lang/en/**
+# Generated per site by admin/tool/phpunit/cli/util.php --buildcomponentconfigs,
+# with a PHPUNIT_SEQUENCE_START that is random on every run. Moodle's own
+# .gitignore leaves them out for the same reason: tracked, every regeneration
+# shows up as a change nobody made.
+phpunit.xml

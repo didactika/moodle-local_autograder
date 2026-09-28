@@ -14,20 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace local_autograder\form;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->libdir . '/formslib.php');
+
 /**
- * Plugin version and other meta-data are defined here.
+ * "Do not let the autograder post grades in my name".
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
  * @author      Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class optout_form extends \moodleform {
+    /**
+     * Builds the form: one checkbox.
+     */
+    protected function definition() {
+        $mform = $this->_form;
 
-defined('MOODLE_INTERNAL') || die();
+        $mform->addElement('advcheckbox', 'optout', get_string('preference:optout', 'local_autograder'));
+        $mform->addHelpButton('optout', 'preference:optout', 'local_autograder');
+        $mform->setType('optout', PARAM_BOOL);
 
-$plugin->component = 'local_autograder';
-$plugin->version = 2026092800;
-$plugin->requires = 2024100700;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.0.0';
-$plugin->supported = [405, 502];
+        $mform->addElement('hidden', 'userid');
+        $mform->setType('userid', PARAM_INT);
+
+        $this->add_action_buttons(false, get_string('savechanges'));
+    }
+}

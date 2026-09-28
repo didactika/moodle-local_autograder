@@ -1,0 +1,89 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_autograder/modules
+
+    The activity types autograder may be switched on for: one row and one
+    toggle per gradeable type. Each toggle sits in a small form of its own,
+    which local_autograder/modules submits the moment it is flipped.
+
+    Context variables required for this template:
+    * intro - What the page is for, above the table.
+    * label - The accessible name of the scrolling region around the table.
+    * namecolumn - The heading of the first column.
+    * enabledcolumn - The heading of the second column.
+    * types - One entry per gradeable activity type:
+      * component - Its component, e.g. "mod_assign", for the icon.
+      * name - Its name.
+      * action - Where its form is posted.
+      * params - The form's hidden inputs, each a name and a value.
+      * toggle - The context core/toggle is rendered with.
+
+    Example context (json):
+    {
+        "intro": "Autograder can only be turned on for activities of the types enabled here.",
+        "label": "Activity types",
+        "namecolumn": "Name",
+        "enabledcolumn": "Enabled",
+        "types": [
+            {
+                "component": "mod_assign",
+                "name": "Assignment",
+                "action": "https://example.com/local/autograder/modules.php",
+                "params": [
+                    {"name": "modname", "value": "assign"},
+                    {"name": "enabled", "value": "0"},
+                    {"name": "sesskey", "value": "abcdef1234"}
+                ],
+                "toggle": {
+                    "id": "local-autograder-toggle-assign",
+                    "checked": true,
+                    "dataattributes": [{"name": "submitonchange", "value": "1"}],
+                    "title": "Disable Autograder for Assignment",
+                    "label": "Disable Autograder for Assignment",
+                    "labelclasses": "sr-only"
+                }
+            }
+        ]
+    }
+}}
+<p>{{intro}}</p>
+<div class="local-autograder-table-scroll" tabindex="0" role="region" aria-label="{{label}}">
+    <table id="local-autograder-modules" class="admintable generaltable">
+        <thead>
+            <tr>
+                <th scope="col">{{namecolumn}}</th>
+                <th scope="col">{{enabledcolumn}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#types}}
+            <tr>
+                <td><span>{{#pix}} monologo, {{component}} {{/pix}}{{name}}</span></td>
+                <td>
+                    <form method="post" action="{{action}}">
+                        {{#params}}
+                        <input type="hidden" name="{{name}}" value="{{value}}">
+                        {{/params}}
+                        {{#toggle}}{{> core/toggle }}{{/toggle}}
+                    </form>
+                </td>
+            </tr>
+            {{/types}}
+        </tbody>
+    </table>
+</div>

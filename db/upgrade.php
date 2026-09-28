@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Upgrade steps are defined here.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
@@ -23,11 +23,12 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_autograder';
-$plugin->version = 2026092800;
-$plugin->requires = 2024100700;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.0.0';
-$plugin->supported = [405, 502];
+/**
+ * Runs every upgrade step this plugin has needed.
+ *
+ * @param int $oldversion The version being upgraded from.
+ * @return bool Always true.
+ */
+function xmldb_local_autograder_upgrade($oldversion) {
+    return true;
+}

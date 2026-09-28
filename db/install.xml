@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/autograder/db" VERSION="2026091100" COMMENT="XMLDB file for Moodle local/autograder"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="local_autograder_config" COMMENT="One row per course module with autograder configured: whether it is on, what grade it assigns and how long it waits.">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Denormalised from cmid, for per-course queries (the modules admin page, reports)."/>
+                <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+                <FIELD NAME="grademethod" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="point, scale, rubric or guide — what gradevalue/advancedgrading actually holds, fixed from the module's own grade_item at save time."/>
+                <FIELD NAME="gradevalue" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="false" SEQUENCE="false" COMMENT="The grade to assign for grademethod point (raw grade) or scale (item index). Null for rubric/guide, where advancedgrading is what is graded."/>
+                <FIELD NAME="advancedgrading" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON: the per-criterion selection for grademethod rubric ({criterionid: levelid}) or guide ({criterionid: {score, remark}}). Null for point/scale."/>
+                <FIELD NAME="delayseconds" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Wait after the baseline due date before grading. The form composes this from days/hours/minutes."/>
+                <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="fk_locautog_config_cmid" TYPE="foreign" FIELDS="cmid" REFTABLE="course_modules" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_config_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+                <KEY NAME="uq_locautog_config_cmid" TYPE="unique" FIELDS="cmid"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid" COMMENT="The modules admin page and the report list by course."/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="local_autograder_decision" COMMENT="One row per (module, student) in play: whether and when to grade them, recalculated live on every run rather than trusted from when it was written.">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="pending, graded, manual, skipped, cancelled or failed."/>
+                <FIELD NAME="baselineduedate" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Recalculated from live data on every grade_student run — never trusted stale."/>
+                <FIELD NAME="duedatereason" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="completion, duedate, useroverride or groupoverride."/>
+                <FIELD NAME="scheduledgradetime" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="baselineduedate + delayseconds. What the adhoc task is scheduled against."/>
+                <FIELD NAME="adhoctaskid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="task_adhoc.id of the live grade_student task, or null when there is none (terminal status, or awaiting requeue). reconcile_pending acts only where this is null or orphaned."/>
+                <FIELD NAME="graderid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The teacher chosen to grade, once grading is attempted."/>
+                <FIELD NAME="gradedvalue" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="failurereason" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" COMMENT="no_grader, grade_write_failed, module_gone, unsupported_grade_type, ..."/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="fk_locautog_decision_cmid" TYPE="foreign" FIELDS="cmid" REFTABLE="course_modules" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_decision_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_decision_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_decision_graderid" TYPE="foreign" FIELDS="graderid" REFTABLE="user" REFFIELDS="id"/>
+                <KEY NAME="uq_locautog_decision_cmuser" TYPE="unique" FIELDS="cmid, userid"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="statusgradetime" UNIQUE="false" FIELDS="status, scheduledgradetime" COMMENT="reconcile_pending walks this and nothing else."/>
+                <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid"/>
+                <INDEX NAME="adhoctaskid" UNIQUE="false" FIELDS="adhoctaskid"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="local_autograder_grade_log" COMMENT="Audit trail of every grading attempt, kept independently of the decision (survives its retention purge). What reporting and support questions are answered from.">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="decisionid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Nullable: this row outlives the decision once it is purged."/>
+                <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+                <FIELD NAME="outcome" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="graded, failed, skipped or cancelled."/>
+                <FIELD NAME="graderid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="gradevalue" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="false" SEQUENCE="false"/>
+                <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Human-readable detail: failure reason, method used, grade item touched."/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="fk_locautog_log_cmid" TYPE="foreign" FIELDS="cmid" REFTABLE="course_modules" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_log_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+                <KEY NAME="fk_locautog_log_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="cmiduserid" UNIQUE="false" FIELDS="cmid, userid"/>
+                <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated" COMMENT="purge_history walks this and nothing else."/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>
