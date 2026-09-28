@@ -50,6 +50,13 @@ $observers = [
         'eventname' => '\mod_forum\event\post_created',
         'callback' => '\local_autograder\observer::submitted',
     ],
+    // Opening a discussion fires this and not post_created, although its first
+    // post is a post like any other — so a student who only ever opens
+    // discussions would otherwise go unnoticed until the next sweep.
+    [
+        'eventname' => '\mod_forum\event\discussion_created',
+        'callback' => '\local_autograder\observer::submitted',
+    ],
 
     // Somebody graded by hand: autograder stands down.
     [

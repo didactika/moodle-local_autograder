@@ -37,21 +37,29 @@ use local_autograder\local\module\module_adapter;
  */
 final class decision_planner {
     /**
+     * The completion conditions only a grade can meet.
+     *
+     * @var string[]
+     */
+    private const GRADE_CONDITIONS = ['completionusegrade', 'completionpassgrade'];
+
+    /**
      * What autograder should do about one student in one activity, right now.
      *
      * @param \cm_info|\stdClass $cm The course module.
      * @param \stdClass $config Its autograder configuration.
      * @param int $userid The student.
      * @return array{baselineduedate: int, duedatereason: string, scheduledgradetime: int}|null
-     *         Null when there is nothing to grade: the student has neither
-     *         completed nor submitted.
+     *         Null when there is nothing to grade: the student has not done
+     *         the activity yet, as {@see self::engagement()} decides it.
      */
     public static function plan(\cm_info|\stdClass $cm, \stdClass $config, int $userid): ?array {
         $adapter = module_adapter::for_cm($cm, $config);
+        [$completedat, $submittedat] = self::engagement($cm, $adapter, $userid);
 
         $result = due_date_calculator::calculate(
-            self::completed_at($cm, $userid),
-            $adapter->submitted_at($userid),
+            $completedat,
+            $submittedat,
             $adapter->close_date(),
             $adapter->user_override_date($userid),
             $adapter->group_override_dates(self::group_ids($cm, $userid)),
@@ -70,36 +78,70 @@ final class decision_planner {
     }
 
     /**
-     * When the student completed the activity, or null when completion is not
-     * tracked here or they have not completed it.
+     * Whether, and when, the student has done the activity.
      *
-     * A completion row whose state is "incomplete" is not a completion — a
-     * student who ticks a box and unticks it has undone it, and the decision
-     * that followed must go with it.
+     * Where the activity tracks completion, completion is the answer: the
+     * teacher has said what "done" means there, and handing something in is
+     * not it until they say so. A forum that asks for three replies is not
+     * done by opening one discussion — and the first post of a discussion is
+     * a post like any other, so without this it counted as handing it in.
+     * Where the activity tracks no completion, handing it in is the answer.
+     *
+     * Except for the conditions only a grade can meet. "Receive a grade" and
+     * "receive a passing grade" can never be met before somebody grades the
+     * student, and that somebody is autograder: counted, they would hold back
+     * the very grade that meets them, and the student would never be graded.
+     * So they are left out, and an activity whose completion asks for nothing
+     * else is judged as though it tracked none.
+     *
+     * A completion that is not complete is not a completion either: a student
+     * who ticks a box and unticks it has undone it, and the decision that
+     * followed has to go with it.
      *
      * @param \cm_info|\stdClass $cm
+     * @param module_adapter $adapter
      * @param int $userid
-     * @return int|null
+     * @return array{0: int|null, 1: int|null} When they completed it and when
+     *         they handed it in, as due_date_calculator::calculate() takes
+     *         them — both null when they have not done it yet.
      */
-    public static function completed_at(\cm_info|\stdClass $cm, int $userid): ?int {
+    private static function engagement(\cm_info|\stdClass $cm, module_adapter $adapter, int $userid): array {
         global $CFG;
 
         require_once($CFG->libdir . '/completionlib.php');
 
-        $course = get_course($cm->course);
-        $completion = new \completion_info($course);
+        $cminfo = get_fast_modinfo($cm->course, $userid)->get_cm((int) $cm->id);
+        $completion = \core_completion\cm_completion_details::get_instance($cminfo, $userid);
 
-        if (!$completion->is_enabled($cm)) {
-            return null;
+        if (!$completion->has_completion()) {
+            return [null, $adapter->submitted_at($userid)];
         }
 
-        $data = $completion->get_data($cm, false, $userid);
-
-        if (empty($data->completionstate) || $data->completionstate == COMPLETION_INCOMPLETE) {
-            return null;
+        if ($completion->is_overall_complete()) {
+            return [$completion->get_timemodified() ?: $adapter->submitted_at($userid), null];
         }
 
-        return !empty($data->timemodified) ? (int) $data->timemodified : null;
+        // Only the student can tick manual completion, and they have not.
+        if ($completion->is_manual()) {
+            return [null, null];
+        }
+
+        $conditions = array_diff_key($completion->get_details(), array_flip(self::GRADE_CONDITIONS));
+
+        if ($conditions === []) {
+            return [null, $adapter->submitted_at($userid)];
+        }
+
+        foreach ($conditions as $condition) {
+            if ((int) $condition->status === COMPLETION_INCOMPLETE) {
+                return [null, null];
+            }
+        }
+
+        // Every condition the student can meet is met; only the grade is left.
+        // Core does not rewrite the completion record while it stays
+        // incomplete, so the hand-in is the better clock where there is one.
+        return [$adapter->submitted_at($userid) ?? ($completion->get_timemodified() ?: null), null];
     }
 
     /**
