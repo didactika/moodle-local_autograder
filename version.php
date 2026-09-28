@@ -29,5 +29,5 @@ $plugin->component = 'local_autograder';
 $plugin->version = 2026092800;
 $plugin->requires = 2024100700;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '3.0.0';
+$plugin->release = '1.0.0';
 $plugin->supported = [405, 502];
