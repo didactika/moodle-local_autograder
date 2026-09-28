@@ -73,13 +73,36 @@ abstract class module_adapter {
      * @return self
      */
     public static function for_cm(\cm_info|\stdClass $cm, \stdClass $config): self {
-        $classname = __NAMESPACE__ . '\\' . $cm->modname . '_adapter';
+        $classname = self::class_for((string) $cm->modname);
 
-        if (class_exists($classname)) {
-            return new $classname($cm, $config);
-        }
+        return new $classname($cm, $config);
+    }
 
-        return new generic_adapter($cm, $config);
+    /**
+     * Which adapter a module type is read through.
+     *
+     * @param string $modname
+     * @return string A subclass of this one; {@see generic_adapter} for any
+     *                type without an adapter of its own.
+     */
+    public static function class_for(string $modname): string {
+        $classname = __NAMESPACE__ . '\\' . $modname . '_adapter';
+
+        return class_exists($classname) ? $classname : generic_adapter::class;
+    }
+
+    /**
+     * Whether this module type can say when a student handed it in.
+     *
+     * Only an adapter written for the module can: handing something in means
+     * something different to every activity, and there is no common record of
+     * it to read. A type without that answer can only be followed through
+     * activity completion.
+     *
+     * @return bool
+     */
+    public static function knows_submissions(): bool {
+        return false;
     }
 
     /**

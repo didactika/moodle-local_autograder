@@ -58,6 +58,15 @@ class assign_adapter extends module_adapter {
     }
 
     /**
+     * This type says when a student handed it in: {@see submitted_at()}.
+     *
+     * @return bool
+     */
+    public static function knows_submissions(): bool {
+        return true;
+    }
+
+    /**
      * When the student last submitted this assignment.
      *
      * Only a row actually marked submitted counts — a draft the student is

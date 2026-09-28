@@ -347,6 +347,36 @@ final class autograder_section_test extends \advanced_testcase {
     }
 
     /**
+     * Switched on for a type autograder has no adapter for, without a
+     * completion the student can meet, autograder is saved off: it would
+     * never be able to tell anybody had done the activity.
+     */
+    public function test_a_type_it_cannot_follow_is_saved_switched_off(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        set_config('enabled_modules', 'assign,forum,quiz,lesson', 'local_autograder');
+
+        $course = $this->getDataGenerator()->create_course();
+        $lesson = $this->getDataGenerator()->create_module('lesson', ['course' => $course->id, 'grade' => 100]);
+
+        autograder_section::save((object) [
+            'modulename' => 'lesson',
+            'coursemodule' => (int) $lesson->cmid,
+            'course' => (int) $course->id,
+            'autograder_enabled' => 1,
+            'autograder_grade_point' => 70,
+            'autograder_days' => 0,
+            'autograder_hours' => 0,
+            'autograder_minutes' => 0,
+        ]);
+
+        $config = config_repository::get_for_cm((int) $lesson->cmid);
+
+        $this->assertNotFalse($config, 'The configuration is still saved.');
+        $this->assertEquals(0, (int) $config->enabled, 'But off: nothing would tell autograder a student had done it.');
+    }
+
+    /**
      * An assignment with a rubric defined but nothing chosen on it yet.
      *
      * @return \stdClass The course module.

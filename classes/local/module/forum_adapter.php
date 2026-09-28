@@ -53,6 +53,15 @@ class forum_adapter extends module_adapter {
     }
 
     /**
+     * This type says when a student handed it in: {@see submitted_at()}.
+     *
+     * @return bool
+     */
+    public static function knows_submissions(): bool {
+        return true;
+    }
+
+    /**
      * When the student last posted in this forum.
      *
      * A forum has no submit button; contributing to it *is* the hand-in, and

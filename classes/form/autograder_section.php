@@ -21,7 +21,9 @@ use local_autograder\event\config_deleted;
 use local_autograder\event\config_updated;
 use local_autograder\local\grading\advanced_grading;
 use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_planner;
 use local_autograder\local\decision\decision_repository;
+use local_autograder\local\module\module_adapter;
 use local_autograder\local\config\eligibility;
 use local_autograder\task\cancel_module;
 use local_autograder\task\catch_up_module;
@@ -102,6 +104,18 @@ final class autograder_section {
         $typefield = self::grade_type_field($modname);
 
         $mform->addElement('header', 'autogradersection', get_string('form:heading', 'local_autograder'));
+
+        // Said up front, for a type autograder has no adapter for: saving it
+        // switched on without the completion it relies on would only turn it
+        // straight back off.
+        if (!module_adapter::class_for($modname)::knows_submissions()) {
+            $mform->addElement(
+                'static',
+                'autograder_completion_notice',
+                '',
+                get_string('form:needs_completion', 'local_autograder')
+            );
+        }
 
         $mform->addElement('advcheckbox', 'autograder_enabled', get_string('form:enabled', 'local_autograder'));
         $mform->addHelpButton('autograder_enabled', 'form:enabled', 'local_autograder');
@@ -752,8 +766,16 @@ final class autograder_section {
         // Asked of the rubric that exists now rather than the one the form was
         // built against, so that a method changed in this very save is judged
         // on what it actually became.
-        $enabled = !empty($data->autograder_enabled)
-            && (!$advanced || advanced_grading::filling_is_current($cm, $filling));
+        $unfilled = $advanced && !advanced_grading::filling_is_current($cm, $filling);
+
+        // Nor where nothing would ever tell autograder the student had done
+        // the activity: a type it has no adapter for, followed through no
+        // completion the student can meet. Read off the course cache, which
+        // core has already rebuilt with this very save's completion settings
+        // by the time a plugin's post-actions run.
+        $blind = !decision_planner::can_tell_when_done(get_fast_modinfo($cm->course)->get_cm($cmid));
+
+        $enabled = !empty($data->autograder_enabled) && !$unfilled && !$blind;
 
         $config = config_repository::upsert_for_cm(
             $cmid,
@@ -770,7 +792,11 @@ final class autograder_section {
         // afterwards is owed the reason, and where to go and fix it. This is
         // also what a save about something else entirely — a due date, say —
         // says when the rubric changed underneath it in the meantime.
-        if (!empty($data->autograder_enabled) && !$enabled) {
+        if (!empty($data->autograder_enabled) && $blind) {
+            \core\notification::warning(get_string('form:notenabled_nocompletion', 'local_autograder'));
+        }
+
+        if (!empty($data->autograder_enabled) && $unfilled) {
             \core\notification::warning(get_string(
                 'form:notenabled_advanced',
                 'local_autograder',

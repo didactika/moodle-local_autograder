@@ -78,6 +78,55 @@ final class decision_planner {
     }
 
     /**
+     * Whether autograder can ever tell that a student has done this activity.
+     *
+     * An activity with an adapter of its own can: handing it in is a thing
+     * autograder knows how to read. Any other type can only be followed
+     * through activity completion, and only through a condition the student
+     * can meet on their own — marking it done, viewing it, or one of the
+     * activity's own conditions. A completion that asks for nothing but a
+     * grade is no help: the grade is the one autograder would give, so it
+     * would be waiting on itself.
+     *
+     * Where the answer is no, autograder switched on there would sit waiting
+     * for a signal that never comes, graded nobody, and said nothing.
+     *
+     * @param \cm_info $cm
+     * @return bool
+     */
+    public static function can_tell_when_done(\cm_info $cm): bool {
+        global $CFG;
+
+        require_once($CFG->libdir . '/completionlib.php');
+
+        $adapter = module_adapter::class_for((string) $cm->modname);
+
+        if ($adapter::knows_submissions()) {
+            return true;
+        }
+
+        $tracking = (new \completion_info($cm->get_course()))->is_enabled($cm);
+
+        if ($tracking == COMPLETION_TRACKING_MANUAL) {
+            return true;
+        }
+
+        if ($tracking != COMPLETION_TRACKING_AUTOMATIC) {
+            return false;
+        }
+
+        if (!empty($cm->completionview)) {
+            return true;
+        }
+
+        // The module's own conditions, read the way core itself reads them:
+        // switched on in its custom data, and backed by a completion class.
+        $rules = array_filter((array) (((array) $cm->customdata)['customcompletionrules'] ?? []));
+
+        return $rules !== [] && \core_completion\activity_custom_completion::get_cm_completion_class($cm->modname) !== null;
+    }
+
+    /**
      * Whether, and when, the student has done the activity.
      *
      * Where the activity tracks completion, completion is the answer: the

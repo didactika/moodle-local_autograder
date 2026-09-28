@@ -41,6 +41,15 @@ class quiz_adapter extends module_adapter {
     }
 
     /**
+     * This type says when a student handed it in: {@see submitted_at()}.
+     *
+     * @return bool
+     */
+    public static function knows_submissions(): bool {
+        return true;
+    }
+
+    /**
      * When the student last finished an attempt.
      *
      * A quiz is "handed in" when an attempt is submitted; one still in

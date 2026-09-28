@@ -165,6 +165,56 @@ final class decision_planner_test extends \advanced_testcase {
     }
 
     /**
+     * A type autograder has no adapter for can only be followed through a
+     * completion the student can meet on their own — and without one,
+     * autograder could never tell they had done it.
+     *
+     * @dataProvider lesson_completion_provider
+     * @param array $completion The lesson's completion settings.
+     * @param bool $expected
+     */
+    public function test_a_type_without_an_adapter_needs_a_completion_the_student_can_meet(
+        array $completion,
+        bool $expected,
+    ): void {
+        // The lesson generator saves files as whoever is logged in.
+        $this->setAdminUser();
+        $lesson = $this->getDataGenerator()->create_module('lesson', $completion + ['course' => $this->course->id]);
+        $cm = get_fast_modinfo($this->course)->get_cm((int) $lesson->cmid);
+
+        $this->assertSame($expected, decision_planner::can_tell_when_done($cm));
+    }
+
+    /**
+     * Completion settings for a lesson, and whether autograder could follow it.
+     *
+     * @return array
+     */
+    public static function lesson_completion_provider(): array {
+        return [
+            'no completion' => [[], false],
+            'the student marks it done' => [['completion' => COMPLETION_TRACKING_MANUAL], true],
+            'viewing it' => [['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionview' => 1], true],
+            'one of its own conditions' => [
+                ['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionendreached' => 1],
+                true,
+            ],
+            'only a grade' => [['completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionusegrade' => 1], false],
+        ];
+    }
+
+    /**
+     * A type with an adapter of its own knows when a student handed it in,
+     * completion or not.
+     */
+    public function test_a_type_with_an_adapter_is_always_followed(): void {
+        $assign = $this->getDataGenerator()->create_module('assign', ['course' => $this->course->id]);
+        $cm = get_fast_modinfo($this->course)->get_cm((int) $assign->cmid);
+
+        $this->assertTrue(decision_planner::can_tell_when_done($cm));
+    }
+
+    /**
      * A forum graded as a whole, with autograder switched on.
      *
      * @param array $options Its settings, completion included.
