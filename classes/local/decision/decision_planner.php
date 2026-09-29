@@ -41,7 +41,13 @@ final class decision_planner {
      *
      * @var string[]
      */
-    private const GRADE_CONDITIONS = ['completionusegrade', 'completionpassgrade'];
+    private const GRADE_CONDITIONS = [
+        'completionusegrade',
+        'completionpassgrade',
+        // The quiz's "passing grade, or all attempts used": with attempts
+        // still to go, only a pass meets it.
+        'completionpassorattemptsexhausted',
+    ];
 
     /**
      * What autograder should do about one student in one activity, right now.
@@ -141,7 +147,9 @@ final class decision_planner {
      * student, and that somebody is autograder: counted, they would hold back
      * the very grade that meets them, and the student would never be graded.
      * So they are left out, and an activity whose completion asks for nothing
-     * else is judged as though it tracked none.
+     * else is judged as though it tracked none. A quiz's "passing grade, or
+     * all attempts used" is left out with them: a student with an essay
+     * waiting and attempts to spare can meet it only by passing.
      *
      * A completion that is not complete is not a completion either: a student
      * who ticks a box and unticks it has undone it, and the decision that
