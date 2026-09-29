@@ -81,6 +81,13 @@ $observers = [
         'callback' => '\local_autograder\observer::enrolment_updated',
     ],
 
+    // Somebody became a student here — enrolled for the first time or again —
+    // and may already have done the work.
+    [
+        'eventname' => '\core\event\role_assigned',
+        'callback' => '\local_autograder\observer::role_assigned',
+    ],
+
     // Group membership decides which group exception applies to whom.
     [
         'eventname' => '\core\event\group_member_added',

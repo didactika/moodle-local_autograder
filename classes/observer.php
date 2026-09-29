@@ -127,7 +127,11 @@ class observer {
     }
 
     /**
-     * An enrolment changed — which may mean it was suspended.
+     * An enrolment changed — which may mean it was suspended, or brought back.
+     *
+     * Brought back is the one that needs saying: the student keeps their role
+     * through a suspension, so no role event comes to pick them up again, and
+     * whatever they had already done before would never be graded.
      *
      * @param \core\event\user_enrolment_updated $event
      */
@@ -136,10 +140,41 @@ class observer {
         $userid = (int) $event->relateduserid;
 
         if (is_enrolled(\context_course::instance($courseid), $userid, '', true)) {
+            self::reconsider_in_course($courseid, $userid);
+
             return;
         }
 
         self::cancel_users_decisions_in_course($courseid, $userid, 'unenrolled');
+    }
+
+    /**
+     * Somebody was given a role in a course — for a student, the moment they
+     * become somebody autograder grades.
+     *
+     * Not the enrolment itself: core creates it, announces it, and only then
+     * assigns the role, so when the enrolment is announced the student is not
+     * a student yet. Someone enrolled again after leaving is picked up here,
+     * with whatever they had done before they left.
+     *
+     * @param \core\event\role_assigned $event
+     */
+    public static function role_assigned(\core\event\role_assigned $event): void {
+        global $CFG;
+
+        if ((int) $event->contextlevel !== CONTEXT_COURSE) {
+            return;
+        }
+
+        // Only the roles the gradebook grades; a teacher being added is
+        // nothing to autograder.
+        $gradedroles = array_map('intval', explode(',', (string) ($CFG->gradebookroles ?? '')));
+
+        if (!in_array((int) $event->objectid, $gradedroles, true)) {
+            return;
+        }
+
+        self::reconsider_in_course((int) $event->courseid, (int) $event->relateduserid);
     }
 
     /**
@@ -229,6 +264,25 @@ class observer {
         }
 
         decision_repository::ensure($cm, $config, $userid);
+    }
+
+    /**
+     * Looks at one student again on every autograded activity of a course.
+     *
+     * A handful of activities for one student: cheap enough to do in the
+     * event itself, where a sweep of the whole course would not be.
+     *
+     * @param int $courseid
+     * @param int $userid
+     */
+    private static function reconsider_in_course(int $courseid, int $userid): void {
+        if ($courseid === 0 || $userid === 0) {
+            return;
+        }
+
+        foreach (config_repository::enabled_for_course($courseid) as $config) {
+            self::reconsider((int) $config->cmid, $userid);
+        }
     }
 
     /**

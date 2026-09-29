@@ -149,6 +149,39 @@ final class observer_test extends \advanced_testcase {
     }
 
     /**
+     * A student suspended and let back in is looked at again: they keep their
+     * role through the suspension, so nothing else would pick them up.
+     */
+    public function test_reactivating_a_student_picks_their_decision_back_up(): void {
+        $this->submit();
+        [$instance, $plugin] = $this->manual_enrolment();
+
+        $plugin->update_user_enrol($instance, (int) $this->student->id, ENROL_USER_SUSPENDED);
+        $this->assertSame(decision_repository::STATUS_CANCELLED, $this->decision()->status);
+
+        $plugin->update_user_enrol($instance, (int) $this->student->id, ENROL_USER_ACTIVE);
+        $this->assertSame(decision_repository::STATUS_PENDING, $this->decision()->status);
+    }
+
+    /**
+     * A student who left and is enrolled again is looked at again, with the
+     * work they had already handed in.
+     */
+    public function test_enrolling_a_student_again_picks_their_decision_back_up(): void {
+        global $DB;
+
+        $this->submit();
+        [$instance, $plugin] = $this->manual_enrolment();
+
+        $plugin->unenrol_user($instance, (int) $this->student->id);
+        $this->assertSame(decision_repository::STATUS_CANCELLED, $this->decision()->status);
+
+        $studentrole = (int) $DB->get_field('role', 'id', ['shortname' => 'student'], MUST_EXIST);
+        $plugin->enrol_user($instance, (int) $this->student->id, $studentrole);
+        $this->assertSame(decision_repository::STATUS_PENDING, $this->decision()->status);
+    }
+
+    /**
      * Deleting the activity leaves nothing of it behind — neither its
      * decisions nor its configuration.
      */
@@ -220,6 +253,29 @@ final class observer_test extends \advanced_testcase {
         ]);
 
         $this->assertFalse($DB->record_exists('local_autograder_decision', ['userid' => $this->student->id]));
+    }
+
+    /**
+     * The course's manual enrolment instance and its plugin.
+     *
+     * @return array{0: \stdClass, 1: \enrol_plugin}
+     */
+    private function manual_enrolment(): array {
+        global $DB;
+
+        return [
+            $DB->get_record('enrol', ['courseid' => $this->course->id, 'enrol' => 'manual'], '*', MUST_EXIST),
+            enrol_get_plugin('manual'),
+        ];
+    }
+
+    /**
+     * The student's decision on the assignment.
+     *
+     * @return \stdClass
+     */
+    private function decision(): \stdClass {
+        return decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
     }
 
     /**
