@@ -164,7 +164,7 @@ final class grader_picker_test extends \advanced_testcase {
      * student — here both of theirs — over one who shares only one.
      */
     public function test_the_teacher_sharing_the_most_groups_is_chosen(): void {
-        [$lang, $program] = $this->groups(2);
+        [$lang, $program] = $this->make_groups(2);
 
         // Created first, so the lowest user id: what the tie-break would pick
         // if the groups were not being counted.
@@ -181,7 +181,7 @@ final class grader_picker_test extends \advanced_testcase {
      * teacher in no group.
      */
     public function test_one_shared_group_is_enough(): void {
-        [$lang, $program, $other] = $this->groups(3);
+        [$lang, $program, $other] = $this->make_groups(3);
 
         $this->teacher_in([]);
         $this->teacher_in([$other]);
@@ -196,7 +196,7 @@ final class grader_picker_test extends \advanced_testcase {
      * as a whole — rather than one who teaches some other group.
      */
     public function test_with_no_group_in_common_a_teacher_in_no_group_is_chosen(): void {
-        [$lang, $other] = $this->groups(2);
+        [$lang, $other] = $this->make_groups(2);
 
         $this->teacher_in([$other]);
         $whole = $this->teacher_in([]);
@@ -211,7 +211,7 @@ final class grader_picker_test extends \advanced_testcase {
      * is dropped rather than the grade.
      */
     public function test_a_student_with_no_teacher_in_their_group_is_still_graded(): void {
-        [$lang, $other] = $this->groups(2);
+        [$lang, $other] = $this->make_groups(2);
 
         $teacher = $this->teacher_in([$other]);
         $this->student_in([$lang]);
@@ -223,7 +223,7 @@ final class grader_picker_test extends \advanced_testcase {
      * Teachers equally close to the student are settled by the tie-break.
      */
     public function test_equally_close_teachers_go_to_the_tie_break(): void {
-        [$lang] = $this->groups(1);
+        [$lang] = $this->make_groups(1);
 
         $first = $this->teacher_in([$lang]);
         $this->teacher_in([$lang]);
@@ -237,7 +237,7 @@ final class grader_picker_test extends \advanced_testcase {
      * closest, not past all of the student's teachers to the site fallback.
      */
     public function test_an_opted_out_closest_teacher_hands_over_to_the_next_closest(): void {
-        [$lang, $program] = $this->groups(2);
+        [$lang, $program] = $this->make_groups(2);
         set_config('allowoptout', 1, 'local_autograder');
 
         $this->teacher_in([]);
@@ -362,7 +362,7 @@ final class grader_picker_test extends \advanced_testcase {
      * every group of the course counts.
      */
     public function test_without_separate_groups_every_group_counts(): void {
-        [$lang, $program] = $this->groups(2);
+        [$lang, $program] = $this->make_groups(2);
         $this->group_by([$lang], VISIBLEGROUPS);
 
         $this->teacher_in([$lang]);
@@ -377,7 +377,7 @@ final class grader_picker_test extends \advanced_testcase {
      * that grouping's groups count: a group shared outside it does not.
      */
     public function test_with_separate_groups_only_the_default_grouping_counts(): void {
-        [$lang, $program] = $this->groups(2);
+        [$lang, $program] = $this->make_groups(2);
         $this->group_by([$lang], SEPARATEGROUPS);
 
         // Created first: with every group counting, both share one group with
@@ -395,7 +395,7 @@ final class grader_picker_test extends \advanced_testcase {
      * teaching another of the grouping's groups.
      */
     public function test_with_separate_groups_a_group_outside_the_grouping_is_no_group(): void {
-        [$lang, $german, $program] = $this->groups(3);
+        [$lang, $german, $program] = $this->make_groups(3);
         $this->group_by([$lang, $german], SEPARATEGROUPS);
 
         $this->teacher_in([$german]);
@@ -411,7 +411,7 @@ final class grader_picker_test extends \advanced_testcase {
      * student's group, any teacher of the course would otherwise do.
      */
     public function test_separate_groups_on_the_activity_keep_a_teacher_to_their_groups(): void {
-        [$lang, $other, $third] = $this->groups(3);
+        [$lang, $other, $third] = $this->make_groups(3);
         $this->separate_groups_on_the_assignment();
 
         // A non-editing teacher, who can't see every group; created first, so
@@ -429,7 +429,7 @@ final class grader_picker_test extends \advanced_testcase {
      * separates its groups, without needing to see every group.
      */
     public function test_separate_groups_on_the_activity_let_a_teacher_grade_their_own_group(): void {
-        [$lang, $other] = $this->groups(2);
+        [$lang, $other] = $this->make_groups(2);
         $this->separate_groups_on_the_assignment();
 
         $this->teacher_in([$other], 'teacher');
@@ -444,7 +444,7 @@ final class grader_picker_test extends \advanced_testcase {
      * group can still grade the student.
      */
     public function test_visible_groups_do_not_keep_a_teacher_to_their_groups(): void {
-        [$lang, $other] = $this->groups(2);
+        [$lang, $other] = $this->make_groups(2);
 
         $elsewhere = $this->teacher_in([$other], 'teacher');
         $this->student_in([$lang]);
@@ -527,7 +527,7 @@ final class grader_picker_test extends \advanced_testcase {
      * @param int $count
      * @return \stdClass[]
      */
-    private function groups(int $count): array {
+    private function make_groups(int $count): array {
         $groups = [];
 
         for ($i = 0; $i < $count; $i++) {
