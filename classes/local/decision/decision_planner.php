@@ -90,9 +90,11 @@ final class decision_planner {
      * autograder knows how to read. Any other type can only be followed
      * through activity completion, and only through a condition the student
      * can meet on their own — marking it done, viewing it, or one of the
-     * activity's own conditions. A completion that asks for nothing but a
-     * grade is no help: the grade is the one autograder would give, so it
-     * would be waiting on itself.
+     * activity's own conditions. A completion that asks for a grade as well
+     * is no help either, even beside conditions like those: until the grade
+     * is there the activity never counts as done, so core never says the
+     * student finished — and the grade it waits for is the one autograder
+     * would give.
      *
      * Where the answer is no, autograder switched on there would sit waiting
      * for a signal that never comes, graded nobody, and said nothing.
@@ -118,6 +120,10 @@ final class decision_planner {
         }
 
         if ($tracking != COMPLETION_TRACKING_AUTOMATIC) {
+            return false;
+        }
+
+        if ($cm->completiongradeitemnumber !== null || !empty($cm->completionpassgrade)) {
             return false;
         }
 
