@@ -59,6 +59,28 @@ class observer {
         $userid = (int) ($event->relateduserid ?: $event->userid);
 
         self::reconsider((int) $event->contextinstanceid, $userid);
+
+        // A new quiz attempt that marks itself gives the quiz a grade of its
+        // own, which autograder's may have been standing in for.
+        self::hand_back((int) $event->contextinstanceid, $userid);
+    }
+
+    /**
+     * A teacher marked a quiz question by hand, such as an essay.
+     *
+     * The quiz has already worked out its total again when this fires, so if
+     * the marking gave the student one, it replaces autograder's.
+     *
+     * @param \mod_quiz\event\question_manually_graded $event
+     */
+    public static function question_marked(\mod_quiz\event\question_manually_graded $event): void {
+        global $DB;
+
+        $userid = $DB->get_field('quiz_attempts', 'userid', ['id' => (int) ($event->other['attemptid'] ?? 0)]);
+
+        if ($userid) {
+            self::hand_back((int) $event->contextinstanceid, (int) $userid);
+        }
     }
 
     /**
@@ -207,6 +229,39 @@ class observer {
         }
 
         decision_repository::ensure($cm, $config, $userid);
+    }
+
+    /**
+     * Gives the gradebook back to the activity where autograder graded the
+     * student and the activity now has a grade of its own.
+     *
+     * Done whether or not autograder is still switched on here: the override
+     * is autograder's, and so is taking it away.
+     *
+     * @param int $cmid
+     * @param int $userid
+     */
+    private static function hand_back(int $cmid, int $userid): void {
+        if ($cmid === 0 || $userid === 0) {
+            return;
+        }
+
+        $decision = decision_repository::for_cm_user($cmid, $userid);
+
+        if (!$decision || $decision->status !== decision_repository::STATUS_GRADED) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, IGNORE_MISSING);
+        $config = config_repository::get_for_cm($cmid);
+
+        if (!$cm || !$config) {
+            return;
+        }
+
+        if (module_adapter::for_cm($cm, $config)->release_override($userid, (int) $decision->timemodified)) {
+            grade_log_repository::record($decision, grade_log_repository::OUTCOME_RELEASED, 'gradedbyactivity');
+        }
     }
 
     /**

@@ -58,6 +58,13 @@ $observers = [
         'callback' => '\local_autograder\observer::submitted',
     ],
 
+    // A teacher marked a quiz question by hand: the quiz's own grade may now
+    // take the place of autograder's.
+    [
+        'eventname' => '\mod_quiz\event\question_manually_graded',
+        'callback' => '\local_autograder\observer::question_marked',
+    ],
+
     // Somebody graded by hand: autograder stands down.
     [
         'eventname' => '\core\event\user_graded',

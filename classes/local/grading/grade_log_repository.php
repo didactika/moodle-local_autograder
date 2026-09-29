@@ -44,6 +44,9 @@ final class grade_log_repository {
     /** @var string The decision was called off before it came due. */
     public const OUTCOME_CANCELLED = 'cancelled';
 
+    /** @var string Autograder's grade gave way to one the activity worked out itself. */
+    public const OUTCOME_RELEASED = 'released';
+
     /**
      * Records one attempt.
      *
@@ -89,7 +92,7 @@ final class grade_log_repository {
         return $DB->get_records(
             'local_autograder_grade_log',
             ['cmid' => $cmid, 'userid' => $userid],
-            'timecreated DESC',
+            'timecreated DESC, id DESC',
         );
     }
 

@@ -241,6 +241,56 @@ abstract class module_adapter {
     }
 
     /**
+     * Takes autograder's gradebook override away once the activity has a
+     * grade of its own to show in its place.
+     *
+     * The override stood in for a grade the activity did not have yet — a
+     * quiz waiting on an essay has no total at all. Left there, it would hide
+     * the grade the activity works out once the essay is marked, because an
+     * override is exactly what outranks the activity's own grade. So it goes,
+     * and the gradebook shows the activity's grade again.
+     *
+     * Only autograder's own override is taken away: one placed no later than
+     * its decision was settled. A teacher who overrode the grade afterwards
+     * meant it, and theirs stays. So does autograder's while the activity
+     * still has no grade to put back.
+     *
+     * @param int $userid
+     * @param int $settledat When autograder's decision to grade was settled.
+     * @return bool Whether the override was taken away.
+     */
+    public function release_override(int $userid, int $settledat): bool {
+        $gradeitem = $this->grade_item();
+
+        if (!$gradeitem) {
+            return false;
+        }
+
+        $grade = \grade_grade::fetch(['itemid' => $gradeitem->id, 'userid' => $userid]);
+
+        if (!$grade || empty($grade->overridden) || $grade->rawgrade === null) {
+            return false;
+        }
+
+        if ((int) $grade->overridden > $settledat) {
+            return false;
+        }
+
+        // Core's own way of lifting an override, the one the gradebook uses:
+        // it asks the activity for its grade again, and that write fires the
+        // graded event this plugin would otherwise read as a teacher grading.
+        self::$writing = true;
+
+        try {
+            $grade->grade_item = $gradeitem;
+
+            return $grade->set_overridden(false);
+        } finally {
+            self::$writing = false;
+        }
+    }
+
+    /**
      * The activity's grade item.
      *
      * @return \grade_item|null

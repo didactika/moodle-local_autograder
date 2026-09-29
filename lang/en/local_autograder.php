@@ -71,6 +71,7 @@ $string['form:minutes_to_complete'] = 'Minutes';
 $string['form:needs_completion'] = 'Autograder can only tell a student has done this kind of activity through activity completion. Set a condition the student can meet on their own: marking it done, viewing it, or one of the activity\'s own conditions. "Receive a grade" alone is not enough, as the grade is the one Autograder would give.';
 $string['form:notenabled_advanced'] = 'Autograder was left switched off: it has not been told what to mark on this activity\'s rubric or marking guide. <a href="{$a}">Choose that first</a>, then switch it on.';
 $string['form:notenabled_nocompletion'] = 'Autograder was left switched off: it can only tell a student has done this kind of activity through activity completion, and none of this activity\'s completion conditions can be met by the student on their own.';
+$string['form:quiz_note'] = 'On a quiz, Autograder only steps in while a question such as an essay is waiting to be marked by hand, and then grades the whole quiz. Once the teacher marks it, the quiz\'s own grade takes its place. A quiz that marks itself keeps its own grade.';
 $string['form:time_to_complete'] = 'Time to wait before grading';
 $string['form:time_to_complete_help'] = 'How long to wait, after the due date, before grading.';
 $string['messageprovider:failuredigest'] = 'Students Autograder could not grade';
@@ -109,7 +110,7 @@ $string['privacy:metadata:gradelog'] = 'A record of what Autograder did, and did
 $string['privacy:metadata:gradelog:graderid'] = 'The teacher the grade was posted as.';
 $string['privacy:metadata:gradelog:gradevalue'] = 'The grade posted, where one was.';
 $string['privacy:metadata:gradelog:message'] = 'What happened, in words.';
-$string['privacy:metadata:gradelog:outcome'] = 'Whether the student was graded, skipped, cancelled or failed.';
+$string['privacy:metadata:gradelog:outcome'] = 'Whether the student was graded, skipped, cancelled or failed, or whether Autograder\'s grade gave way to the activity\'s own.';
 $string['privacy:metadata:gradelog:timecreated'] = 'When it happened.';
 $string['privacy:metadata:gradelog:userid'] = 'The student the entry is about.';
 $string['privacy:metadata:preference:optout'] = 'Whether this user has asked not to be chosen as the teacher Autograder grades as.';

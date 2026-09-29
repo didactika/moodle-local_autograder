@@ -117,6 +117,17 @@ final class autograder_section {
             );
         }
 
+        // A quiz mostly grades itself, so what autograder does there is
+        // narrower than a teacher would guess, and worth saying.
+        if ($modname === 'quiz') {
+            $mform->addElement(
+                'static',
+                'autograder_quiz_notice',
+                '',
+                get_string('form:quiz_note', 'local_autograder')
+            );
+        }
+
         $mform->addElement('advcheckbox', 'autograder_enabled', get_string('form:enabled', 'local_autograder'));
         $mform->addHelpButton('autograder_enabled', 'form:enabled', 'local_autograder');
         $mform->setDefault('autograder_enabled', $config ? $config->enabled : 0);
