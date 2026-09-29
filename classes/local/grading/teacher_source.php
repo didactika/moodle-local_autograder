@@ -20,10 +20,12 @@ namespace local_autograder\local\grading;
  * Which teachers a student has in a course.
  *
  * A course names its teachers by role: whoever holds a teaching role,
- * assigned in the course itself. Where the course separates its groups and
- * names a default grouping, that list is then narrowed to the teachers
- * sharing one of the student's groups inside that grouping — and if none do,
- * the whole list stands rather than the student being left with no teacher.
+ * assigned in the course itself, and is actively enrolled there. Among them a
+ * student's own teachers are the ones closest to them by group: the most
+ * groups in common, then — with none in common — a teacher in no group at
+ * all, and only then any teacher of the course, rather than the student being
+ * left with no teacher. Where the course separates its groups through a
+ * default grouping, only the groups of that grouping count.
  *
  * What makes a role a teaching role is worked out, not listed. By default it
  * is any role that grants one of the capabilities a grade is actually written
@@ -56,6 +58,11 @@ final class teacher_source {
     /**
      * Everybody who teaches this course, before any student narrows it.
      *
+     * Only an active enrolment counts: a teacher whose enrolment is suspended,
+     * not started yet or over has stopped teaching the course, whatever role
+     * is still assigned to them, and a grade in their name would say they had
+     * not.
+     *
      * A property of the course, so it costs the same on a course of ten
      * students and one of ten thousand — which is what lets a report open on
      * it instead of walking every student.
@@ -80,6 +87,7 @@ final class teacher_source {
 
         if ($roleids !== []) {
             [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED);
+            [$enrolledsql, $enrolledparams] = get_enrolled_sql($context, '', 0, true);
             $params['contextid'] = $context->id;
             // The course context and only the course context. A role held over
             // the whole category makes somebody a teacher of every course in
@@ -88,8 +96,9 @@ final class teacher_source {
             $teachers = array_map('intval', $DB->get_fieldset_sql(
                 "SELECT DISTINCT ra.userid
                    FROM {role_assignments} ra
+                   JOIN ({$enrolledsql}) enrolled ON enrolled.id = ra.userid
                   WHERE ra.contextid = :contextid AND ra.roleid {$insql}",
-                $params
+                $params + $enrolledparams
             ));
         }
 
@@ -180,35 +189,96 @@ final class teacher_source {
     }
 
     /**
-     * The teachers of one student, narrowed by group where the course says so.
+     * The teachers among these who are closest to the student by group.
+     *
+     * A group is how a course says who belongs with whom, and a student in
+     * "lang.es" and "program.abc" belongs most with the teacher in both. Every
+     * group of the course counts, except where the course separates its
+     * groups through a default grouping: there the course has said which
+     * groups divide it, and only those count — a teacher whose groups all lie
+     * outside it is, for this, a teacher in no group.
+     *
+     * Closest is the most groups in common — one is enough where no teacher
+     * shares more. With none in common, a teacher in no group at all, who
+     * teaches the course as a whole rather than some other part of it; and
+     * with no such teacher either, every one of them, rather than the student
+     * being told they have none. Where several are equally close, choosing
+     * between them is the caller's tie-break.
      *
      * @param int $courseid
      * @param int $studentid
+     * @param int[] $teachers The teachers who could grade, already narrowed to
+     *                        the ones who may.
      * @return int[]
      */
-    public static function teachers_of(int $courseid, int $studentid): array {
-        $teachers = self::possible_graders_in($courseid);
-        $course = self::course($courseid);
+    public static function closest_to(int $courseid, int $studentid, array $teachers): array {
+        $teachers = array_values(array_map('intval', $teachers));
 
-        if (
-            !$teachers
-            || groups_get_course_groupmode($course) != SEPARATEGROUPS
-            || !$course->defaultgroupingid
-            || has_capability('moodle/site:accessallgroups', \context_course::instance($courseid), $studentid)
-        ) {
+        if (!$teachers) {
+            return [];
+        }
+
+        self::prime_groups($courseid, $teachers);
+        $groupingid = self::separating_grouping($courseid, $studentid);
+        $teachergroups = [];
+
+        foreach ($teachers as $teacherid) {
+            $teachergroups[$teacherid] = self::groups_of($courseid, $teacherid, $groupingid);
+        }
+
+        $groupless = array_keys(array_filter($teachergroups, static fn(array $groups): bool => $groups === []));
+
+        // No teacher in any group: nothing about the student's groups can tell
+        // them apart, so there is nothing to look up for each student.
+        if (count($groupless) === count($teachers)) {
             return $teachers;
         }
 
-        self::prime_groups($courseid, array_merge($teachers, [$studentid]));
-        $groups = self::groups_of($courseid, $studentid, (int) $course->defaultgroupingid);
-        $matched = array_filter($teachers, static function (int $teacherid) use ($courseid, $groups): bool {
-            return (bool) array_intersect($groups, self::groups_of($courseid, $teacherid));
-        });
+        $studentgroups = self::groups_of($courseid, $studentid, $groupingid);
+        $closest = [];
+        $most = 0;
 
-        // Nobody sharing a group is not the same as nobody teaching: the
-        // course's teachers stand rather than the student being told they
-        // have none.
-        return array_values($matched ?: $teachers);
+        foreach ($teachergroups as $teacherid => $groups) {
+            $shared = count(array_intersect($studentgroups, $groups));
+
+            if ($shared === 0 || $shared < $most) {
+                continue;
+            }
+
+            if ($shared > $most) {
+                $most = $shared;
+                $closest = [];
+            }
+
+            $closest[] = $teacherid;
+        }
+
+        return $closest ?: ($groupless ?: $teachers);
+    }
+
+    /**
+     * The grouping the course separates its groups by, for this student.
+     *
+     * Only a course in separate groups mode with a default grouping has one,
+     * and only for a student it actually separates: one allowed to see every
+     * group is in none of them for this purpose, and every group counts.
+     *
+     * @param int $courseid
+     * @param int $studentid
+     * @return int The grouping's id, or 0 where every group counts.
+     */
+    private static function separating_grouping(int $courseid, int $studentid): int {
+        $course = self::course($courseid);
+
+        if (
+            groups_get_course_groupmode($course) != SEPARATEGROUPS
+            || !$course->defaultgroupingid
+            || has_capability('moodle/site:accessallgroups', \context_course::instance($courseid), $studentid)
+        ) {
+            return 0;
+        }
+
+        return (int) $course->defaultgroupingid;
     }
 
     /**
@@ -274,7 +344,10 @@ final class teacher_source {
         $allowed = $cache->get($key);
 
         if ($allowed === false) {
-            $allowed = $DB->get_fieldset_select('groupings_groups', 'groupid', 'groupingid = ?', [$groupingid]);
+            $allowed = array_map(
+                'intval',
+                $DB->get_fieldset_select('groupings_groups', 'groupid', 'groupingid = ?', [$groupingid])
+            );
             $cache->set($key, $allowed);
         }
 
@@ -285,9 +358,9 @@ final class teacher_source {
      * The course record, read once per request.
      *
      * @param int $courseid
-     * @return \stdClass Course metadata shared by students and activities.
+     * @return \stdClass
      */
-    public static function course(int $courseid): \stdClass {
+    private static function course(int $courseid): \stdClass {
         $cache = self::request_cache();
         $key = 'course-' . $courseid;
         $course = $cache->get($key);
@@ -299,7 +372,6 @@ final class teacher_source {
 
         return $course;
     }
-
 
     /**
      * The request-only cache this class keeps its answers in.

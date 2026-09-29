@@ -161,66 +161,115 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * In a course that separates its groups, the grade belongs to a teacher of
-     * the student's own group — not to whoever happens to be first.
+     * The grade belongs to the teacher who shares the most groups with the
+     * student — here both of theirs — over one who shares only one.
      */
-    public function test_a_course_that_separates_groups_picks_a_teacher_of_the_students_group(): void {
-        global $DB;
+    public function test_the_teacher_sharing_the_most_groups_is_chosen(): void {
+        [$lang, $program] = $this->groups(2);
 
-        $generator = $this->getDataGenerator();
-        $groupa = $generator->create_group(['courseid' => $this->course->id]);
-        $groupb = $generator->create_group(['courseid' => $this->course->id]);
-        $grouping = $generator->create_grouping(['courseid' => $this->course->id]);
-        groups_assign_grouping((int) $grouping->id, (int) $groupa->id);
-        groups_assign_grouping((int) $grouping->id, (int) $groupb->id);
+        // Created first, so the lowest user id: what the tie-break would pick
+        // if the groups were not being counted.
+        $this->teacher_in([$lang]);
+        $both = $this->teacher_in([$lang, $program]);
+        $this->teacher_in([]);
+        $this->student_in([$lang, $program]);
 
-        // Created first, so the lowest user id — which is what the tie-break
-        // would pick if the groups were not being looked at.
-        $elsewhere = $generator->create_and_enrol($this->course, 'editingteacher');
-        $theirs = $generator->create_and_enrol($this->course, 'editingteacher');
-
-        $this->join($groupb, $elsewhere);
-        $this->join($groupa, $theirs);
-        $this->join($groupa, $this->student);
-
-        $DB->set_field('course', 'groupmode', SEPARATEGROUPS, ['id' => $this->course->id]);
-        $DB->set_field('course', 'defaultgroupingid', (int) $grouping->id, ['id' => $this->course->id]);
-        $this->prevent('moodle/site:accessallgroups');
-
-        $this->assertLessThan((int) $theirs->id, (int) $elsewhere->id);
-        $this->assertSame(
-            (int) $theirs->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
-        );
+        $this->assertSame((int) $both->id, $this->pick());
     }
 
     /**
-     * A course whose groups leave a student with no teacher of their own is not
-     * a reason to grade nobody: the group narrowing is dropped rather than the
-     * grade.
+     * One group in common is enough where nobody shares more, and it beats a
+     * teacher in no group.
+     */
+    public function test_one_shared_group_is_enough(): void {
+        [$lang, $program, $other] = $this->groups(3);
+
+        $this->teacher_in([]);
+        $this->teacher_in([$other]);
+        $one = $this->teacher_in([$program]);
+        $this->student_in([$lang, $program]);
+
+        $this->assertSame((int) $one->id, $this->pick());
+    }
+
+    /**
+     * With no group in common, a teacher in no group — who teaches the course
+     * as a whole — rather than one who teaches some other group.
+     */
+    public function test_with_no_group_in_common_a_teacher_in_no_group_is_chosen(): void {
+        [$lang, $other] = $this->groups(2);
+
+        $this->teacher_in([$other]);
+        $whole = $this->teacher_in([]);
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $whole->id, $this->pick());
+    }
+
+    /**
+     * A student whose groups no teacher shares, in a course where every
+     * teacher has a group of their own, is still graded: the group narrowing
+     * is dropped rather than the grade.
      */
     public function test_a_student_with_no_teacher_in_their_group_is_still_graded(): void {
+        [$lang, $other] = $this->groups(2);
+
+        $teacher = $this->teacher_in([$other]);
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $teacher->id, $this->pick());
+    }
+
+    /**
+     * Teachers equally close to the student are settled by the tie-break.
+     */
+    public function test_equally_close_teachers_go_to_the_tie_break(): void {
+        [$lang] = $this->groups(1);
+
+        $first = $this->teacher_in([$lang]);
+        $this->teacher_in([$lang]);
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $first->id, $this->pick());
+    }
+
+    /**
+     * The closest teacher having opted out hands the grade to the next
+     * closest, not past all of the student's teachers to the site fallback.
+     */
+    public function test_an_opted_out_closest_teacher_hands_over_to_the_next_closest(): void {
+        [$lang, $program] = $this->groups(2);
+        set_config('allowoptout', 1, 'local_autograder');
+
+        $this->teacher_in([]);
+        $one = $this->teacher_in([$lang]);
+        $both = $this->teacher_in([$lang, $program]);
+        set_user_preference('local_autograder_optout', 1, $both);
+        $this->student_in([$lang, $program]);
+
+        $this->assertSame((int) $one->id, $this->pick());
+    }
+
+    /**
+     * A teacher whose enrolment is suspended, or has ended, no longer teaches
+     * the course, whatever role is still assigned to them.
+     */
+    public function test_a_teacher_without_an_active_enrolment_is_never_chosen(): void {
         global $DB;
 
         $generator = $this->getDataGenerator();
-        $groupa = $generator->create_group(['courseid' => $this->course->id]);
-        $groupb = $generator->create_group(['courseid' => $this->course->id]);
-        $grouping = $generator->create_grouping(['courseid' => $this->course->id]);
-        groups_assign_grouping((int) $grouping->id, (int) $groupa->id);
-        groups_assign_grouping((int) $grouping->id, (int) $groupb->id);
+        $suspended = $generator->create_and_enrol($this->course, 'editingteacher', null, 'manual', 0, 0, ENROL_USER_SUSPENDED);
+        $ended = $generator->create_and_enrol($this->course, 'editingteacher', null, 'manual', 0, time() - DAYSECS);
+        $active = $generator->create_and_enrol($this->course, 'editingteacher');
 
-        $teacher = $generator->create_and_enrol($this->course, 'editingteacher');
-        $this->join($groupb, $teacher);
-        $this->join($groupa, $this->student);
+        $this->assertLessThan((int) $active->id, (int) $suspended->id);
+        $this->assertLessThan((int) $active->id, (int) $ended->id);
+        $this->assertSame((int) $active->id, $this->pick());
 
-        $DB->set_field('course', 'groupmode', SEPARATEGROUPS, ['id' => $this->course->id]);
-        $DB->set_field('course', 'defaultgroupingid', (int) $grouping->id, ['id' => $this->course->id]);
-        $this->prevent('moodle/site:accessallgroups');
-
-        $this->assertSame(
-            (int) $teacher->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
-        );
+        // The same rule decides who can be chosen at all.
+        $this->assertNotContains((int) $suspended->id, teacher_source::possible_graders_in((int) $this->course->id));
+        $this->assertNotContains((int) $ended->id, teacher_source::possible_graders_in((int) $this->course->id));
+        $this->assertTrue($DB->record_exists('role_assignments', ['userid' => $suspended->id]));
     }
 
     /**
@@ -308,50 +357,51 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * Groups narrow the choice by the course's rule, not the activity's.
-     *
-     * Separate groups plus a default grouping is the course's own rule, and
-     * the one the student is shown their teachers by. An activity carries
-     * its own group mode, but letting that narrow the choice as well
-     * produced a second, contradictory answer: a teacher the student sees as
-     * theirs, refused on the activity, for a grade the activity would have
-     * accepted.
+     * A default grouping on its own divides nothing: without separate groups,
+     * every group of the course counts.
      */
-    public function test_the_courses_grouping_is_what_narrows_the_choice(): void {
-        global $DB;
+    public function test_without_separate_groups_every_group_counts(): void {
+        [$lang, $program] = $this->groups(2);
+        $this->group_by([$lang], VISIBLEGROUPS);
 
-        $generator = $this->getDataGenerator();
-        $mine = $generator->create_and_enrol($this->course, 'editingteacher');
-        $theirs = $generator->create_and_enrol($this->course, 'editingteacher');
-        $group = $generator->create_group(['courseid' => $this->course->id]);
-        $other = $generator->create_group(['courseid' => $this->course->id]);
-        $grouping = $generator->create_grouping(['courseid' => $this->course->id]);
+        $this->teacher_in([$lang]);
+        $both = $this->teacher_in([$lang, $program]);
+        $this->student_in([$lang, $program]);
 
-        groups_assign_grouping((int) $grouping->id, (int) $group->id);
-        groups_assign_grouping((int) $grouping->id, (int) $other->id);
-        $this->join($group, $this->student);
-        $this->join($other, $theirs);
+        $this->assertSame((int) $both->id, $this->pick());
+    }
 
-        $DB->set_field('course', 'groupmode', SEPARATEGROUPS, ['id' => $this->course->id]);
-        $DB->set_field('course', 'defaultgroupingid', $grouping->id, ['id' => $this->course->id]);
-        $this->prevent('moodle/site:accessallgroups');
+    /**
+     * Where the course separates its groups through a default grouping, only
+     * that grouping's groups count: a group shared outside it does not.
+     */
+    public function test_with_separate_groups_only_the_default_grouping_counts(): void {
+        [$lang, $program] = $this->groups(2);
+        $this->group_by([$lang], SEPARATEGROUPS);
 
-        // Nobody shares the student's group yet, so the whole course stands —
-        // the same widening the rule does rather than showing no teacher.
-        \cache_helper::purge_all();
-        $this->assertContains(
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
-            [(int) $mine->id, (int) $theirs->id]
-        );
+        // Created first: with every group counting, both share one group with
+        // the student and the tie-break would pick this one.
+        $this->teacher_in([$program]);
+        $separated = $this->teacher_in([$lang]);
+        $this->student_in([$lang, $program]);
 
-        $this->join($group, $mine);
-        \cache_helper::purge_all();
+        $this->assertSame((int) $separated->id, $this->pick());
+    }
 
-        $this->assertSame(
-            (int) $mine->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id),
-            'The teacher sharing the student\'s group in the default grouping.'
-        );
+    /**
+     * With separate groups, a teacher whose groups all lie outside the
+     * default grouping counts as a teacher in no group, and comes before one
+     * teaching another of the grouping's groups.
+     */
+    public function test_with_separate_groups_a_group_outside_the_grouping_is_no_group(): void {
+        [$lang, $german, $program] = $this->groups(3);
+        $this->group_by([$lang, $german], SEPARATEGROUPS);
+
+        $this->teacher_in([$german]);
+        $outside = $this->teacher_in([$program]);
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $outside->id, $this->pick());
     }
 
     /**
@@ -413,12 +463,6 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * Puts a user in a group.
-     *
-     * @param \stdClass $group
-     * @param \stdClass $user
-     */
-    /**
      * Pins the teaching roles by hand, instead of letting them be worked out.
      *
      * @param string $shortnames Comma-separated.
@@ -427,6 +471,79 @@ final class grader_picker_test extends \advanced_testcase {
         set_config('teacher_source_mode', teacher_source::MODE_CHOSEN_ROLES, 'local_autograder');
         set_config('teacher_roles', $shortnames, 'local_autograder');
         \cache_helper::purge_all();
+    }
+
+    /**
+     * Some groups in the course.
+     *
+     * @param int $count
+     * @return \stdClass[]
+     */
+    private function groups(int $count): array {
+        $groups = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $groups[] = $this->getDataGenerator()->create_group(['courseid' => $this->course->id]);
+        }
+
+        return $groups;
+    }
+
+    /**
+     * Makes these groups the course's default grouping, in this group mode.
+     *
+     * @param \stdClass[] $groups
+     * @param int $groupmode
+     */
+    private function group_by(array $groups, int $groupmode): void {
+        global $DB;
+
+        $grouping = $this->getDataGenerator()->create_grouping(['courseid' => $this->course->id]);
+
+        foreach ($groups as $group) {
+            groups_assign_grouping((int) $grouping->id, (int) $group->id);
+        }
+
+        $DB->set_field('course', 'groupmode', $groupmode, ['id' => $this->course->id]);
+        $DB->set_field('course', 'defaultgroupingid', $grouping->id, ['id' => $this->course->id]);
+    }
+
+    /**
+     * A new teacher of the course, in these groups.
+     *
+     * @param \stdClass[] $groups
+     * @return \stdClass
+     */
+    private function teacher_in(array $groups): \stdClass {
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+
+        foreach ($groups as $group) {
+            $this->join($group, $teacher);
+        }
+
+        return $teacher;
+    }
+
+    /**
+     * Puts the student in these groups.
+     *
+     * @param \stdClass[] $groups
+     */
+    private function student_in(array $groups): void {
+        foreach ($groups as $group) {
+            $this->join($group, $this->student);
+        }
+    }
+
+    /**
+     * Who is chosen to grade the student on the assignment, asked afresh.
+     *
+     * @return int|null
+     */
+    private function pick(): ?int {
+        \cache_helper::purge_all();
+
+        return grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id);
     }
 
     /**

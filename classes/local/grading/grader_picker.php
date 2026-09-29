@@ -131,14 +131,21 @@ final class grader_picker {
     }
 
     /**
-     * The student's associated teachers, before activity permission checks.
+     * The student's closest teachers who may sign the grade.
+     *
+     * Who may sign is settled first and closeness second. The other way round,
+     * the student's closest teacher having opted out left the choice with
+     * nobody and handed it to the site fallback, while another of their
+     * teachers — one group further away, but theirs — sat unused.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[]
      */
     public static function candidates_for_course(int $courseid, int $studentid): array {
-        return array_values(array_diff(self::usable(teacher_source::teachers_of($courseid, $studentid)), [$studentid]));
+        $teachers = array_diff(self::usable(teacher_source::possible_graders_in($courseid)), [$studentid]);
+
+        return teacher_source::closest_to($courseid, $studentid, $teachers);
     }
 
     /**
