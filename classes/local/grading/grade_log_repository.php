@@ -123,6 +123,7 @@ final class grade_log_repository {
      * task walks.
      *
      * @param int $before Unix timestamp.
+     * @param int $limit The most rows one call deletes.
      * @return int Rows deleted.
      */
     public static function purge_before(int $before, int $limit = decision_repository::PURGE_CEILING): int {

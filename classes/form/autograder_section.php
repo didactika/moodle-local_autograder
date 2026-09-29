@@ -893,6 +893,7 @@ final class autograder_section {
      *
      * @param \stdClass $data
      * @param string $grademethod
+     * @param \cm_info|\stdClass $cm The activity, whose scale a scale grade is read against.
      * @return float|null
      */
     private static function submitted_grade_value(\stdClass $data, string $grademethod, \cm_info|\stdClass $cm): ?float {

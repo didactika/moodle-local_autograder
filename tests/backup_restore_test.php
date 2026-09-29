@@ -244,8 +244,8 @@ final class backup_restore_test extends \advanced_testcase {
 
         $this->define_rubric($cm);
 
-        // "Present" on both criteria — the second level of each, so that a
-        // remap which simply kept the first would be caught.
+        // Pick "Present" on both criteria — the second level of each, so that
+        // a remap which simply kept the first would be caught.
         $criteria = advanced_grading::criteria($cm);
         $filling = [];
 
