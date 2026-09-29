@@ -65,6 +65,22 @@ foreach (eligibility::gradeable_module_types() as $type) {
     // Each toggle posts the state it switches to, so the page needs no
     // knowledge of what it was before: flipping it again simply asks for the
     // opposite.
+    //
+    // Rendered here rather than included as a partial of this page's
+    // template, so that each Moodle version draws its own switch while this
+    // plugin's template holds only markup of its own. From Moodle 5.0 the
+    // core template puts an autocomplete attribute on the checkbox, which
+    // the plugin checker's HTML validation rejects in any template that
+    // includes it.
+    $toggle = $OUTPUT->render_from_template('core/toggle', [
+        'id' => 'local-autograder-toggle-' . $type,
+        'checked' => $ison,
+        'dataattributes' => [['name' => 'submitonchange', 'value' => '1']],
+        'title' => $label,
+        'label' => $label,
+        'labelclasses' => 'sr-only',
+    ]);
+
     $types[] = [
         'component' => 'mod_' . $type,
         'name' => $typename,
@@ -74,14 +90,7 @@ foreach (eligibility::gradeable_module_types() as $type) {
             ['name' => 'enabled', 'value' => $ison ? 0 : 1],
             ['name' => 'sesskey', 'value' => sesskey()],
         ],
-        'toggle' => [
-            'id' => 'local-autograder-toggle-' . $type,
-            'checked' => $ison,
-            'dataattributes' => [['name' => 'submitonchange', 'value' => '1']],
-            'title' => $label,
-            'label' => $label,
-            'labelclasses' => 'sr-only',
-        ],
+        'toggle' => $toggle,
     ];
 }
 
