@@ -77,20 +77,19 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * A denied grading capability does not unchoose the student's teacher.
-     *
-     * The capability decides nothing about whether the grade can be stored, so
-     * consulting it here only ever refused writes that would have worked. What
-     * a teacher may really do is settled by the write itself.
+     * A teacher who can't grade the activity can't sign a grade on it: the
+     * grade goes to one who can, and with none, to nobody but the fallback.
      */
-    public function test_the_capability_is_not_checked_while_choosing(): void {
+    public function test_a_teacher_who_cannot_grade_the_activity_is_not_chosen(): void {
         $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
         $this->prevent('mod/assign:grade');
 
-        $this->assertSame(
-            (int) $teacher->id,
-            grader_picker::pick_for((int) $this->cm->id, (int) $this->student->id)
-        );
+        $this->assertNull($this->pick(), 'The course\'s only teacher can\'t grade the assignment.');
+
+        $able = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
+
+        $this->assertLessThan((int) $able->id, (int) $teacher->id);
+        $this->assertSame((int) $able->id, $this->pick());
     }
 
     /**
@@ -305,17 +304,16 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
-     * An activity prohibition does not move the choice on to somebody else.
-     *
-     * The fallback is for a student with no associated teacher at all, not for
-     * a teacher whose capabilities the activity happens to restrict.
+     * A prohibition on one activity moves that activity's grade to the next
+     * teacher, and leaves the course's other activities as they were.
      */
-    public function test_a_prohibition_does_not_change_who_is_chosen(): void {
+    public function test_a_prohibition_on_one_activity_changes_the_choice_there_only(): void {
         global $DB;
+
         $first = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
-        $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        $fallback = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
-        set_config('fallback_grader', $fallback->id, 'local_autograder');
+        $second = $this->getDataGenerator()->create_and_enrol($this->course, 'teacher');
+        $other = $this->getDataGenerator()->create_module('assign', ['course' => $this->course->id, 'grade' => 100]);
+
         $roleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher']);
         assign_capability(
             'mod/assign:grade',
@@ -324,9 +322,12 @@ final class grader_picker_test extends \advanced_testcase {
             \context_module::instance($this->cm->id)->id
         );
         accesslib_clear_all_caches_for_unit_testing();
+
+        $this->assertSame((int) $second->id, $this->pick());
         $this->assertSame(
             (int) $first->id,
-            grader_picker::resolve_for((int) $this->cm->id, (int) $this->student->id)
+            grader_picker::pick_for((int) $other->cmid, (int) $this->student->id),
+            'The other assignment has no prohibition.'
         );
     }
 
@@ -402,6 +403,53 @@ final class grader_picker_test extends \advanced_testcase {
         $this->student_in([$lang]);
 
         $this->assertSame((int) $outside->id, $this->pick());
+    }
+
+    /**
+     * In an activity that separates its groups, a teacher who can't see every
+     * group grades only their own — even where, with no teacher sharing the
+     * student's group, any teacher of the course would otherwise do.
+     */
+    public function test_separate_groups_on_the_activity_keep_a_teacher_to_their_groups(): void {
+        [$lang, $other, $third] = $this->groups(3);
+        $this->separate_groups_on_the_assignment();
+
+        // A non-editing teacher, who can't see every group; created first, so
+        // the tie-break's pick if the groups were not being checked.
+        $elsewhere = $this->teacher_in([$other], 'teacher');
+        $everygroup = $this->teacher_in([$third]);
+        $this->student_in([$lang]);
+
+        $this->assertLessThan((int) $everygroup->id, (int) $elsewhere->id);
+        $this->assertSame((int) $everygroup->id, $this->pick(), 'The editing teacher sees every group.');
+    }
+
+    /**
+     * A teacher in the student's group grades them in an activity that
+     * separates its groups, without needing to see every group.
+     */
+    public function test_separate_groups_on_the_activity_let_a_teacher_grade_their_own_group(): void {
+        [$lang, $other] = $this->groups(2);
+        $this->separate_groups_on_the_assignment();
+
+        $this->teacher_in([$other], 'teacher');
+        $theirs = $this->teacher_in([$lang], 'teacher');
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $theirs->id, $this->pick());
+    }
+
+    /**
+     * Where the activity does not separate its groups, a teacher of another
+     * group can still grade the student.
+     */
+    public function test_visible_groups_do_not_keep_a_teacher_to_their_groups(): void {
+        [$lang, $other] = $this->groups(2);
+
+        $elsewhere = $this->teacher_in([$other], 'teacher');
+        $this->student_in([$lang]);
+
+        $this->assertSame((int) $elsewhere->id, $this->pick());
     }
 
     /**
@@ -490,6 +538,17 @@ final class grader_picker_test extends \advanced_testcase {
     }
 
     /**
+     * Puts the assignment in separate groups mode.
+     */
+    private function separate_groups_on_the_assignment(): void {
+        global $DB;
+
+        $DB->set_field('course_modules', 'groupmode', SEPARATEGROUPS, ['id' => $this->cm->id]);
+        rebuild_course_cache((int) $this->course->id, true);
+        $this->cm = get_coursemodule_from_id('assign', (int) $this->cm->id, 0, false, MUST_EXIST);
+    }
+
+    /**
      * Makes these groups the course's default grouping, in this group mode.
      *
      * @param \stdClass[] $groups
@@ -512,10 +571,11 @@ final class grader_picker_test extends \advanced_testcase {
      * A new teacher of the course, in these groups.
      *
      * @param \stdClass[] $groups
+     * @param string $role The teaching role's short name.
      * @return \stdClass
      */
-    private function teacher_in(array $groups): \stdClass {
-        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+    private function teacher_in(array $groups, string $role = 'editingteacher'): \stdClass {
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, $role);
 
         foreach ($groups as $group) {
             $this->join($group, $teacher);

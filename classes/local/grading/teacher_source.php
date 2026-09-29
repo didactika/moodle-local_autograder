@@ -39,9 +39,10 @@ namespace local_autograder\local\grading;
  * A site that wants the choice pinned can still make it by hand; the setting
  * is a fallback from the automatic rule, not the normal way to run it.
  *
- * The capability is read off the *role*, once per course, and never per user
- * afterwards. A role that can grade makes its holders teachers; whether a
- * given grade can then be stored is settled by storing it.
+ * The capability is read off the *role*, once per course. A role that can
+ * grade makes its holders teachers of the course; whether one of them may
+ * grade a given student on a given activity is {@see grader_picker}'s
+ * question, asked activity by activity.
  *
  * @package local_autograder
  * @copyright 2026 Didactika.org
@@ -360,7 +361,7 @@ final class teacher_source {
      * @param int $courseid
      * @return \stdClass
      */
-    private static function course(int $courseid): \stdClass {
+    public static function course(int $courseid): \stdClass {
         $cache = self::request_cache();
         $key = 'course-' . $courseid;
         $course = $cache->get($key);
