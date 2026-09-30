@@ -2,18 +2,21 @@
 
 # Autograder for Moodle
 
-*Automatically grade students whose work a teacher hasn't graded yet*
+*Automatically grades completed activities that a teacher hasn't graded*
 
 [![Release](https://img.shields.io/github/v/release/didactika/moodle-local_autograder?style=flat-square)](https://github.com/didactika/moodle-local_autograder/releases)
 [![Moodle](https://img.shields.io/badge/Moodle-4.5+-f98012?style=flat-square&logo=moodle&logoColor=white)](https://moodle.org)
 [![PHP](https://img.shields.io/badge/PHP-8.1+-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net)
 [![License](https://img.shields.io/badge/License-GPL_v3-blue?style=flat-square)](LICENSE)
 
-[Overview](#overview) • [Installation](#installation) • [Usage](#usage) • [Configuration](#configuration) • [Troubleshooting](#troubleshooting)
+[Overview](#overview) • [Installation](#installation) • [Usage](#usage) • [Reviewing decisions](#reviewing-decisions) • [Configuration](#configuration) • [Troubleshooting](#troubleshooting)
 
 </div>
 
 Autograder (`local_autograder`) is a Moodle local plugin that grades students automatically. Once a student has completed an activity and its deadline has passed, Autograder waits for a configured period and then assigns the grade the teacher configured, unless a teacher has already graded the student. The grade is recorded in the name of one of the student's own teachers and goes through the activity's normal grading process, including rubrics and marking guides.
+
+> [!IMPORTANT]
+> **Install the [Autograder report](https://github.com/didactika/moodle-report_autograder) as well.** This plugin only does the grading and has no pages of its own for reviewing it. The report is where teachers and administrators see what Autograder decided for each student: who is waiting, who was graded and with what grade, in whose name, and what failed. See [Reviewing decisions](#reviewing-decisions).
 
 > [!NOTE]
 > Autograder never changes a grade given by a teacher. A manual grade always takes priority, and a student who has already been graded by hand is never graded again.
@@ -76,14 +79,15 @@ If no teacher qualifies, the grade is attributed to the site's **fallback grader
 > [!IMPORTANT]
 > Grading is done by scheduled and ad hoc tasks, so [cron](https://docs.moodle.org/en/Cron) must run regularly for grades to be assigned on time.
 
-**From a release:** download the latest release ZIP file, go to **Site administration → Plugins → Install plugins**, upload the file and follow the prompts.
+**From a release:** download the latest release ZIP files of both Autograder and the [Autograder report](https://github.com/didactika/moodle-report_autograder), go to **Site administration → Plugins → Install plugins**, upload each file and follow the prompts.
 
 **From Git:**
 
 ```bash
-cd /path/to/moodle/local
-git clone https://github.com/didactika/moodle-local_autograder.git autograder
-php /path/to/moodle/admin/cli/upgrade.php
+cd /path/to/moodle
+git clone https://github.com/didactika/moodle-local_autograder.git local/autograder
+git clone https://github.com/didactika/moodle-report_autograder.git report/autograder
+php admin/cli/upgrade.php
 ```
 
 ## Usage
@@ -113,6 +117,25 @@ Students who have already completed the activity are processed on the next cron 
 ### 3. Teacher opt-out (optional)
 
 If the site allows it, teachers can open **Autograder preferences** from the **Preferences** page of their profile and choose never to have grades recorded in their name.
+
+## Reviewing decisions
+
+Autograder is only responsible for grading: it decides when and how each student is graded, and does it, but it has no pages for following those decisions. To review them, install the companion **[Autograder report](https://github.com/didactika/moodle-report_autograder)** plugin (`report_autograder`), which reads Autograder's records and presents them per activity, per course and across the site.
+
+For every student in every activity where Autograder is enabled, the report shows:
+
+- **Their current state:** waiting to be graded, graded by Autograder, graded by a teacher, cancelled or failed.
+- **When:** the time they will be graded, or the time they were.
+- **The grade:** the one they will receive, or the one they received.
+- **The grader:** the teacher the grade is, or will be, attributed to.
+
+| Report | Where to find it | Typical use |
+|---|---|---|
+| Activity | The activity's menu | A teacher following the students of one activity |
+| Course | The course's **Reports** menu | A teacher or course manager reviewing every activity in a course |
+| Site | **Site administration → Reports** | An administrator checking that nothing is stuck |
+
+The course and site reports open with a count of students in each state, and each count opens the matching list. A graders page shows which teacher each student would be graded as before any grade is due, so a course where nobody is allowed to grade can be fixed in advance. Failed gradings and their reasons are shown to users with `report/autograder:viewfailed`, which only managers have by default. Like Moodle itself, the report shows teachers only the groups they can see.
 
 ## Configuration
 
@@ -164,6 +187,8 @@ Each grade runs as its own ad hoc task, scheduled for the time it is due.
 - **Backup and restore:** an activity's Autograder settings, including rubric and marking guide selections, are included in its backup. Scheduled grades are not backed up; they are recalculated in the restored course.
 
 ## Troubleshooting
+
+The [Autograder report](#reviewing-decisions) shows each student's state and, for a failed grading, the reason, which is usually the quickest way to find out what happened.
 
 | Problem | Possible cause |
 |---|---|
