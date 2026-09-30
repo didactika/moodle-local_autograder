@@ -46,6 +46,12 @@ $observers = [
         'eventname' => '\mod_quiz\event\attempt_submitted',
         'callback' => '\local_autograder\observer::submitted',
     ],
+    // From Moodle 5.0 a submitted attempt is graded afterwards, usually by
+    // cron, and this is when the quiz has its grade. Never fired before 5.0.
+    [
+        'eventname' => '\mod_quiz\event\attempt_graded',
+        'callback' => '\local_autograder\observer::submitted',
+    ],
     [
         'eventname' => '\mod_forum\event\post_created',
         'callback' => '\local_autograder\observer::submitted',

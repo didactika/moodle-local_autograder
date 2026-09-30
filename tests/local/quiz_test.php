@@ -20,6 +20,7 @@ use local_autograder\local\config\config_repository;
 use local_autograder\local\decision\decision_planner;
 use local_autograder\local\decision\decision_repository;
 use local_autograder\local\grading\grade_log_repository;
+use local_autograder\local\module\module_adapter;
 use local_autograder\task\grade_student;
 use mod_quiz\quiz_attempt;
 
@@ -146,6 +147,24 @@ final class quiz_test extends \advanced_testcase {
         $grade = $this->gradebook($quiz);
         $this->assertEquals(0.0, (float) $grade->finalgrade);
         $this->assertEmpty($grade->overridden);
+    }
+
+    /**
+     * From Moodle 5.0 a submitted attempt waits as "submitted" until the quiz
+     * grades it, usually on the next cron run. It is handed in all the same.
+     */
+    public function test_an_attempt_waiting_to_be_graded_counts_as_handed_in(): void {
+        global $DB;
+
+        $quiz = $this->quiz_with_essays(1);
+        $attemptid = $this->attempt($quiz, 'An essay.');
+        $DB->set_field('quiz_attempts', 'state', 'submitted', ['id' => $attemptid]);
+
+        $cm = get_fast_modinfo($this->course)->get_cm((int) $quiz->cmid);
+
+        $this->assertNotNull(
+            module_adapter::for_cm($cm, $this->configure($quiz))->submitted_at((int) $this->student->id)
+        );
     }
 
     /**
