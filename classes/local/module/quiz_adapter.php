@@ -21,9 +21,12 @@ namespace local_autograder\local\module;
  *
  * A quiz is never "re-graded": its grade comes from the attempts a student
  * made. What a teacher does when they want a different number there is
- * override it in the gradebook, and that is exactly what autograder does —
- * the same thing the old external service achieved through the grading-panel
- * web service.
+ * override it in the gradebook, and that is exactly what autograder does.
+ *
+ * Autograder only gets that far while the quiz has no grade of its own — an
+ * essay still waiting to be marked leaves it with no total at all. Once the
+ * quiz has one, from the marking or from a new attempt, the override is taken
+ * away again: see {@see module_adapter::release_override()}.
  *
  * @package     local_autograder
  * @copyright   2026 Didactika.org
@@ -50,10 +53,14 @@ class quiz_adapter extends module_adapter {
     }
 
     /**
-     * When the student last finished an attempt.
+     * When the student last handed in an attempt.
      *
      * A quiz is "handed in" when an attempt is submitted; one still in
-     * progress, abandoned, or a teacher's preview is not a hand-in.
+     * progress, abandoned, or a teacher's preview is not a hand-in. From
+     * Moodle 5.0 a submitted attempt waits as "submitted" until the quiz
+     * grades it, usually on the next cron run: handed in all the same, and
+     * counted, or a quiz tracking no completion would only ever notice the
+     * student through an event this plugin had no reason to be listening for.
      *
      * @param int $userid
      * @return int|null
@@ -66,11 +73,17 @@ class quiz_adapter extends module_adapter {
                FROM {quiz_attempts}
               WHERE quiz = :quiz
                 AND userid = :userid
-                AND state = :state
+                AND state IN (:finished, :submitted)
                 AND preview = 0
                 AND timefinish > 0
            ORDER BY timefinish DESC",
-            ['quiz' => $this->cm->instance, 'userid' => $userid, 'state' => 'finished'],
+            [
+                'quiz' => $this->cm->instance,
+                'userid' => $userid,
+                'finished' => 'finished',
+                // Moodle 5.0 onwards; no attempt is ever in it before that.
+                'submitted' => 'submitted',
+            ],
             IGNORE_MULTIPLE
         );
 

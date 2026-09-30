@@ -156,7 +156,7 @@ class notify_failures extends \core\task\scheduled_task {
     /**
      * Turns failures per activity into activities per teacher.
      *
-     * @param array<int, array<string, int>> $failures
+     * @param array $failures cmid => failure reason => students, as {@see self::failures_between()} returns them.
      * @return array<int, \stdClass[]> userid => the activities to tell them about.
      */
     private static function activities_by_recipient(array $failures): array {

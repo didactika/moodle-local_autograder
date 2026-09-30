@@ -41,7 +41,7 @@ import Ajax from 'core/ajax';
 export const transport = (selector, query, success, failure) => {
     Ajax.call([{
         methodname: 'local_autograder_search_graders',
-        args: { query: query || '' },
+        args: {query: query || ''},
     }])[0].then(success).catch(failure);
 };
 
@@ -57,5 +57,5 @@ export const processResults = (selector, results) => {
         return [];
     }
 
-    return results.map((user) => ({ value: user.id, label: user.name }));
+    return results.map((user) => ({value: user.id, label: user.name}));
 };

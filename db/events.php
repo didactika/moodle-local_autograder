@@ -46,6 +46,12 @@ $observers = [
         'eventname' => '\mod_quiz\event\attempt_submitted',
         'callback' => '\local_autograder\observer::submitted',
     ],
+    // From Moodle 5.0 a submitted attempt is graded afterwards, usually by
+    // cron, and this is when the quiz has its grade. Never fired before 5.0.
+    [
+        'eventname' => '\mod_quiz\event\attempt_graded',
+        'callback' => '\local_autograder\observer::submitted',
+    ],
     [
         'eventname' => '\mod_forum\event\post_created',
         'callback' => '\local_autograder\observer::submitted',
@@ -56,6 +62,13 @@ $observers = [
     [
         'eventname' => '\mod_forum\event\discussion_created',
         'callback' => '\local_autograder\observer::submitted',
+    ],
+
+    // A teacher marked a quiz question by hand: the quiz's own grade may now
+    // take the place of autograder's.
+    [
+        'eventname' => '\mod_quiz\event\question_manually_graded',
+        'callback' => '\local_autograder\observer::question_marked',
     ],
 
     // Somebody graded by hand: autograder stands down.
@@ -72,6 +85,13 @@ $observers = [
     [
         'eventname' => '\core\event\user_enrolment_updated',
         'callback' => '\local_autograder\observer::enrolment_updated',
+    ],
+
+    // Somebody became a student here — enrolled for the first time or again —
+    // and may already have done the work.
+    [
+        'eventname' => '\core\event\role_assigned',
+        'callback' => '\local_autograder\observer::role_assigned',
     ],
 
     // Group membership decides which group exception applies to whom.

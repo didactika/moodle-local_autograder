@@ -19,22 +19,21 @@ namespace local_autograder\local\grading;
 /**
  * Select the associated teacher whose name an automatic grade is posted under.
  *
- * Who teaches the student is {@see teacher_source}'s answer, and that is the
- * whole of the selection. Nothing is asked of the chosen teacher afterwards.
+ * Who teaches the course is {@see teacher_source}'s answer. Of those, only a
+ * teacher who could give this grade themselves may sign it: one who can grade
+ * the activity, and who can see the student there — in an activity that
+ * separates its groups, a teacher without access to every group grades only
+ * the groups they are in. A grade is a record of who gave it, and one in the
+ * name of somebody who could not have is a false record, whether or not the
+ * write would have let it through; most of them would, as only an assignment
+ * asks. Among the teachers left, the one closest to the student by group is
+ * chosen, and the configured tie-break settles the rest.
  *
- * In particular no capability is re-checked per user here. It would decide
- * nothing — the grade is written through
- * `component_gradeitem::store_grade_from_formdata()`, which checks no
- * capability at all, so a refusal here forbids what the write would have
- * allowed — and asking it twice is how a teacher ended up rejected on one
- * activity while teaching the course the grade belongs to. Capabilities are
- * consulted once, by {@see teacher_source}, to work out which *roles* teach a
- * course at all.
- *
- * A teacher is therefore assumed willing and able unless one of two things
- * says otherwise — they are an administrator or guest, or they have set the
- * opt-out preference on a site that offers it. With no teacher left the site
- * fallback signs it, and with no fallback the decision fails and says so.
+ * Nobody else is asked for, either: an administrator or a guest never signs
+ * a grade, and a teacher who has opted out does not while the site offers
+ * that. With no teacher left the site fallback signs it — the one the site
+ * chose on purpose, and so not held to these rules — and with no fallback the
+ * decision fails and says so.
  *
  * @package local_autograder
  * @copyright 2026 Didactika.org
@@ -45,19 +44,19 @@ final class grader_picker {
     private const DEFAULT_GRADE_CAPABILITY = 'moodle/grade:edit';
 
     /**
-     * Select among the student's associated teachers in the activity's course.
+     * The teacher an automatic grade on this activity is signed as.
      *
-     * The activity narrows nothing: association is a fact about the course, so
-     * two activities of one course pick the same teacher for one student.
+     * Two activities of one course pick the same teacher for a student unless
+     * the teacher may grade one of them and not the other.
      *
      * @param int $cmid
      * @param int $studentid
-     * @return int|null
+     * @return int|null Null when no teacher of the student can grade them here.
      */
     public static function pick_for(int $cmid, int $studentid): ?int {
         $cm = self::module($cmid);
 
-        return $cm ? self::pick_for_course((int) $cm->course, $studentid) : null;
+        return $cm ? self::tie_break(self::candidates_for_module($cm, $studentid), (int) $cm->course) : null;
     }
 
     /**
@@ -72,7 +71,8 @@ final class grader_picker {
     }
 
     /**
-     * Course association only: activity overrides can change the final choice.
+     * Course association only: who may grade each activity can change the
+     * final choice, which is {@see self::pick_for()}'s.
      *
      * @param int $courseid
      * @param int $studentid
@@ -131,14 +131,80 @@ final class grader_picker {
     }
 
     /**
-     * The student's associated teachers, before activity permission checks.
+     * The student's closest teachers who may sign the grade.
+     *
+     * Who may sign is settled first and closeness second. The other way round,
+     * the student's closest teacher having opted out left the choice with
+     * nobody and handed it to the site fallback, while another of their
+     * teachers — one group further away, but theirs — sat unused.
      *
      * @param int $courseid
      * @param int $studentid
      * @return int[]
      */
     public static function candidates_for_course(int $courseid, int $studentid): array {
-        return array_values(array_diff(self::usable(teacher_source::teachers_of($courseid, $studentid)), [$studentid]));
+        $teachers = array_diff(self::usable(teacher_source::possible_graders_in($courseid)), [$studentid]);
+
+        return teacher_source::closest_to($courseid, $studentid, $teachers);
+    }
+
+    /**
+     * The student's closest teachers who may sign the grade on this activity.
+     *
+     * Who could give the grade is settled before who is closest, for the same
+     * reason the opt-out is: a closest teacher who cannot grade the student
+     * here hands over to the next closest who can, not past all of them.
+     *
+     * @param \stdClass $cm
+     * @param int $studentid
+     * @return int[]
+     */
+    private static function candidates_for_module(\stdClass $cm, int $studentid): array {
+        $courseid = (int) $cm->course;
+        $teachers = array_diff(self::usable(teacher_source::possible_graders_in($courseid)), [$studentid]);
+        $able = array_filter(
+            $teachers,
+            static fn(int $teacherid): bool => self::can_grade_student($cm, $teacherid, $studentid),
+        );
+
+        return teacher_source::closest_to($courseid, $studentid, $able);
+    }
+
+    /**
+     * Whether this teacher could grade this student on this activity by hand.
+     *
+     * Moodle's own two conditions for it: the activity's grading capability,
+     * read in the activity itself so that an override made there or in the
+     * course counts; and, where the activity separates its groups, access to
+     * the student's group — every group, or one of the activity's grouping
+     * they share with the student.
+     *
+     * @param \stdClass $cm
+     * @param int $teacherid
+     * @param int $studentid
+     * @return bool
+     */
+    private static function can_grade_student(\stdClass $cm, int $teacherid, int $studentid): bool {
+        if (!self::has_capability_here($cm, self::grade_capability_for((string) $cm->modname), $teacherid)) {
+            return false;
+        }
+
+        $course = teacher_source::course((int) $cm->course);
+
+        if (groups_get_activity_groupmode($cm, $course) != SEPARATEGROUPS) {
+            return true;
+        }
+
+        if (self::has_capability_here($cm, 'moodle/site:accessallgroups', $teacherid)) {
+            return true;
+        }
+
+        $groupingid = (int) $cm->groupingid;
+
+        return (bool) array_intersect(
+            teacher_source::groups_of((int) $cm->course, $studentid, $groupingid),
+            teacher_source::groups_of((int) $cm->course, $teacherid, $groupingid),
+        );
     }
 
     /**
@@ -240,6 +306,31 @@ final class grader_picker {
             \context_module::instance((int) $cm->id),
             $userid
         );
+    }
+
+    /**
+     * A teacher's capability in an activity, asked once per request.
+     *
+     * The answer is the same for every student, and a report or a run of
+     * grading tasks asks it for each of them; for somebody other than the
+     * current user, core checks their access is not stale on every call.
+     *
+     * @param \stdClass $cm
+     * @param string $capability
+     * @param int $userid
+     * @return bool
+     */
+    private static function has_capability_here(\stdClass $cm, string $capability, int $userid): bool {
+        $cache = self::request_cache();
+        $key = 'capability-' . $cm->id . '-' . $userid . '-' . $capability;
+        $allowed = $cache->get($key);
+
+        if ($allowed === false) {
+            $allowed = has_capability($capability, \context_module::instance((int) $cm->id), $userid) ? 1 : 0;
+            $cache->set($key, $allowed);
+        }
+
+        return (bool) $allowed;
     }
 
     /**

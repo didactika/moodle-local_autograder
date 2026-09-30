@@ -59,6 +59,28 @@ class observer {
         $userid = (int) ($event->relateduserid ?: $event->userid);
 
         self::reconsider((int) $event->contextinstanceid, $userid);
+
+        // A new quiz attempt that marks itself gives the quiz a grade of its
+        // own, which autograder's may have been standing in for.
+        self::hand_back((int) $event->contextinstanceid, $userid);
+    }
+
+    /**
+     * A teacher marked a quiz question by hand, such as an essay.
+     *
+     * The quiz has already worked out its total again when this fires, so if
+     * the marking gave the student one, it replaces autograder's.
+     *
+     * @param \mod_quiz\event\question_manually_graded $event
+     */
+    public static function question_marked(\mod_quiz\event\question_manually_graded $event): void {
+        global $DB;
+
+        $userid = $DB->get_field('quiz_attempts', 'userid', ['id' => (int) ($event->other['attemptid'] ?? 0)]);
+
+        if ($userid) {
+            self::hand_back((int) $event->contextinstanceid, (int) $userid);
+        }
     }
 
     /**
@@ -105,7 +127,11 @@ class observer {
     }
 
     /**
-     * An enrolment changed — which may mean it was suspended.
+     * An enrolment changed — which may mean it was suspended, or brought back.
+     *
+     * Brought back is the one that needs saying: the student keeps their role
+     * through a suspension, so no role event comes to pick them up again, and
+     * whatever they had already done before would never be graded.
      *
      * @param \core\event\user_enrolment_updated $event
      */
@@ -114,10 +140,41 @@ class observer {
         $userid = (int) $event->relateduserid;
 
         if (is_enrolled(\context_course::instance($courseid), $userid, '', true)) {
+            self::reconsider_in_course($courseid, $userid);
+
             return;
         }
 
         self::cancel_users_decisions_in_course($courseid, $userid, 'unenrolled');
+    }
+
+    /**
+     * Somebody was given a role in a course — for a student, the moment they
+     * become somebody autograder grades.
+     *
+     * Not the enrolment itself: core creates it, announces it, and only then
+     * assigns the role, so when the enrolment is announced the student is not
+     * a student yet. Someone enrolled again after leaving is picked up here,
+     * with whatever they had done before they left.
+     *
+     * @param \core\event\role_assigned $event
+     */
+    public static function role_assigned(\core\event\role_assigned $event): void {
+        global $CFG;
+
+        if ((int) $event->contextlevel !== CONTEXT_COURSE) {
+            return;
+        }
+
+        // Only the roles the gradebook grades; a teacher being added is
+        // nothing to autograder.
+        $gradedroles = array_map('intval', explode(',', (string) ($CFG->gradebookroles ?? '')));
+
+        if (!in_array((int) $event->objectid, $gradedroles, true)) {
+            return;
+        }
+
+        self::reconsider_in_course((int) $event->courseid, (int) $event->relateduserid);
     }
 
     /**
@@ -207,6 +264,58 @@ class observer {
         }
 
         decision_repository::ensure($cm, $config, $userid);
+    }
+
+    /**
+     * Looks at one student again on every autograded activity of a course.
+     *
+     * A handful of activities for one student: cheap enough to do in the
+     * event itself, where a sweep of the whole course would not be.
+     *
+     * @param int $courseid
+     * @param int $userid
+     */
+    private static function reconsider_in_course(int $courseid, int $userid): void {
+        if ($courseid === 0 || $userid === 0) {
+            return;
+        }
+
+        foreach (config_repository::enabled_for_course($courseid) as $config) {
+            self::reconsider((int) $config->cmid, $userid);
+        }
+    }
+
+    /**
+     * Gives the gradebook back to the activity where autograder graded the
+     * student and the activity now has a grade of its own.
+     *
+     * Done whether or not autograder is still switched on here: the override
+     * is autograder's, and so is taking it away.
+     *
+     * @param int $cmid
+     * @param int $userid
+     */
+    private static function hand_back(int $cmid, int $userid): void {
+        if ($cmid === 0 || $userid === 0) {
+            return;
+        }
+
+        $decision = decision_repository::for_cm_user($cmid, $userid);
+
+        if (!$decision || $decision->status !== decision_repository::STATUS_GRADED) {
+            return;
+        }
+
+        $cm = get_coursemodule_from_id('', $cmid, 0, false, IGNORE_MISSING);
+        $config = config_repository::get_for_cm($cmid);
+
+        if (!$cm || !$config) {
+            return;
+        }
+
+        if (module_adapter::for_cm($cm, $config)->release_override($userid, (int) $decision->timemodified)) {
+            grade_log_repository::record($decision, grade_log_repository::OUTCOME_RELEASED, 'gradedbyactivity');
+        }
     }
 
     /**

@@ -31,7 +31,7 @@
       * name - Its name.
       * action - Where its form is posted.
       * params - The form's hidden inputs, each a name and a value.
-      * toggle - The context core/toggle is rendered with.
+      * toggle - Its switch, already rendered by core/toggle.
 
     Example context (json):
     {
@@ -49,14 +49,7 @@
                     {"name": "enabled", "value": "0"},
                     {"name": "sesskey", "value": "abcdef1234"}
                 ],
-                "toggle": {
-                    "id": "local-autograder-toggle-assign",
-                    "checked": true,
-                    "dataattributes": [{"name": "submitonchange", "value": "1"}],
-                    "title": "Disable Autograder for Assignment",
-                    "label": "Disable Autograder for Assignment",
-                    "labelclasses": "sr-only"
-                }
+                "toggle": "<div class=\"custom-control custom-switch\"><input type=\"checkbox\" class=\"custom-control-input\" id=\"local-autograder-toggle-assign\" data-submitonchange=\"1\" checked><label class=\"custom-control-label\" for=\"local-autograder-toggle-assign\"><span class=\"sr-only\">Disable Autograder for Assignment</span></label></div>"
             }
         ]
     }
@@ -79,7 +72,7 @@
                         {{#params}}
                         <input type="hidden" name="{{name}}" value="{{value}}">
                         {{/params}}
-                        {{#toggle}}{{> core/toggle }}{{/toggle}}
+                        {{{toggle}}}
                     </form>
                 </td>
             </tr>
