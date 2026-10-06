@@ -104,22 +104,42 @@ jobs:
           # individual release page). Double-check the row you rely on if
           # this plugin still supports a pre-4.5 Moodle.
 
-          # NOTE ON SEMANTICS: Moodle defines $plugin->supported as an
-          # inclusive RANGE, [lowest, highest] -- so [405, 502] means "4.5
-          # through 5.2", which includes 5.0 and 5.1, not just the two
-          # endpoints. What this loop builds is a matrix over the values
-          # actually written there, which for a well-formed two-element range
-          # means the floor and the ceiling get tested and the versions in
-          # between do not. That is a deliberate cost trade-off and the same
-          # one moodle-local_servicemanager makes by hand, but it is a choice,
-          # not what `supported` means: a regression that only affects 5.1
-          # would not be caught. To test the whole range, list the intermediate
-          # versions explicitly in MOODLE_PHP_TABLE and expand them here.
+          # MOODLE_EXTRA_VERSIONS names the versions BETWEEN the two ends of
+          # $plugin->supported that are worth testing as well. The ends
+          # themselves are always tested and never listed here: moving the
+          # ceiling must not quietly stop testing anything.
+          #
+          # Moodle defines $plugin->supported as an inclusive RANGE,
+          # [lowest, highest] -- so [405, 503] means "4.5 through 5.3", which
+          # includes 5.0, 5.1 and 5.2. Testing all of it is what the range
+          # claims; testing only its ends is cheaper. This is where that
+          # trade-off is made, in the open: a version left out here is one a
+          # regression could reach without CI noticing. Each one listed needs
+          # a MOODLE_PHP_TABLE and a MOODLE_DB_TABLE row, and has to fall
+          # strictly inside the range, or the matrix refuses to build.
+          MOODLE_EXTRA_VERSIONS='["502"]'
+
           supported_raw=$(grep -oP '\$plugin->supported\s*=\s*\[\K[^\]]+' version.php || true)
           if [ -z "$supported_raw" ]; then
             echo "::error::Could not find \$plugin->supported = [...] in version.php."
             exit 1
           fi
+
+          # The two ends, whatever Moodle's own two-element rule is given.
+          ends=$(echo "$supported_raw" | tr -d '[:space:]')
+          floor=${ends%%,*}
+          ceiling=${ends##*,}
+
+          # Carriage returns only: the newline between two versions is what
+          # separates them, and stripping all whitespace would run them
+          # together into one number nobody listed.
+          extras=$(echo "$MOODLE_EXTRA_VERSIONS" | jq -r '.[]' | tr -d '\r')
+          for extra in $extras; do
+            if [ "$extra" -le "$floor" ] || [ "$extra" -ge "$ceiling" ]; then
+              echo "::error::Moodle version $extra is in MOODLE_EXTRA_VERSIONS but is not between the ends of \$plugin->supported ($floor to $ceiling). Both ends are always tested, so that list is only for the versions in between -- drop it, or widen the range it belongs to."
+              exit 1
+            fi
+          done
 
           # Named "entries", not "include": jq treats `include` as reserved
           # (its own module-loading directive), and rejects it not just as a
@@ -132,24 +152,20 @@ jobs:
           # GitHub Actions' own matrix schema, not jq's, and unaffected by
           # this rename.
           entries='[]'
-          IFS=',' read -ra versions <<< "$supported_raw"
-          for raw in "${versions[@]}"; do
-            v=$(echo "$raw" | tr -d '[:space:]')
-            [ -z "$v" ] && continue
-
+          for v in $(printf '%s\n' "$floor" "$ceiling" $extras | sort -n -u); do
             # The trailing `tr -d '\r'` guards against a stray carriage
             # return ending up in a PHP version string (e.g. from a tool in
             # the pipeline emitting CRLF) and silently corrupting the
             # generated branch/PHP values downstream.
             phps=$(echo "$MOODLE_PHP_TABLE" | jq -r --arg v "$v" '.[$v] // empty | .[]' | tr -d '\r')
             if [ -z "$phps" ]; then
-              echo "::error::Moodle version $v is listed in \$plugin->supported but MOODLE_PHP_TABLE above has no entry for it. Add one (see https://moodledev.io/general/development/policies/php) before this can run."
+              echo "::error::Moodle version $v is to be tested but MOODLE_PHP_TABLE above has no entry for it. Add one (see https://moodledev.io/general/development/policies/php) before this can run."
               exit 1
             fi
 
             dbs=$(echo "$MOODLE_DB_TABLE" | jq -c --arg v "$v" '.[$v] // empty')
             if [ -z "$dbs" ]; then
-              echo "::error::Moodle version $v is listed in \$plugin->supported but MOODLE_DB_TABLE above has no entry for it. Add one (see admin/environment.xml in that Moodle version) before this can run."
+              echo "::error::Moodle version $v is to be tested but MOODLE_DB_TABLE above has no entry for it. Add one (see admin/environment.xml in that Moodle version) before this can run."
               exit 1
             fi
 

@@ -28,6 +28,7 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 - Compatibility with Moodle 5.3 (now 4.5 to 5.3).
 - Tests duplicate and delete activities through the course format actions on Moodle 5.2+, instead of `duplicate_module()` and `course_delete_module()`, which 5.2 deprecated (MDL-86858, MDL-86856).
 - CI runs Moodle 5.3 against PostgreSQL 17 and MariaDB 11.4, the minimum versions it requires.
+- CI tests the two ends of the supported range plus any version listed in MOODLE_EXTRA_VERSIONS, so raising the ceiling no longer quietly stops testing the version below it. It currently tests 4.5, 5.2 and 5.3.
 
 ### Fixed
 
