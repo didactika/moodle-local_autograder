@@ -191,7 +191,13 @@ final class observer_test extends \advanced_testcase {
         $this->submit();
         $cmid = (int) $this->cm->id;
 
-        course_delete_module($cmid);
+        // Moodle 5.2 deprecates course_delete_module() in favour of cmactions::delete() (MDL-86856).
+        $actions = \core_courseformat\formatactions::cm((int) $this->course->id);
+        if (method_exists($actions, 'delete')) {
+            $actions->delete($cmid);
+        } else {
+            course_delete_module($cmid);
+        }
 
         $this->assertFalse($DB->record_exists('local_autograder_decision', ['cmid' => $cmid]));
         $this->assertFalse($DB->record_exists('local_autograder_config', ['cmid' => $cmid]));

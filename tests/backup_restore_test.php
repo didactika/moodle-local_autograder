@@ -58,7 +58,7 @@ final class backup_restore_test extends \advanced_testcase {
             (int) $teacher->id
         );
 
-        $newcm = duplicate_module($course, $cm);
+        $newcm = $this->duplicate($course, $cm);
 
         $this->assertNotEquals($cm->id, $newcm->id);
 
@@ -121,7 +121,7 @@ final class backup_restore_test extends \advanced_testcase {
             'timemodified' => $now,
         ]);
 
-        $newcm = duplicate_module($course, $cm);
+        $newcm = $this->duplicate($course, $cm);
 
         $this->assertFalse($DB->record_exists('local_autograder_decision', ['cmid' => $newcm->id]));
         $this->assertTrue($DB->record_exists('local_autograder_decision', ['cmid' => $cm->id]));
@@ -162,7 +162,7 @@ final class backup_restore_test extends \advanced_testcase {
             ['c' => '%local_autograder%']
         );
 
-        $newcm = duplicate_module($course, $cm);
+        $newcm = $this->duplicate($course, $cm);
 
         $queued = $DB->get_records_select(
             'task_adhoc',
@@ -211,7 +211,7 @@ final class backup_restore_test extends \advanced_testcase {
             ['c' => '%local_autograder%']
         );
 
-        $newcm = duplicate_module($course, $cm);
+        $newcm = $this->duplicate($course, $cm);
 
         $copy = config_repository::get_for_cm((int) $newcm->id);
         $this->assertNotFalse($copy);
@@ -267,7 +267,7 @@ final class backup_restore_test extends \advanced_testcase {
             (int) $teacher->id
         );
 
-        $duplicate = duplicate_module($course, $cm);
+        $duplicate = $this->duplicate($course, $cm);
         $newcm = get_coursemodule_from_id('', (int) $duplicate->id, 0, false, MUST_EXIST);
 
         $copy = config_repository::get_for_cm((int) $newcm->id);
@@ -342,7 +342,7 @@ final class backup_restore_test extends \advanced_testcase {
             ['c' => '%local_autograder%']
         );
 
-        $duplicate = duplicate_module($course, $cm);
+        $duplicate = $this->duplicate($course, $cm);
 
         $copy = config_repository::get_for_cm((int) $duplicate->id);
         $this->assertNotFalse($copy, 'The configuration is still restored, so the teacher finds it.');
@@ -370,6 +370,24 @@ final class backup_restore_test extends \advanced_testcase {
         }
 
         $this->fail("The rubric has no level called {$definition}.");
+    }
+
+    /**
+     * Duplicates an activity the way the course page does.
+     *
+     * Moodle 5.2 deprecates duplicate_module() in favour of cmactions::duplicate()
+     * (MDL-86858), which older releases do not have.
+     *
+     * @param \stdClass $course
+     * @param \cm_info|\stdClass $cm
+     * @return \cm_info|null
+     */
+    private function duplicate(\stdClass $course, $cm): ?\cm_info {
+        $actions = \core_courseformat\formatactions::cm((int) $course->id);
+        if (method_exists($actions, 'duplicate')) {
+            return $actions->duplicate((int) $cm->id);
+        }
+        return duplicate_module($course, $cm);
     }
 
     /**
