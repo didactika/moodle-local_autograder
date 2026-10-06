@@ -19,6 +19,7 @@ namespace local_autograder\local\decision;
 use local_autograder\event\decision_cancelled;
 use local_autograder\local\config\eligibility;
 use local_autograder\local\grading\grade_log_repository;
+use local_autograder\local\module\module_adapter;
 use local_autograder\task\grade_student;
 
 /**
@@ -250,32 +251,71 @@ final class decision_repository {
             return null;
         }
 
-        $now = time();
+        // The same question the grading task asks at the moment of grading,
+        // asked here as well. A student a person had already graded before
+        // autograder first looked at them is settled now; left to the task,
+        // the decision would read as "pending" until the day it came due and
+        // stand down only then, which is a promise the report cannot keep.
+        $gradedbyhand = module_adapter::for_cm($cm, $config)->existing_person_grade($userid) !== null;
 
         if ($existing) {
+            // Moved first even where a grade settles it: a decision that had
+            // been called off is terminal, and cancel() leaves those alone, so
+            // picking it back up is what lets it be settled as graded by hand.
             self::move($existing, $plan);
+
+            if ($gradedbyhand) {
+                self::cancel($existing, 'gradedbyhand', self::STATUS_MANUAL);
+            }
 
             return $existing;
         }
 
+        return self::insert($cm, $userid, $plan, $gradedbyhand);
+    }
+
+    /**
+     * Writes the decision for a student autograder has not seen here before.
+     *
+     * A row settled on the spot is written settled, rather than written
+     * pending and called off: nothing was ever waiting on it, so there is no
+     * task to unschedule, nothing to announce and no attempt to log.
+     *
+     * @param \cm_info|\stdClass $cm
+     * @param int $userid
+     * @param array $plan As {@see decision_planner::plan()} returns it.
+     * @param bool $gradedbyhand Whether a person's grade already settles it.
+     * @return \stdClass The decision.
+     */
+    private static function insert(
+        \cm_info|\stdClass $cm,
+        int $userid,
+        array $plan,
+        bool $gradedbyhand,
+    ): \stdClass {
+        global $DB;
+
+        $now = time();
         $decision = (object) [
             'cmid' => (int) $cm->id,
             'courseid' => (int) $cm->course,
             'userid' => $userid,
-            'status' => self::STATUS_PENDING,
+            'status' => $gradedbyhand ? self::STATUS_MANUAL : self::STATUS_PENDING,
             'baselineduedate' => $plan['baselineduedate'],
             'duedatereason' => $plan['duedatereason'],
             'scheduledgradetime' => $plan['scheduledgradetime'],
             'adhoctaskid' => null,
             'graderid' => null,
             'gradedvalue' => null,
-            'failurereason' => null,
+            'failurereason' => $gradedbyhand ? 'gradedbyhand' : null,
             'timecreated' => $now,
             'timemodified' => $now,
         ];
         $decision->id = $DB->insert_record('local_autograder_decision', $decision);
 
-        self::schedule($decision);
+        if (!$gradedbyhand) {
+            self::schedule($decision);
+        }
 
         return $decision;
     }

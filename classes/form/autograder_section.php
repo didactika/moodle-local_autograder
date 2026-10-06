@@ -223,7 +223,13 @@ final class autograder_section {
         $mform->setType('autograder_grade_point', PARAM_FLOAT);
 
         if ($config && $grademethod !== 'scale') {
-            $mform->setDefault('autograder_grade_point', $config->gradevalue);
+            // Cast, because the column is number(10,5) and the database hands
+            // it back as "65.00000": a teacher who saved 65 would be shown
+            // that, and would see it again on every edit. Cast rather than
+            // format_float(), which would write the grade in the reader's own
+            // decimal separator — this is the field they type a number into,
+            // and validate() reads it back with is_numeric().
+            $mform->setDefault('autograder_grade_point', (float) $config->gradevalue);
         } else if ($maximum !== null) {
             // No autograder grade chosen yet for an activity that already has
             // a maximum: default to it instead of an arbitrary site-wide

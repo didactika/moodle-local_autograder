@@ -17,6 +17,7 @@
 namespace local_autograder;
 
 use local_autograder\local\config\config_repository;
+use local_autograder\local\decision\decision_planner;
 use local_autograder\local\decision\decision_repository;
 use local_autograder\local\config\eligibility;
 use local_autograder\local\grading\grade_log_repository;
@@ -84,10 +85,12 @@ class observer {
     }
 
     /**
-     * Somebody was graded.
+     * Somebody was graded, or a grade was taken away again.
      *
-     * If it was a person rather than autograder, autograder stands down: a
-     * teacher's judgement is not something to overwrite on a timer.
+     * Where a person graded, autograder stands down: a teacher's judgement is
+     * not something to overwrite on a timer. Where the grade that made it
+     * stand down is gone, so is the reason it stood down, and the student is
+     * waiting for a grade again.
      *
      * @param \core\event\user_graded $event
      */
@@ -108,9 +111,58 @@ class observer {
 
         $decision = decision_repository::for_cm_user((int) $cm->id, $userid);
 
-        if ($decision && $decision->status === decision_repository::STATUS_PENDING) {
-            decision_repository::cancel($decision, 'gradedbyhand', decision_repository::STATUS_MANUAL);
+        if (!$decision) {
+            return;
         }
+
+        if ($decision->status === decision_repository::STATUS_PENDING) {
+            decision_repository::cancel($decision, 'gradedbyhand', decision_repository::STATUS_MANUAL);
+
+            return;
+        }
+
+        if ($decision->status === decision_repository::STATUS_MANUAL) {
+            self::reconsider_withdrawn_grade($cm, $userid, $decision);
+        }
+    }
+
+    /**
+     * Picks a student back up where the grade that stood autograder down has
+     * been taken away again.
+     *
+     * The one state autograder reverses, and only this way round: a grade of
+     * its own that somebody deletes is theirs to delete, and putting it
+     * straight back is not a conversation worth having. A person's grade is
+     * different — without it the student is where they were before anybody
+     * graded, which is the case this plugin exists for.
+     *
+     * Only while the moment to grade is still ahead. Past it the grade would
+     * land on the next cron run, which is not what a teacher clearing a grade
+     * to mark it again by hand is asking for.
+     *
+     * @param \stdClass $cm
+     * @param int $userid
+     * @param \stdClass $decision
+     */
+    private static function reconsider_withdrawn_grade(\stdClass $cm, int $userid, \stdClass $decision): void {
+        $config = config_repository::get_for_cm((int) $cm->id);
+
+        if (!$config || empty($config->enabled)) {
+            return;
+        }
+
+        if (module_adapter::for_cm($cm, $config)->existing_person_grade($userid) !== null) {
+            // A grade is still there; this event only changed it.
+            return;
+        }
+
+        $plan = decision_planner::plan($cm, $config, $userid);
+
+        if ($plan === null || $plan['scheduledgradetime'] <= time()) {
+            return;
+        }
+
+        decision_repository::move($decision, $plan);
     }
 
     /**
