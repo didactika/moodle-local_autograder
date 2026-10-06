@@ -113,21 +113,88 @@ final class observer_test extends \advanced_testcase {
         $this->submit();
         $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
 
+        $this->grade_by_hand(33.0);
+
+        $settled = decision_repository::get((int) $decision->id);
+        $this->assertSame(decision_repository::STATUS_MANUAL, $settled->status);
+    }
+
+    /**
+     * A grade taken away again leaves the student where they were before
+     * anybody graded, so autograder picks them back up.
+     */
+    public function test_withdrawing_the_grade_picks_the_decision_back_up(): void {
+        $this->submit();
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+
+        $this->grade_by_hand(33.0);
+        $this->assertSame(
+            decision_repository::STATUS_MANUAL,
+            decision_repository::get((int) $decision->id)->status
+        );
+
+        $this->grade_by_hand(null);
+
+        $reopened = decision_repository::get((int) $decision->id);
+        $this->assertSame(decision_repository::STATUS_PENDING, $reopened->status);
+        $this->assertNull($reopened->failurereason);
+        $this->assertGreaterThan(time(), (int) $reopened->scheduledgradetime);
+    }
+
+    /**
+     * Past the moment it would have graded, a grade taken away is left alone:
+     * picking the student back up would grade them on the next cron run,
+     * which is not what clearing a grade to mark it again asks for.
+     */
+    public function test_withdrawing_the_grade_too_late_leaves_the_decision_settled(): void {
+        // No wait at all, so the moment passed with the hand-in itself.
+        config_repository::upsert_for_cm(
+            (int) $this->cm->id,
+            (int) $this->course->id,
+            true,
+            'point',
+            70.0,
+            null,
+            0,
+            (int) $this->teacher->id
+        );
+
+        $this->submit();
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+        $this->assertLessThan(time(), (int) $decision->scheduledgradetime);
+
+        $this->grade_by_hand(33.0);
+        $this->grade_by_hand(null);
+
+        $settled = decision_repository::get((int) $decision->id);
+        $this->assertSame(decision_repository::STATUS_MANUAL, $settled->status);
+    }
+
+    /**
+     * Grades the student the way the grading screen does, or clears the grade
+     * again the way emptying that form's grade field does.
+     *
+     * @param float|null $value Null to take the grade away.
+     */
+    private function grade_by_hand(?float $value): void {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
         $this->setUser($this->teacher);
+
         $context = \context_module::instance((int) $this->cm->id);
         $assign = new \assign($context, $this->cm, get_course($this->course->id));
         $assign->save_grade((int) $this->student->id, (object) [
-            'grade' => 33.0,
+            'grade' => $value ?? -1.0,
             'attemptnumber' => -1,
             'addattempt' => false,
             'applytoall' => false,
             'sendstudentnotifications' => false,
             'assignfeedbackcomments_editor' => ['text' => '', 'format' => FORMAT_HTML],
         ]);
-        $this->setUser(null);
 
-        $settled = decision_repository::get((int) $decision->id);
-        $this->assertSame(decision_repository::STATUS_MANUAL, $settled->status);
+        $this->setUser(null);
     }
 
     /**

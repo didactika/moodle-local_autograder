@@ -29,6 +29,12 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 - Tests duplicate and delete activities through the course format actions on Moodle 5.2+, instead of `duplicate_module()` and `course_delete_module()`, which 5.2 deprecated (MDL-86858, MDL-86856).
 - CI runs Moodle 5.3 against PostgreSQL 17 and MariaDB 11.4, the minimum versions it requires.
 
+### Fixed
+
+- A student a teacher had already graded before Autograder was switched on is settled straight away, instead of reading as pending until the day it would have graded and standing down then.
+- A grade taken away again puts the student back in the queue, so long as the moment to grade them has not passed.
+- The grade to assign is shown again as the teacher typed it, instead of padded with the decimals its database column stores ("65", not "65.00000").
+
 ## [1.0.1] - 2026-09-30
 
 First public release.

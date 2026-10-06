@@ -152,6 +152,25 @@ final class grade_student_test extends \advanced_testcase {
     }
 
     /**
+     * Switching autograder on where a teacher has already graded settles the
+     * student on the spot, instead of leaving a decision that reads as
+     * pending until the day it would have graded and stands down then.
+     */
+    public function test_catching_up_settles_a_student_a_teacher_already_graded(): void {
+        $this->grade_by_hand(55.0);
+        $this->configure(true, 70.0);
+        $this->run_catch_up();
+
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+
+        $this->assertNotFalse($decision);
+        $this->assertSame(decision_repository::STATUS_MANUAL, $decision->status);
+        $this->assertSame('gradedbyhand', $decision->failurereason);
+        $this->assertNull($decision->adhoctaskid, 'Nothing is queued for a decision that is already settled.');
+        $this->assertEquals(55.0, (float) $this->current_grade()->finalgrade, 'The teacher\'s grade is untouched.');
+    }
+
+    /**
      * Switching autograder off calls off everything it had queued.
      */
     public function test_switching_off_cancels_everything_pending(): void {
