@@ -158,7 +158,11 @@ final class module_form_test extends \advanced_testcase {
 
         $html = $this->render_edit_form($cm, $course);
 
-        $this->assertStringContainsString('65', $html);
+        // The grade as the teacher typed it, not as the number(10,5) column
+        // hands it back: "65", never "65.00000".
+        preg_match('/name="autograder_grade_point"[^>]*/', $html, $field);
+        $this->assertNotEmpty($field, 'The grade field is on the form.');
+        $this->assertStringContainsString('value="65"', $field[0]);
         $this->assert_no_warnings($html);
     }
 
