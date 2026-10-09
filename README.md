@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="pix/icon.svg" width="96" alt="Autograder icon">
+
 # Autograder for Moodle
 
 *Automatically grades completed activities that a teacher hasn't graded*
