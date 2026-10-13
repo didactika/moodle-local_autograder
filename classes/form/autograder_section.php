@@ -736,6 +736,13 @@ final class autograder_section {
             return;
         }
 
+        // The form does not even show these fields to somebody who may not configure them, so what arrives here from
+        // that person is not a choice: leave the stored configuration, and the decisions that depend on it, as they are.
+        $context = \context_module::instance($cmid, IGNORE_MISSING);
+        if (!$context || !eligibility::can_configure($context)) {
+            return;
+        }
+
         $cm = get_coursemodule_from_id($modname, $cmid, 0, false, MUST_EXIST);
 
         // Re-derived from the grade item that exists *now* — the teacher may

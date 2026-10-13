@@ -21,6 +21,10 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+### Fixed
+
+- Saving the settings of an activity no longer switches Autograder off, empties its grade or cancels its pending decisions when the person saving may not configure Autograder (`local/autograder:configure`). The form does not show them the section, so nothing they submit says anything about it, and what a teacher configured is left as it was.
+
 ## [1.0.2] - 2026-10-06
 
 ### Changed

@@ -377,6 +377,40 @@ final class autograder_section_test extends \advanced_testcase {
     }
 
     /**
+     * Somebody who may edit the activity but not configure autograder does not see the section, so saving the activity
+     * says nothing about it: what a teacher configured is neither switched off nor emptied.
+     */
+    public function test_saving_without_the_capability_leaves_the_configuration_alone(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course();
+        $assign = $generator->create_module('assign', ['course' => $course->id, 'grade' => 100]);
+        $cm = get_coursemodule_from_instance('assign', $assign->id, $course->id, false, MUST_EXIST);
+        $context = \context_module::instance((int) $cm->id);
+
+        config_repository::upsert_for_cm((int) $cm->id, (int) $cm->course, true, 'point', 70.0, null, 3600, 2);
+
+        $editor = $generator->create_user();
+        $generator->enrol_user($editor->id, $course->id, 'editingteacher');
+        $roleid = (int) $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        assign_capability('local/autograder:configure', CAP_PROHIBIT, $roleid, $context->id, true);
+        $this->setUser($editor);
+
+        autograder_section::save((object) [
+            'modulename' => 'assign',
+            'coursemodule' => (int) $cm->id,
+            'course' => (int) $cm->course,
+        ]);
+
+        $config = config_repository::get_for_cm((int) $cm->id);
+        $this->assertEquals(1, (int) $config->enabled, 'Still switched on.');
+        $this->assertEquals(70, (float) $config->gradevalue, 'With the grade the teacher chose.');
+        $this->assertEquals(3600, (int) $config->delayseconds, 'And the delay.');
+    }
+
+    /**
      * An assignment with a rubric defined but nothing chosen on it yet.
      *
      * @return \stdClass The course module.
