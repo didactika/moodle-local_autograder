@@ -169,4 +169,8 @@ $observers = [
         'eventname' => '\core\event\course_reset_ended',
         'callback' => '\local_autograder\observer::course_reset',
     ],
+    [
+        'eventname' => '\core\event\course_deleted',
+        'callback' => '\local_autograder\observer::course_deleted',
+    ],
 ];
