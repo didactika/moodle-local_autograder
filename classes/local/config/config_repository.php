@@ -147,4 +147,16 @@ final class config_repository {
 
         $DB->delete_records('local_autograder_config', ['cmid' => $cmid]);
     }
+
+    /**
+     * Removes the configuration of every activity of a course — the course
+     * itself was deleted, so none of its activities has anything left to keep.
+     *
+     * @param int $courseid
+     */
+    public static function delete_for_course(int $courseid): void {
+        global $DB;
+
+        $DB->delete_records('local_autograder_config', ['courseid' => $courseid]);
+    }
 }

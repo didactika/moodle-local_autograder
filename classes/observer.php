@@ -270,6 +270,23 @@ class observer {
     }
 
     /**
+     * A whole course was deleted. Core removes its activities without raising
+     * an event for each one, so what was kept for them — decisions, the grading
+     * log with the students' and the teachers' ids, and the configuration —
+     * would stay behind, out of reach of a privacy request because the module
+     * contexts it is found by are gone.
+     *
+     * @param \core\event\course_deleted $event
+     */
+    public static function course_deleted(\core\event\course_deleted $event): void {
+        $courseid = (int) $event->objectid;
+
+        decision_repository::delete_for_course($courseid);
+        grade_log_repository::delete_for_course($courseid);
+        config_repository::delete_for_course($courseid);
+    }
+
+    /**
      * A course was reset, which takes its completions, submissions and the
      * students who made them with it.
      *

@@ -21,6 +21,10 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+### Fixed
+
+- Deleting a whole course now deletes its Autograder decisions, its grading log and its configuration. Core removes the activities of a course without raising an event for each one, so these rows, which hold the ids of students and teachers, used to stay behind with no module context for a privacy request to find them by.
+
 ## [1.0.2] - 2026-10-06
 
 ### Changed

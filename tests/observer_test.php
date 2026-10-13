@@ -271,6 +271,35 @@ final class observer_test extends \advanced_testcase {
     }
 
     /**
+     * Deleting the whole course leaves nothing of it behind either: core removes the activities without an event for
+     * each, and what was kept for them holds the ids of students and teachers.
+     */
+    public function test_deleting_the_course_removes_its_decisions_log_and_config(): void {
+        global $DB;
+
+        $this->submit();
+        $decision = decision_repository::for_cm_user((int) $this->cm->id, (int) $this->student->id);
+        \local_autograder\local\grading\grade_log_repository::record(
+            $decision,
+            \local_autograder\local\grading\grade_log_repository::OUTCOME_CANCELLED,
+            'test'
+        );
+        $other = $this->getDataGenerator()->create_course();
+        config_repository::upsert_for_cm(999999, (int) $other->id, true, 'point', 50.0, null, 0, (int) $this->teacher->id);
+        $courseid = (int) $this->course->id;
+
+        delete_course($courseid, false);
+
+        $this->assertFalse($DB->record_exists('local_autograder_decision', ['courseid' => $courseid]));
+        $this->assertFalse($DB->record_exists('local_autograder_grade_log', ['courseid' => $courseid]));
+        $this->assertFalse($DB->record_exists('local_autograder_config', ['courseid' => $courseid]));
+        $this->assertTrue(
+            $DB->record_exists('local_autograder_config', ['courseid' => $other->id]),
+            'The configuration of another course is untouched.'
+        );
+    }
+
+    /**
      * Resetting the course clears the decisions and the history it built on
      * the work the reset just removed, and asks for the activity to be looked
      * at again from scratch.
