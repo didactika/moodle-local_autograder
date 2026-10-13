@@ -23,6 +23,7 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ### Fixed
 
+- Saving the settings of an activity no longer switches Autograder off, empties its grade or cancels its pending decisions when the person saving may not configure Autograder (`local/autograder:configure`). The form does not show them the section, so nothing they submit says anything about it, and what a teacher configured is left as it was.
 - Deleting a whole course now deletes its Autograder decisions, its grading log and its configuration. Core removes the activities of a course without raising an event for each one, so these rows, which hold the ids of students and teachers, used to stay behind with no module context for a privacy request to find them by.
 
 ## [1.0.2] - 2026-10-06
