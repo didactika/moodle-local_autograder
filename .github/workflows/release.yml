@@ -7,8 +7,10 @@ name: Release on version bump
 # The latest release is always the one of `main`, whichever branch published last: a release from a MOODLE_XXX_STABLE
 # branch is created with --latest=false, and every run ends by marking the release that `main` declares as the latest one.
 #
-# Unlike the other plugins, this one does not number $plugin->version after the lowest Moodle version it supports yet, so the
-# format of the version is not checked here. The release number still follows the lowest supported Moodle version.
+# The version of a line is YYYYMMDDXX with the date the line was created, and only the counter XX goes up, so every number of
+# a newer line is higher than every number of the older one. The release is the same X.Y.Z for the lines that carry the same
+# delivery, followed by -m and the lowest Moodle version the line supports (1.8.3-m405, 1.8.3-m503). A release that does not
+# follow that is refused before anything is created.
 #
 # It only acts when a tag for that release does not already exist, so re-running or unrelated edits to version.php are
 # safe (idempotent). It can also be started by hand from the Actions tab, for instance to mark the latest release again.
@@ -42,20 +44,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Stop while version.php still has the template's placeholders
-        id: placeholder
-        run: |
-          # A repository made from the template carries PLUGINTYPE_PLUGINNAME and a version of 2000010100 until somebody
-          # fills version.php in. Its first push must not publish the 0.1.0 of the template as a release of the plugin.
-          if grep -q "PLUGINTYPE_PLUGINNAME" version.php; then
-            echo "value=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::version.php still has the template's placeholders, so nothing is released."
-          else
-            echo "value=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Read release info from version.php
-        if: steps.placeholder.outputs.value != 'true'
         id: ver
         run: |
           read_field() { grep -oP "\\\$plugin->$1\\s*=\\s*\\K[^;]+" version.php | head -n 1 | tr -d " '\"\r"; }
@@ -78,13 +67,20 @@ jobs:
             echo "::error::Could not parse \$plugin->supported from version.php"
             exit 1
           fi
+          if ! echo "$version" | grep -qE "^[0-9]{10}\$"; then
+            echo "::error::\$plugin->version is $version; it must be YYYYMMDDXX."
+            exit 1
+          fi
+          if ! echo "$release" | grep -qE "^[0-9]+\\.[0-9]+\\.[0-9]+-m${line}\$"; then
+            echo "::error::\$plugin->release is $release; on $branch it must be X.Y.Z-m$line."
+            exit 1
+          fi
           echo "release=$release" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=v$release" >> "$GITHUB_OUTPUT"
           echo "Detected release v$release (version $version) on $branch"
 
       - name: Derive plugin name from version.php
-        if: steps.placeholder.outputs.value != 'true'
         id: plugin
         run: |
           # The release zip's filename and the folder name it unpacks into both need the plugin's short name, not the git
@@ -108,7 +104,6 @@ jobs:
           echo "Derived component='$component' shortname='$shortname'"
 
       - name: Check whether the tag already exists
-        if: steps.placeholder.outputs.value != 'true'
         id: check
         run: |
           if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
@@ -119,7 +114,7 @@ jobs:
           fi
 
       - name: Extract release notes from CHANGELOG.md
-        if: steps.placeholder.outputs.value != 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         run: |
           release='${{ steps.ver.outputs.release }}'
           awk -v ver="$release" '
@@ -134,7 +129,7 @@ jobs:
           cat release_notes.md
 
       - name: Build plugin release zip
-        if: steps.placeholder.outputs.value != 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         id: zip
         run: |
           zipname="${{ steps.plugin.outputs.component }}-${{ steps.ver.outputs.tag }}.zip"
@@ -144,7 +139,7 @@ jobs:
           unzip -l "$zipname"
 
       - name: Create tag and release
-        if: steps.placeholder.outputs.value != 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -158,7 +153,6 @@ jobs:
             "$latest"
 
       - name: Keep the latest release on main
-        if: steps.placeholder.outputs.value != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

@@ -21,11 +21,11 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
-## [4.5.0] - 2026-10-13
+## [1.0.3-m400] - 2026-10-13
 
 ### Changed
 
-- The release number follows the lowest Moodle version the line supports: 4.5.0 replaces 1.0.x, and the code of the plugin is the one of 1.0.x plus the fixes below.
+- The release number now indicates the lowest Moodle version the line supports: -m405
 
 ### Fixed
 
