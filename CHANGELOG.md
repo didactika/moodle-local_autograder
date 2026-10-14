@@ -21,7 +21,7 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
-## [1.0.3-m400] - 2026-10-13
+## [1.0.4-m405] - 2026-10-13
 
 ### Changed
 
