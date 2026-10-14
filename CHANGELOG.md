@@ -25,7 +25,7 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ### Changed
 
-- The release number now indicates the lowest Moodle version the line supports: -m405
+- The release number now indicates the lowest Moodle version the plugin supports: -m405
 
 ### Fixed
 
