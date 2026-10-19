@@ -2,6 +2,7 @@
 .local-autograder-table-scroll {
     max-width: 100%;
     overflow-x: auto;
+    /* stylelint-disable-next-line csstree/validator */
     contain: inline-size;
 }
 
@@ -47,6 +48,7 @@
    keeping the page heading and the save/cancel buttons within the viewport. */
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
+    /* stylelint-disable-next-line csstree/validator */
     contain: inline-size;
 }
 
