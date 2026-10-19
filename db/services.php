@@ -33,4 +33,12 @@ $functions = [
         'ajax' => true,
         'loginrequired' => true,
     ],
+    'local_autograder_set_module_type' => [
+        'classname' => 'local_autograder\external\set_module_type',
+        'description' => 'Allows or disallows Autograder for one activity type, site-wide.',
+        'type' => 'write',
+        'ajax' => true,
+        'loginrequired' => true,
+        'capabilities' => 'local/autograder:manage',
+    ],
 ];

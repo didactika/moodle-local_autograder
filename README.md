@@ -7,8 +7,8 @@
 *Automatically grades completed activities that a teacher hasn't graded*
 
 [![Release](https://img.shields.io/github/v/release/didactika/moodle-local_autograder?style=flat-square)](https://github.com/didactika/moodle-local_autograder/releases)
-[![Moodle](https://img.shields.io/badge/Moodle-4.5+-f98012?style=flat-square&logo=moodle&logoColor=white)](https://moodle.org)
-[![PHP](https://img.shields.io/badge/PHP-8.1+-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net)
+[![Moodle](https://img.shields.io/badge/Moodle-5.3-f98012?style=flat-square&logo=moodle&logoColor=white)](https://moodle.org)
+[![PHP](https://img.shields.io/badge/PHP-8.3+-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net)
 [![License](https://img.shields.io/badge/License-GPL_v3-blue?style=flat-square)](LICENSE)
 
 [Overview](#overview) • [Installation](#installation) • [Usage](#usage) • [Reviewing decisions](#reviewing-decisions) • [Configuration](#configuration) • [Troubleshooting](#troubleshooting)
@@ -74,9 +74,13 @@ If no teacher qualifies, the grade is attributed to the site's **fallback grader
 - **Failure summary:** an optional weekly message to teachers listing students who could not be graded.
 - **Teacher opt-out:** an optional preference that lets teachers keep grades from being recorded in their name.
 
+## Technology
+
+The page of the activity types and the field of the fallback grader are React 19 components written in TypeScript, mounted by Moodle's own `core/react_autoinit` from classes that implement `core\output\react_component_renderable`. The source is in `js/esm/src` and the build that Moodle serves is committed in `js/esm/build`; rebuild it with `npx grunt esm` from the root of Moodle. The styles are nested SCSS (`styles.scss` and `scss/`) compiled into the distributed `styles.css` by `node tools/build-styles.mjs /path/to/moodle`; every colour comes from the theme, so a theme restyles the plugin by changing its own colours, and each component can be overridden with the swizzle mechanism of Moodle 5.3 (`js/esm/src/swizzle.json`). The settings of an activity, the grading of an advanced method and the preference of a teacher stay Moodle forms, as they have to be. The server side is the same as in the line for Moodle 4.0 to 5.2.
+
 ## Installation
 
-**Requirements:** Moodle 4.5 or later and PHP 8.1 or later.
+**Requirements:** Moodle 5.3 and PHP 8.3 or later. Moodle 4.0 to 5.2 have a line of their own (`MOODLE_400_STABLE`) with the same features.
 
 > [!IMPORTANT]
 > Grading is done by scheduled and ad hoc tasks, so [cron](https://docs.moodle.org/en/Cron) must run regularly for grades to be assigned on time.

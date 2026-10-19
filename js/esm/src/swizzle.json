@@ -1,0 +1,10 @@
+{
+  "GraderPicker": {
+    "eject": "risky",
+    "wrap": "risky"
+  },
+  "Modules": {
+    "eject": "risky",
+    "wrap": "risky"
+  }
+}
