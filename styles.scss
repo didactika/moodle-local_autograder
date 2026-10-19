@@ -1,0 +1,237 @@
+// This file is part of Moodle - https://moodle.org/
+// Moodle is free software under the GNU General Public License, version 3 or later.
+
+// The page of the activity types and the field of the fallback grader. styles.css is generated from this file.
+// @copyright 2026 Didactika.org
+// @author Hector Arrechea <hectorlazaroarrechea@gmail.com>
+// @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+/*
+ * Every colour comes from the theme and ends in the colour that Boost has, so a theme changes the plugin by changing its own
+ * colours. The colour modes of Moodle 5 change them too.
+ */
+.lag {
+    --lag-text: var(--bs-body-color, #212529);
+    --lag-surface: var(--bs-body-bg, #fff);
+    --lag-border: var(--bs-border-color, #dee2e6);
+    --lag-border-strong: color-mix(in srgb, var(--lag-text) 40%, var(--lag-surface));
+    --lag-muted: var(--bs-secondary-color, #6c757d);
+    --lag-accent: var(--bs-primary, #0f6cbf);
+    --lag-accent-soft: color-mix(in srgb, var(--lag-accent) 12%, var(--lag-surface));
+    --lag-accent-ring: color-mix(in srgb, var(--lag-accent) 28%, transparent);
+    --lag-hover: color-mix(in srgb, var(--lag-text) 5%, var(--lag-surface));
+    --lag-faint: color-mix(in srgb, var(--lag-text) 3%, var(--lag-surface));
+
+    color: var(--lag-text);
+
+    & .lag-intro {
+        margin: 0 0 1rem;
+        color: var(--lag-muted);
+    }
+
+    & .lag-types {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        background: var(--lag-surface);
+        border: 1px solid var(--lag-border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    & .lag-type {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--lag-border);
+
+        &:last-child {
+            border-bottom: 0;
+        }
+
+        &:hover {
+            background: var(--lag-hover);
+        }
+    }
+
+    & .lag-type-icon {
+        flex: none;
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    & .lag-type-name {
+        flex: 1;
+        font-weight: 600;
+    }
+
+    & .lag-switch {
+        position: relative;
+        flex: none;
+        width: 2.75rem;
+        height: 1.5rem;
+        padding: 0;
+        background: var(--lag-border-strong);
+        border: 0;
+        border-radius: 999px;
+        transition: background 0.15s ease;
+
+        &:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+        }
+
+        &[aria-checked="true"] {
+            background: var(--lag-accent);
+        }
+    }
+
+    & .lag-switch-knob {
+        position: absolute;
+        top: 0.2rem;
+        left: 0.2rem;
+        width: 1.1rem;
+        height: 1.1rem;
+        background: #fff;
+        border-radius: 999px;
+        transition: transform 0.15s ease;
+    }
+
+    & .lag-switch[aria-checked="true"] .lag-switch-knob {
+        transform: translateX(1.25rem);
+    }
+
+    & .lag-sk {
+        display: inline-block;
+        background: linear-gradient(90deg, var(--lag-hover), var(--lag-faint), var(--lag-hover));
+        background-size: 200% 100%;
+        border-radius: 0.4rem;
+        animation: lag-shimmer 1.4s ease-in-out infinite;
+    }
+
+    & .lag-sk-line {
+        width: 100%;
+        height: 1.4rem;
+    }
+
+    & .lag-sk-row {
+        padding: 0.7rem 0;
+    }
+}
+
+.lag-picker {
+    position: relative;
+    max-width: 26rem;
+
+    & .lag-picker-box {
+        display: flex;
+        align-items: center;
+        background: var(--lag-surface);
+        border: 1px solid var(--lag-border-strong);
+        border-radius: 999px;
+    }
+
+    & .lag-picker-button {
+        flex: 1;
+        padding: 0.45rem 1rem;
+        text-align: left;
+        color: inherit;
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+
+        &:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+        }
+    }
+
+    & .lag-picker-clear {
+        width: 1.9rem;
+        height: 1.9rem;
+        margin-right: 0.3rem;
+        color: var(--lag-muted);
+        background: transparent;
+        border: 0;
+        border-radius: 999px;
+
+        &:hover {
+            background: var(--lag-hover);
+        }
+    }
+
+    & .lag-picker-panel {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 0.35rem);
+        left: 0;
+        width: 100%;
+        background: var(--lag-surface);
+        border: 1px solid var(--lag-border);
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--lag-text) 16%, transparent);
+    }
+
+    & .lag-picker-field {
+        display: block;
+        width: calc(100% - 0.7rem);
+        margin: 0.35rem;
+        padding: 0.4rem 0.8rem;
+        color: var(--lag-text);
+        background: var(--lag-surface);
+        border: 1px solid var(--lag-border-strong);
+        border-radius: 999px;
+
+        &:focus {
+            outline: 0;
+            border-color: var(--lag-accent);
+            box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+        }
+    }
+
+    & .lag-picker-list {
+        max-height: 14rem;
+        margin: 0;
+        padding: 0 0.35rem 0.35rem;
+        overflow: auto;
+        list-style: none;
+    }
+
+    & .lag-picker-option {
+        width: 100%;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        color: inherit;
+        background: transparent;
+        border: 0;
+        border-radius: 0.5rem;
+
+        &:hover,
+        &:focus-visible {
+            outline: 0;
+            background: var(--lag-hover);
+        }
+    }
+
+    & .lag-picker-status {
+        margin: 0;
+        padding: 0.3rem 1rem 0.8rem;
+        color: var(--lag-muted);
+    }
+}
+
+@keyframes lag-shimmer {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+@import 'scss/forms';

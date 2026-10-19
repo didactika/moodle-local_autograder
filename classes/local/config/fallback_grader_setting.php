@@ -80,56 +80,26 @@ class fallback_grader_setting extends \admin_setting {
     }
 
     /**
-     * Renders the `<select>` and enhances it into a search box.
+     * The field: a search box that asks the server for users as the administrator types.
      *
-     * @param mixed $data The current value.
-     * @param string $query
-     * @return string
+     * @param mixed $data The user that is chosen now.
+     * @param string $query What the settings search was asked for.
+     * @return string The HTML of the setting.
      */
     public function output_html($data, $query = '') {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT;
 
         $current = (int) $data;
-        $options = ['0' => get_string('setting:fallback_grader_none', 'local_autograder')];
-        $chosen = grader_search::name_of($current);
-
-        if ($chosen !== null) {
-            $options[(string) $current] = $chosen;
-        }
-
-        // Only the user already chosen, so that the select can show them. The
-        // rest arrive from the search below as the administrator types: this
-        // list used to hold everybody on the site who could grade, and a
-        // settings page cannot be made to render a hundred thousand options
-        // however fast the query behind them is.
-        $elementid = 'id_s_' . $this->name;
-
-        $select = \html_writer::select($options, $this->get_full_name(), (string) $current, false, [
-            'id' => $elementid,
-            'class' => 'form-select',
-        ]);
-
-        // Progressive enhancement only — the plain select above still submits
-        // whatever it already holds without it.
-        //
-        // The arguments are positional and easy to get wrong: selector, tags,
-        // ajax module, placeholder, case sensitive, and then *show
-        // suggestions*, which has to be true or the field takes a search term
-        // and never offers anything for it — a picker that looks empty no
-        // matter how many users would have matched.
-        $PAGE->requires->js_call_amd('core/form-autocomplete', 'enhance', [
-            '#' . $elementid,
-            false,
-            'local_autograder/grader_search',
-            get_string('setting:fallback_grader_placeholder', 'local_autograder'),
-            false,
-            true,
-        ]);
+        $field = new \local_autograder\output\grader_picker_field(
+            $this->get_full_name(),
+            $current,
+            (string) (grader_search::name_of($current) ?? '')
+        );
 
         return format_admin_setting(
             $this,
             $this->visiblename,
-            \html_writer::div($select, 'form-select-autocomplete'),
+            \html_writer::div($OUTPUT->render($field), 'form-select-autocomplete'),
             $this->description,
             true,
             '',

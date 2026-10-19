@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "sources": ["../src/types.ts"],
+  "sourceRoot": "../../../../../../sources/public/local/autograder/js/esm/build",
+  "sourcesContent": ["/**\n * This file is part of Moodle - https://moodle.org/\n * Moodle is free software under the GNU General Public License, version 3 or later.\n *\n * The types that the parts of the plugin share.\n *\n * @module     local_autograder/types\n * @copyright  2026 Didactika.org\n * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>\n * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later\n */\n\n/** Looks a text of the page up, putting the value in the place that the text marks. */\nexport type Text = (name: string, value?: string | number | Record<string, string | number>) => string;\n\n/** One activity type that Autograder may be switched on for. */\nexport interface ModuleType {\n    type: string;\n    name: string;\n    iconurl: string;\n    enabled: boolean;\n}\n\nexport interface ModulesProps {\n    types: ModuleType[];\n    strings: Record<string, string>;\n}\n\n/** A user that the fallback grader can be. */\nexport interface Grader {\n    id: number;\n    name: string;\n}\n\nexport interface GraderPickerProps {\n    /** Name of the field that the form submits. */\n    name: string;\n    current: number;\n    currentname: string;\n    strings: Record<string, string>;\n}\n"],
+  "mappings": "AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;",
+  "names": []
+}

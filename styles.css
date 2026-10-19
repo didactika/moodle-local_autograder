@@ -1,50 +1,265 @@
-/* Limit these rules to autograder's own pages and activity settings section. */
-.local-autograder-table-scroll {
-    max-width: 100%;
-    overflow-x: auto;
-    contain: inline-size;
+/* Generated from styles.scss. Edit the SCSS component sources and rebuild. */
+/* Moodle 4.0 and later cores disagree on decimal formatting; use the current leading-zero style. */
+/* stylelint-disable number-leading-zero */
+
+/*
+ * Every colour comes from the theme and ends in the colour that Boost has, so a theme changes the plugin by changing its own
+ * colours. The colour modes of Moodle 5 change them too.
+ */
+
+.lag {
+    --lag-text: var(--bs-body-color, #212529);
+    --lag-surface: var(--bs-body-bg, #fff);
+    --lag-border: var(--bs-border-color, #dee2e6);
+    --lag-border-strong: color-mix(in srgb, var(--lag-text) 40%, var(--lag-surface));
+    --lag-muted: var(--bs-secondary-color, #6c757d);
+    --lag-accent: var(--bs-primary, #0f6cbf);
+    --lag-accent-soft: color-mix(in srgb, var(--lag-accent) 12%, var(--lag-surface));
+    --lag-accent-ring: color-mix(in srgb, var(--lag-accent) 28%, transparent);
+    --lag-hover: color-mix(in srgb, var(--lag-text) 5%, var(--lag-surface));
+    --lag-faint: color-mix(in srgb, var(--lag-text) 3%, var(--lag-surface));
+    color: var(--lag-text);
 }
 
-.local-autograder-table-scroll:focus-visible {
-    outline: 2px solid var(--primary, #0f6cbf);
-    outline-offset: 2px;
+.lag .lag-intro {
+    margin: 0 0 1rem;
+    color: var(--lag-muted);
 }
 
-#local-autograder-modules {
-    width: 100%;
-}
-
-#local-autograder-modules td {
-    vertical-align: middle;
-    overflow-wrap: anywhere;
-}
-
-#local-autograder-modules td:last-child {
-    width: 5rem;
-}
-
-#local-autograder-modules form {
+.lag .lag-types {
     margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--lag-surface);
+    border: 1px solid var(--lag-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
 }
 
-#id_autogradersection .felement,
-#page-local-autograder-advanced .felement,
-#page-local-autograder-optout .felement {
+.lag .lag-type {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--lag-border);
+}
+
+.lag .lag-type:last-child {
+    border-bottom: 0;
+}
+
+.lag .lag-type:hover {
+    background: var(--lag-hover);
+}
+
+.lag .lag-type-icon {
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+.lag .lag-type-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.lag .lag-switch {
+    position: relative;
+    flex: none;
+    width: 2.75rem;
+    height: 1.5rem;
+    padding: 0;
+    background: var(--lag-border-strong);
+    border: 0;
+    border-radius: 999px;
+    transition: background 0.15s ease;
+}
+
+.lag .lag-switch:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+}
+
+.lag .lag-switch:disabled {
+    opacity: 0.6;
+}
+
+.lag .lag-switch[aria-checked=true] {
+    background: var(--lag-accent);
+}
+
+.lag .lag-switch-knob {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1.1rem;
+    height: 1.1rem;
+    background: #fff;
+    border-radius: 999px;
+    transition: transform 0.15s ease;
+}
+
+.lag .lag-switch[aria-checked=true] .lag-switch-knob {
+    transform: translateX(1.25rem);
+}
+
+.lag .lag-sk {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--lag-hover), var(--lag-faint), var(--lag-hover));
+    background-size: 200% 100%;
+    border-radius: 0.4rem;
+    animation: lag-shimmer 1.4s ease-in-out infinite;
+}
+
+.lag .lag-sk-line {
+    width: 100%;
+    height: 1.4rem;
+}
+
+.lag .lag-sk-row {
+    padding: 0.7rem 0;
+}
+
+.lag-picker {
+    position: relative;
+    max-width: 26rem;
+}
+
+.lag-picker .lag-picker-box {
+    display: flex;
+    align-items: center;
+    background: var(--lag-surface);
+    border: 1px solid var(--lag-border-strong);
+    border-radius: 999px;
+}
+
+.lag-picker .lag-picker-button {
+    flex: 1;
+    padding: 0.45rem 1rem;
+    text-align: left;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+}
+
+.lag-picker .lag-picker-button:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+}
+
+.lag-picker .lag-picker-clear {
+    width: 1.9rem;
+    height: 1.9rem;
+    margin-right: 0.3rem;
+    color: var(--lag-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+}
+
+.lag-picker .lag-picker-clear:hover {
+    background: var(--lag-hover);
+}
+
+.lag-picker .lag-picker-panel {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    width: 100%;
+    background: var(--lag-surface);
+    border: 1px solid var(--lag-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--lag-text) 16%, transparent);
+}
+
+.lag-picker .lag-picker-field {
+    display: block;
+    width: calc(100% - 0.7rem);
+    margin: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    color: var(--lag-text);
+    background: var(--lag-surface);
+    border: 1px solid var(--lag-border-strong);
+    border-radius: 999px;
+}
+
+.lag-picker .lag-picker-field:focus {
+    outline: 0;
+    border-color: var(--lag-accent);
+    box-shadow: 0 0 0 0.2rem var(--lag-accent-ring);
+}
+
+.lag-picker .lag-picker-list {
+    max-height: 14rem;
+    margin: 0;
+    padding: 0 0.35rem 0.35rem;
+    overflow: auto;
+    list-style: none;
+}
+
+.lag-picker .lag-picker-option {
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 0.5rem;
+}
+
+.lag-picker .lag-picker-option:hover,
+.lag-picker .lag-picker-option:focus-visible {
+    outline: 0;
+    background: var(--lag-hover);
+}
+
+.lag-picker .lag-picker-status {
+    margin: 0;
+    padding: 0.3rem 1rem 0.8rem;
+    color: var(--lag-muted);
+}
+
+@keyframes lag-shimmer {
+
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+
+#id_autogradersection .felement {
     min-width: 0;
 }
 
-#id_autogradersection input[type="text"],
+#id_autogradersection input[type=text],
 #id_autogradersection select {
     max-width: 100%;
+    min-height: 2.75rem;
+    border-radius: 0.375rem;
 }
 
-#id_autogradersection .form-static,
+#id_autogradersection .form-static {
+    overflow-wrap: anywhere;
+}
+
+#page-local-autograder-advanced {
+    /* Core rubrics need space for their levels; scroll only the grading field, keeping the page heading and the save and cancel
+     buttons within the viewport. */
+}
+
+#page-local-autograder-advanced .felement {
+    min-width: 0;
+}
+
 #page-local-autograder-advanced p {
     overflow-wrap: anywhere;
 }
 
-/* Core rubrics need space for their levels; scroll only the grading field,
-   keeping the page heading and the save/cancel buttons within the viewport. */
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
     contain: inline-size;
@@ -60,36 +275,37 @@
     min-width: 8rem;
 }
 
-@media (max-width: 767.98px) {
-    #id_autogradersection input[type="text"],
-    #id_autogradersection select {
-        width: 100%;
-        min-height: 2.75rem;
-    }
-
-    #page-local-autograder-advanced .mform .btn,
-    #page-local-autograder-optout .mform .btn {
-        min-height: 2.75rem;
-        white-space: normal;
-    }
+#page-local-autograder-advanced .mform {
+    max-width: 100%;
 }
 
-/* Match the report's control spacing while retaining Moodle form layouts. */
-#page-local-autograder-modules .btn,
-#page-local-autograder-advanced .mform .btn,
-#page-local-autograder-optout .mform .btn,
-#id_autogradersection input[type="text"],
-#id_autogradersection select {
+#page-local-autograder-advanced .mform .btn {
     min-height: 2.75rem;
     border-radius: 0.375rem;
 }
 
-#local-autograder-modules th,
-#local-autograder-modules td {
-    padding: 0.75rem;
+#page-local-autograder-optout .felement {
+    min-width: 0;
 }
 
-#page-local-autograder-advanced .mform,
 #page-local-autograder-optout .mform {
     max-width: 100%;
+}
+
+#page-local-autograder-optout .mform .btn {
+    min-height: 2.75rem;
+    border-radius: 0.375rem;
+}
+
+@media (max-width: 767.98px) {
+
+    #id_autogradersection input[type=text],
+    #id_autogradersection select {
+        width: 100%;
+    }
+
+    #page-local-autograder-advanced .mform .btn,
+    #page-local-autograder-optout .mform .btn {
+        white-space: normal;
+    }
 }

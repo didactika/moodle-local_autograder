@@ -21,6 +21,21 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+## [1.1.0-m503] - 2026-10-19
+
+First release of the Moodle 5.3 line, on `main`. The Moodle 4.0 to 5.2 line is on `MOODLE_400_STABLE` (1.1.0-m400).
+
+### Changed
+
+- The page of the activity types is a React component written in TypeScript, mounted by Moodle's own `core/react_autoinit`: one row and one switch for each type, a switch that saves the moment it is flipped through the new function `local_autograder_set_module_type`, says so in a toast, and goes back where it was if the server refuses.
+- The field of the fallback grader is a React search box that asks the server for users as the administrator types, instead of the form autocomplete of Moodle with its own AMD module; what is chosen is written in the field that the settings page saves.
+- The styles are written as nested SCSS and compiled into `styles.css`, with every colour taken from the theme so that a theme can restyle them, and the pipeline checks that the stylesheet is what the sources produce.
+- The AMD modules and the Mustache template are gone: nothing of the plugin is drawn by them on Moodle 5.3.
+
+### Added
+
+- Behat scenarios for the page of the activity types and for the fallback grader.
+
 ## [1.0.4-m405] - 2026-10-13
 
 ### Changed
