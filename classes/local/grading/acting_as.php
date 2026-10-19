@@ -64,7 +64,7 @@ final class acting_as {
         $previous = $USER;
         $target = $DB->get_record('user', ['id' => $userid], '*', MUST_EXIST);
 
-        \core\cron::setup_user($target, null, true);
+        self::setup_user($target);
 
         try {
             return $callback();
@@ -72,7 +72,20 @@ final class acting_as {
             // A previous user with no id is the empty/not-logged-in session a
             // task starts from; null puts the default cron user back, which is
             // what the task runner would have set up anyway.
-            \core\cron::setup_user(empty($previous->id) ? null : $previous, null, true);
+            self::setup_user(empty($previous->id) ? null : $previous);
         }
+    }
+
+    /**
+     * Become a user the way a task does, with the class of Moodle 4.3 and later or the function of the earlier ones.
+     *
+     * @param \stdClass|null $user The user, or null for the default one of the cron.
+     */
+    private static function setup_user($user): void {
+        if (class_exists(\core\cron::class)) {
+            \core\cron::setup_user($user, null, true);
+            return;
+        }
+        cron_setup_user($user, null, true);
     }
 }

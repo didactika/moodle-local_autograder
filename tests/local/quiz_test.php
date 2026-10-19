@@ -22,7 +22,6 @@ use local_autograder\local\decision\decision_repository;
 use local_autograder\local\grading\grade_log_repository;
 use local_autograder\local\module\module_adapter;
 use local_autograder\task\grade_student;
-use mod_quiz\quiz_attempt;
 
 /**
  * A quiz with an essay: no grade of its own until the essay is marked, which
@@ -210,7 +209,11 @@ final class quiz_test extends \advanced_testcase {
         }
 
         // What the quiz's edit page does once its questions change.
-        \mod_quiz\quiz_settings::create($quiz->id)->get_grade_calculator()->recompute_quiz_sumgrades();
+        if (class_exists(\mod_quiz\quiz_settings::class)) {
+            \mod_quiz\quiz_settings::create($quiz->id)->get_grade_calculator()->recompute_quiz_sumgrades();
+        } else {
+            quiz_update_sumgrades($quiz);
+        }
 
         return $quiz;
     }
@@ -237,6 +240,19 @@ final class quiz_test extends \advanced_testcase {
     }
 
     /**
+     * The attempt as the quiz code sees it: the class has a namespace from Moodle 4.2 and was global before.
+     *
+     * @param int $attemptid The attempt.
+     * @return object The attempt object.
+     */
+    private function quiz_attempt(int $attemptid) {
+        if (class_exists(\mod_quiz\quiz_attempt::class)) {
+            return \mod_quiz\quiz_attempt::create($attemptid);
+        }
+        return \quiz_attempt::create($attemptid);
+    }
+
+    /**
      * The student makes an attempt and submits it, answering every essay
      * with the same text.
      *
@@ -249,7 +265,7 @@ final class quiz_test extends \advanced_testcase {
 
         $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
         $attempt = $quizgenerator->create_attempt($quiz->id, $this->student->id);
-        $slots = quiz_attempt::create($attempt->id)->get_slots();
+        $slots = $this->quiz_attempt((int) $attempt->id)->get_slots();
         $responses = array_fill_keys($slots, $answer);
         $quizgenerator->submit_responses($attempt->id, $responses, false, true);
 
@@ -294,7 +310,7 @@ final class quiz_test extends \advanced_testcase {
     private function mark(int $attemptid, int $slot, float $mark): void {
         $this->setUser($this->teacher);
 
-        $attemptobj = quiz_attempt::create($attemptid);
+        $attemptobj = $this->quiz_attempt($attemptid);
         $attemptobj->get_question_usage()->manual_grade($slot, 'Marked.', $mark, FORMAT_HTML);
         $attemptobj->process_submitted_actions(time(), false, []);
 

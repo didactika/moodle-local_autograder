@@ -49,7 +49,7 @@ abstract class module_adapter {
     private static bool $writing = false;
 
     /** @var \stdClass The course module record. */
-    protected \cm_info|\stdClass $cm;
+    protected $cm;
 
     /** @var \stdClass The autograder configuration row for it. */
     protected \stdClass $config;
@@ -60,7 +60,7 @@ abstract class module_adapter {
      * @param \cm_info|\stdClass $cm
      * @param \stdClass $config
      */
-    final public function __construct(\cm_info|\stdClass $cm, \stdClass $config) {
+    final public function __construct($cm, \stdClass $config) {
         $this->cm = $cm;
         $this->config = $config;
     }
@@ -72,7 +72,7 @@ abstract class module_adapter {
      * @param \stdClass $config Its `local_autograder_config` row.
      * @return self
      */
-    public static function for_cm(\cm_info|\stdClass $cm, \stdClass $config): self {
+    public static function for_cm($cm, \stdClass $config): self {
         $classname = self::class_for((string) $cm->modname);
 
         return new $classname($cm, $config);

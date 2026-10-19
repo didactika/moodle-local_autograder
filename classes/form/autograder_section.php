@@ -210,9 +210,9 @@ final class autograder_section {
         \MoodleQuickForm $mform,
         string $modname,
         string $grademethod,
-        \cm_info|\stdClass|null $cm,
+        $cm,
         $config,
-        string $typefield,
+        string $typefield
     ): void {
         // Says the range out loud instead of leaving the teacher to find it
         // by being refused. It is what the activity is graded out of *now*;
@@ -302,8 +302,8 @@ final class autograder_section {
      */
     private static function add_advanced_grading_notice(
         \MoodleQuickForm $mform,
-        \cm_info|\stdClass $cm,
-        $config,
+        $cm,
+        $config
     ): void {
         if (!advanced_grading::is_defined($cm)) {
             $url = advanced_grading::definition_url($cm);
@@ -352,9 +352,9 @@ final class autograder_section {
     private static function add_scale_elements(
         \MoodleQuickForm $mform,
         string $grademethod,
-        \cm_info|\stdClass|null $cm,
+        $cm,
         $config,
-        string $typefield,
+        string $typefield
     ): array {
         $names = [];
 
@@ -909,7 +909,7 @@ final class autograder_section {
      * @param \cm_info|\stdClass $cm The activity, whose scale a scale grade is read against.
      * @return float|null
      */
-    private static function submitted_grade_value(\stdClass $data, string $grademethod, \cm_info|\stdClass $cm): ?float {
+    private static function submitted_grade_value(\stdClass $data, string $grademethod, $cm): ?float {
         if ($grademethod !== 'scale') {
             return isset($data->autograder_grade_point) ? (float) $data->autograder_grade_point : null;
         }
@@ -928,7 +928,7 @@ final class autograder_section {
      * @param \cm_info|\stdClass $cm
      * @return array<int, string>
      */
-    private static function scale_items(\cm_info|\stdClass $cm): array {
+    private static function scale_items($cm): array {
         $scaleid = self::current_scale_id($cm);
 
         return $scaleid === null ? [] : self::scale_items_of($scaleid);
@@ -941,7 +941,7 @@ final class autograder_section {
      * @param \cm_info|\stdClass $cm
      * @return int|null
      */
-    private static function current_scale_id(\cm_info|\stdClass $cm): ?int {
+    private static function current_scale_id($cm): ?int {
         $gradeitem = \grade_item::fetch([
             'itemtype' => 'mod',
             'itemmodule' => $cm->modname,

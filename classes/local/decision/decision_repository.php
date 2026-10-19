@@ -204,7 +204,7 @@ final class decision_repository {
      * @return \stdClass|null The decision, or null when there is nothing to
      *                        grade for this student.
      */
-    public static function ensure(\cm_info|\stdClass $cm, \stdClass $config, int $userid): ?\stdClass {
+    public static function ensure($cm, \stdClass $config, int $userid): ?\stdClass {
         global $DB;
 
         $existing = self::for_cm_user((int) $cm->id, $userid);
@@ -288,10 +288,10 @@ final class decision_repository {
      * @return \stdClass The decision.
      */
     private static function insert(
-        \cm_info|\stdClass $cm,
+        $cm,
         int $userid,
         array $plan,
-        bool $gradedbyhand,
+        bool $gradedbyhand
     ): \stdClass {
         global $DB;
 
@@ -415,7 +415,7 @@ final class decision_repository {
         string $status,
         ?string $failurereason = null,
         ?int $graderid = null,
-        ?float $gradedvalue = null,
+        ?float $gradedvalue = null
     ): void {
         global $DB;
 
@@ -440,7 +440,7 @@ final class decision_repository {
     public static function cancel(
         \stdClass $decision,
         string $reason,
-        string $status = self::STATUS_CANCELLED,
+        string $status = self::STATUS_CANCELLED
     ): void {
         if (in_array($decision->status, self::terminal_statuses(), true)) {
             return;

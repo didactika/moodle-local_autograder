@@ -175,7 +175,7 @@ final class decision_planner_test extends \advanced_testcase {
      */
     public function test_a_type_without_an_adapter_needs_a_completion_the_student_can_meet(
         array $completion,
-        bool $expected,
+        bool $expected
     ): void {
         // The lesson generator saves files as whoever is logged in.
         $this->setAdminUser();

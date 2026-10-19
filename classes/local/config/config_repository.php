@@ -106,7 +106,7 @@ final class config_repository {
         ?float $gradevalue,
         ?string $advancedgrading,
         int $delayseconds,
-        int $userid,
+        int $userid
     ): \stdClass {
         global $DB;
 
