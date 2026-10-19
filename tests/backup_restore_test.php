@@ -383,9 +383,11 @@ final class backup_restore_test extends \advanced_testcase {
      * @return \cm_info|null
      */
     private function duplicate(\stdClass $course, $cm): ?\cm_info {
-        $actions = \core_courseformat\formatactions::cm((int) $course->id);
-        if (method_exists($actions, 'duplicate')) {
-            return $actions->duplicate((int) $cm->id);
+        if (class_exists(\core_courseformat\formatactions::class)) {
+            $actions = \core_courseformat\formatactions::cm((int) $course->id);
+            if (method_exists($actions, 'duplicate')) {
+                return $actions->duplicate((int) $cm->id);
+            }
         }
         return duplicate_module($course, $cm);
     }

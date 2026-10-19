@@ -23,6 +23,10 @@ use core_external\external_single_structure;
 use core_external\external_value;
 use local_autograder\local\config\grader_search;
 
+// The classes below extend those of core_external, which Moodle 4.0 and 4.1 only have under their old names.
+// phpcs:ignore moodle.Files.MoodleInternal.MoodleInternalGlobalState
+\local_autograder\compat\external_aliases::register();
+
 /**
  * Searches for a user who could stand in as the site's fallback grader.
  *

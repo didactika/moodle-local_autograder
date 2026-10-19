@@ -300,7 +300,7 @@ final class grader_picker {
      * @param int $userid
      * @return bool
      */
-    public static function grades_this_module(\cm_info|\stdClass $cm, int $userid): bool {
+    public static function grades_this_module($cm, int $userid): bool {
         return has_capability(
             self::grade_capability_for((string) $cm->modname),
             \context_module::instance((int) $cm->id),

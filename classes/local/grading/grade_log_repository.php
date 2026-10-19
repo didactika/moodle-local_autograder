@@ -62,7 +62,7 @@ final class grade_log_repository {
         string $outcome,
         string $message = '',
         ?int $graderid = null,
-        ?float $gradevalue = null,
+        ?float $gradevalue = null
     ): int {
         global $DB;
 

@@ -59,7 +59,7 @@ final class decision_planner {
      *         Null when there is nothing to grade: the student has not done
      *         the activity yet, as {@see self::engagement()} decides it.
      */
-    public static function plan(\cm_info|\stdClass $cm, \stdClass $config, int $userid): ?array {
+    public static function plan($cm, \stdClass $config, int $userid): ?array {
         $adapter = module_adapter::for_cm($cm, $config);
         [$completedat, $submittedat] = self::engagement($cm, $adapter, $userid);
 
@@ -139,6 +139,29 @@ final class decision_planner {
     }
 
     /**
+     * Whether the completion of the activity counts as done.
+     *
+     * Moodle 4.0 has no is_overall_complete() on the completion details, so it is worked out from the state that they do
+     * give: a manual completion is done when ticked, and an automatic one when it is complete or passed, or failed as well
+     * when the activity does not ask for a passing grade.
+     *
+     * @param \cm_info $cminfo The activity as the student sees it.
+     * @param \core_completion\cm_completion_details $completion Its completion details for the student.
+     * @return bool Whether it is done.
+     */
+    private static function is_overall_complete($cminfo, $completion): bool {
+        $state = $completion->get_overall_completion();
+        if ((int) $cminfo->completion === COMPLETION_TRACKING_MANUAL) {
+            return $state === COMPLETION_COMPLETE;
+        }
+        $done = [COMPLETION_COMPLETE, COMPLETION_COMPLETE_PASS];
+        if (empty($cminfo->completionpassgrade)) {
+            $done[] = COMPLETION_COMPLETE_FAIL;
+        }
+        return in_array($state, $done, true);
+    }
+
+    /**
      * Whether, and when, the student has done the activity.
      *
      * Where the activity tracks completion, completion is the answer: the
@@ -168,7 +191,7 @@ final class decision_planner {
      *         they handed it in, as due_date_calculator::calculate() takes
      *         them — both null when they have not done it yet.
      */
-    private static function engagement(\cm_info|\stdClass $cm, module_adapter $adapter, int $userid): array {
+    private static function engagement($cm, module_adapter $adapter, int $userid): array {
         global $CFG;
 
         require_once($CFG->libdir . '/completionlib.php');
@@ -180,12 +203,12 @@ final class decision_planner {
             return [null, $adapter->submitted_at($userid)];
         }
 
-        if ($completion->is_overall_complete()) {
+        if (self::is_overall_complete($cminfo, $completion)) {
             return [$completion->get_timemodified() ?: $adapter->submitted_at($userid), null];
         }
 
         // Only the student can tick manual completion, and they have not.
-        if ($completion->is_manual()) {
+        if ((int) $cminfo->completion === COMPLETION_TRACKING_MANUAL) {
             return [null, null];
         }
 
@@ -214,7 +237,7 @@ final class decision_planner {
      * @param int $userid
      * @return int[]
      */
-    public static function group_ids(\cm_info|\stdClass $cm, int $userid): array {
+    public static function group_ids($cm, int $userid): array {
         $groups = groups_get_all_groups($cm->course, $userid);
 
         return array_map('intval', array_keys($groups));
@@ -231,7 +254,7 @@ final class decision_planner {
      * @param int $userid
      * @return bool
      */
-    public static function is_still_enrolled(\cm_info|\stdClass $cm, int $userid): bool {
+    public static function is_still_enrolled($cm, int $userid): bool {
         return is_enrolled(\context_course::instance($cm->course), $userid, '', true);
     }
 
@@ -247,7 +270,7 @@ final class decision_planner {
      * @param int $userid
      * @return bool
      */
-    public static function is_gradable_student(\cm_info|\stdClass $cm, int $userid): bool {
+    public static function is_gradable_student($cm, int $userid): bool {
         global $CFG, $DB;
 
         $context = \context_course::instance($cm->course);

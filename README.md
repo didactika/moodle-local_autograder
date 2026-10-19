@@ -7,8 +7,8 @@
 *Automatically grades completed activities that a teacher hasn't graded*
 
 [![Release](https://img.shields.io/github/v/release/didactika/moodle-local_autograder?style=flat-square)](https://github.com/didactika/moodle-local_autograder/releases)
-[![Moodle](https://img.shields.io/badge/Moodle-4.5+-f98012?style=flat-square&logo=moodle&logoColor=white)](https://moodle.org)
-[![PHP](https://img.shields.io/badge/PHP-8.1+-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net)
+[![Moodle](https://img.shields.io/badge/Moodle-4.0_to_5.2-f98012?style=flat-square&logo=moodle&logoColor=white)](https://moodle.org)
+[![PHP](https://img.shields.io/badge/PHP-7.4+-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net)
 [![License](https://img.shields.io/badge/License-GPL_v3-blue?style=flat-square)](LICENSE)
 
 [Overview](#overview) • [Installation](#installation) • [Usage](#usage) • [Reviewing decisions](#reviewing-decisions) • [Configuration](#configuration) • [Troubleshooting](#troubleshooting)
@@ -76,7 +76,7 @@ If no teacher qualifies, the grade is attributed to the site's **fallback grader
 
 ## Installation
 
-**Requirements:** Moodle 4.5 or later and PHP 8.1 or later.
+**Requirements:** Moodle 4.0 to 5.2 and PHP 7.4 or later (the one that your Moodle needs). Moodle 5.3 has a line of its own on `main`, written in React and TypeScript.
 
 > [!IMPORTANT]
 > Grading is done by scheduled and ad hoc tasks, so [cron](https://docs.moodle.org/en/Cron) must run regularly for grades to be assigned on time.

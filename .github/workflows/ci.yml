@@ -126,7 +126,7 @@ jobs:
           # regression could reach without CI noticing. Each one listed needs
           # a MOODLE_PHP_TABLE and a MOODLE_DB_TABLE row, and has to fall
           # strictly inside the range, or the matrix refuses to build.
-          MOODLE_EXTRA_VERSIONS='["502"]'
+          MOODLE_EXTRA_VERSIONS='["401", "405"]'
 
           supported_raw=$(grep -oP '\$plugin->supported\s*=\s*\[\K[^\]]+' version.php || true)
           if [ -z "$supported_raw" ]; then

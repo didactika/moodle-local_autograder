@@ -94,7 +94,7 @@ final class due_date_calculator {
         ?int $submittedat,
         ?int $closedate,
         ?int $useroverridedate,
-        array $groupoverridedates = [],
+        array $groupoverridedates = []
     ): ?array {
         // Completion is the stronger signal where it is tracked; a submission
         // stands in where it is not.
@@ -133,7 +133,7 @@ final class due_date_calculator {
     private static function effective_close_date(
         ?int $closedate,
         ?int $useroverridedate,
-        array $groupoverridedates,
+        array $groupoverridedates
     ): ?array {
         // A user override settles it on its own, group overrides included —
         // whether it names a date or takes the deadline away.

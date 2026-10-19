@@ -21,6 +21,15 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+## [1.1.0-m400] - 2026-10-19
+
+First release of the Moodle 4.0 to 5.2 line, on `MOODLE_400_STABLE`. The Moodle 5.3 line is on `main` (1.1.0-m503).
+
+### Changed
+
+- The plugin installs on Moodle 4.0 to 5.2 and on PHP 7.4 or later: the union types of the activity parameters are written as documented untyped parameters, the declarations have no trailing comma after the last parameter, and the web service class takes the `core_external` names through an alias on Moodle 4.0 and 4.1, which only have the old ones.
+- The pipeline tests Moodle 4.0 and 5.2 and the releases of 4.1 and 4.5 between them.
+
 ## [1.0.4-m405] - 2026-10-13
 
 ### Changed

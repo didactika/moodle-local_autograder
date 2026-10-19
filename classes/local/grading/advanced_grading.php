@@ -42,7 +42,7 @@ final class advanced_grading {
      * @param \cm_info|\stdClass $cm A course module record with `modname` and `id`.
      * @return \gradingform_controller|null
      */
-    public static function controller(\cm_info|\stdClass $cm): ?\gradingform_controller {
+    public static function controller($cm): ?\gradingform_controller {
         global $CFG;
 
         require_once($CFG->dirroot . '/grade/grading/lib.php');
@@ -70,7 +70,7 @@ final class advanced_grading {
      * @param \cm_info|\stdClass $cm
      * @return bool
      */
-    public static function is_defined(\cm_info|\stdClass $cm): bool {
+    public static function is_defined($cm): bool {
         $controller = self::controller($cm);
 
         return $controller !== null && $controller->is_form_defined() && $controller->is_form_available();
@@ -83,7 +83,7 @@ final class advanced_grading {
      * @param \cm_info|\stdClass $cm
      * @return \moodle_url|null
      */
-    public static function definition_url(\cm_info|\stdClass $cm): ?\moodle_url {
+    public static function definition_url($cm): ?\moodle_url {
         $area = eligibility::advanced_grading_area($cm->modname);
 
         if ($area === null) {
@@ -111,7 +111,7 @@ final class advanced_grading {
      * @param \cm_info|\stdClass $cm
      * @return \gradingform_instance|null Null when there is no definition yet.
      */
-    public static function template_instance(\cm_info|\stdClass $cm): ?\gradingform_instance {
+    public static function template_instance($cm): ?\gradingform_instance {
         global $USER;
 
         $controller = self::controller($cm);
@@ -151,7 +151,7 @@ final class advanced_grading {
      * @param \cm_info|\stdClass $cm
      * @return array<int, array>
      */
-    public static function criteria(\cm_info|\stdClass $cm): array {
+    public static function criteria($cm): array {
         $controller = self::controller($cm);
 
         if ($controller === null || !$controller->is_form_defined()) {
@@ -268,7 +268,7 @@ final class advanced_grading {
      * @param string|null $json
      * @return bool
      */
-    public static function filling_is_current(\cm_info|\stdClass $cm, ?string $json): bool {
+    public static function filling_is_current($cm, ?string $json): bool {
         $criteria = self::criteria($cm);
         $filling = self::decode($json);
 

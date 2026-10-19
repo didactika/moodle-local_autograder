@@ -259,8 +259,9 @@ final class observer_test extends \advanced_testcase {
         $cmid = (int) $this->cm->id;
 
         // Moodle 5.2 deprecates course_delete_module() in favour of cmactions::delete() (MDL-86856).
-        $actions = \core_courseformat\formatactions::cm((int) $this->course->id);
-        if (method_exists($actions, 'delete')) {
+        $actions = class_exists(\core_courseformat\formatactions::class)
+            ? \core_courseformat\formatactions::cm((int) $this->course->id) : null;
+        if ($actions !== null && method_exists($actions, 'delete')) {
             $actions->delete($cmid);
         } else {
             course_delete_module($cmid);
@@ -388,7 +389,7 @@ final class observer_test extends \advanced_testcase {
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        $DB->insert_record('assign_submission', (object) [
+        $submissionid = $DB->insert_record('assign_submission', (object) [
             'assignment' => $this->assign->id,
             'userid' => $this->student->id,
             'timecreated' => time() - HOURSECS,
@@ -399,11 +400,22 @@ final class observer_test extends \advanced_testcase {
             'latest' => 1,
         ]);
 
-        \mod_assign\event\assessable_submitted::create([
+        // Moodle 4.0 describes the submission for the legacy log from what the online text plugin stored.
+        $DB->insert_record('assignsubmission_onlinetext', (object) [
+            'assignment' => $this->assign->id,
+            'submission' => $submissionid,
+            'onlinetext' => 'Answer',
+            'onlineformat' => FORMAT_HTML,
+        ]);
+
+        $event = \mod_assign\event\assessable_submitted::create([
             'context' => \context_module::instance((int) $this->cm->id),
-            'objectid' => $this->assign->id,
+            'objectid' => $submissionid,
             'userid' => (int) $this->student->id,
             'other' => ['submission_editable' => false],
-        ])->trigger();
+        ]);
+        // Moodle 4.0 describes the event from the assignment that it carries.
+        $event->set_assign(new \assign(\context_module::instance((int) $this->cm->id), $this->cm, $this->course));
+        $event->trigger();
     }
 }

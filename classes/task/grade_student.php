@@ -137,9 +137,9 @@ class grade_student extends \core\task\adhoc_task {
      */
     private function grade(
         \stdClass $decision,
-        \cm_info|\stdClass $cm,
+        $cm,
         \stdClass $config,
-        module_adapter $adapter,
+        module_adapter $adapter
     ): void {
         $userid = (int) $decision->userid;
 
@@ -213,7 +213,7 @@ class grade_student extends \core\task\adhoc_task {
      * @param string $reason
      * @param string $detail
      */
-    private function fail(\stdClass $decision, \cm_info|\stdClass $cm, string $reason, string $detail = ''): void {
+    private function fail(\stdClass $decision, $cm, string $reason, string $detail = ''): void {
         decision_repository::settle($decision, decision_repository::STATUS_FAILED, $reason);
 
         grade_log_repository::record(
