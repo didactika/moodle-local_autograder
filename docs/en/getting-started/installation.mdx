@@ -1,0 +1,37 @@
+---
+title: Installation
+summary: Requirements, and how to install the plugin and its report from a release or from Git.
+order: 10
+---
+
+**Requirements:** Moodle 5.3 and PHP 8.3 or later for the `main` branch. Moodle 4.0 to 5.2 have a line of their own with the same features.
+
+| Moodle | Branch | Releases |
+|---|---|---|
+| 4.0 to 5.2 | `MOODLE_400_STABLE` | `X.Y.Z-m400` |
+| 5.3 | `main` | `X.Y.Z-m503` |
+
+> [!IMPORTANT]
+> Grading is done by scheduled and ad hoc tasks, so [cron](https://docs.moodle.org/en/Cron) must run regularly for grades to be assigned on time.
+
+Install the [Autograder report](https://github.com/didactika/moodle-report_autograder) (`report_autograder`) together with this plugin: the plugin grades, and the report is where the decisions are reviewed.
+
+<Tabs>
+  <TabItem label="From a release">
+    Download the latest release ZIP files of Autograder and of the report, go to **Site administration > Plugins > Install plugins**, upload each file and follow the prompts.
+  </TabItem>
+  <TabItem label="From Git">
+```bash
+cd /path/to/moodle
+# Moodle 5.3
+git clone https://github.com/didactika/moodle-local_autograder.git local/autograder
+git clone https://github.com/didactika/moodle-report_autograder.git report/autograder
+# Moodle 4.0 to 5.2
+git clone -b MOODLE_400_STABLE https://github.com/didactika/moodle-local_autograder.git local/autograder
+git clone -b MOODLE_400_STABLE https://github.com/didactika/moodle-report_autograder.git report/autograder
+php admin/cli/upgrade.php
+```
+  </TabItem>
+</Tabs>
+
+After installing, assignments, forums and quizzes can already use Autograder. The next step is to [grade a first activity](page:getting-started/quick-start).

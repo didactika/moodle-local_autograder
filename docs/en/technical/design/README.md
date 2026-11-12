@@ -1,0 +1,41 @@
+---
+id: DES
+status: draft
+origin: code
+sourceOfTruth: code
+---
+
+# Design
+
+## Architecture
+
+Autograder is a Moodle local plugin with three layers:
+
+- **Entry points**: the settings section of the activity form, the page of the activity types, the observers of events and the ad hoc and scheduled tasks.
+- **Services**: classes in `classes/local/`. `config_repository` and `eligibility` hold the configuration, `decision_planner` and `decision_repository` the decisions, `grader_picker` the choice of teacher and the adapters of `module/` the work through each kind of activity.
+- **Persistence**: three tables, `local_autograder_config`, `local_autograder_decision` and `local_autograder_grade_log`.
+
+Two decisions shape the design. First, **every condition is read again when a grade is due**, so an event that is missed or a role that changed costs promptness at most and never correctness. Second, **each grade is its own ad hoc task**, scheduled for its time, with a task that queues again the ones that lost theirs.
+
+## Design classes
+
+![Design classes](./class-diagram.svg)
+
+## Components
+
+![Components](./components/components.svg)
+
+The plugin sits on completion, the gradebook and the grading methods, events, the task API, capabilities and the database of Moodle. It adds no change to core.
+
+## Data model
+
+![Data model](./data-model/data-model.svg)
+
+## Use-case realizations
+
+| ID | Use case | Sequence |
+| --- | --- | --- |
+| UC-001 | [Configure Autograder in an activity](./use-cases/configureAutograder/README.md) | [sequence](./use-cases/configureAutograder/sequence.svg) |
+| UC-002 | [Choose the activity types](./use-cases/chooseActivityTypes/README.md) | [sequence](./use-cases/chooseActivityTypes/sequence.svg) |
+| UC-003 | [Grade a student](./use-cases/gradeStudent/README.md) | [sequence](./use-cases/gradeStudent/sequence.svg) |
+| UC-004 | [Reconsider a decision when something changes](./use-cases/reconsiderDecision/README.md) | [sequence](./use-cases/reconsiderDecision/sequence.svg) |

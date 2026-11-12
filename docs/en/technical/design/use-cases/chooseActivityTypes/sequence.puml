@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Administrator" as actor
+participant "modules.php" as page
+participant "eligibility" as eligibility
+participant "cancel_module" as task
+database "local_autograder_decision" as table
+
+actor -> page : flips the switch (modname, enabled, sesskey)
+page -> eligibility : set_module_type_enabled(modname, enabled)
+alt the type is switched off
+  eligibility -> task : queue the cancellation of its activities
+  task -> table : cancelled, with the reason
+end
+page --> actor : redirect with a message
+
+@enduml

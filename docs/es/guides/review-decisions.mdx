@@ -1,0 +1,24 @@
+---
+title: Revisar lo que se decidió
+summary: Dónde ver quién espera, quién fue calificado, a nombre de quién y qué falló.
+order: 70
+---
+
+Autograder solo se encarga de calificar: decide cuándo y cómo se califica a cada estudiante, y lo hace, pero no tiene páginas para seguir esas decisiones. Para revisarlas, instale el [informe de Autograder](https://github.com/didactika/moodle-report_autograder) (`report_autograder`), que lee los registros de Autograder y los presenta por actividad, por curso y para todo el sitio.
+
+<Screenshot src="asset:rp-activity.webp" alt="El informe de Autograder de una tarea, con una fila por estudiante" caption="El informe de una actividad." url="/report/autograder/index.php" />
+
+Para cada estudiante de cada actividad donde Autograder está activado, el informe muestra:
+
+- **Su estado actual:** pendiente, autocalificado, calificado por un docente, no autocalificado o con error.
+- **Cuándo:** el momento en que se calificará, o en que se calificó.
+- **La calificación:** la que recibirá, o la que recibió.
+- **El calificador:** el docente a cuyo nombre se registra, o se registrará, la calificación.
+
+| Informe | Dónde encontrarlo | Uso habitual |
+|---|---|---|
+| Actividad | El menú de la actividad | Un docente que sigue a los estudiantes de una actividad |
+| Curso | El menú **Informes** del curso | Un docente o un gestor del curso que revisa todas las actividades de un curso |
+| Sitio | **Administración del sitio > Informes** | Un administrador que comprueba que nada está bloqueado |
+
+Una página de calificadores muestra qué docente calificaría a cada estudiante antes de que venza ninguna calificación, de modo que un curso donde nadie puede calificar pueda corregirse con antelación. Las calificaciones fallidas y sus motivos se muestran a los usuarios que tienen `report/autograder:viewfailed`, que de forma predeterminada solo tienen los gestores. Como hace Moodle, el informe muestra a los docentes solo los grupos que pueden ver.

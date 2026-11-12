@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "configureAutograder" as configureAutograder {
+  state " " as Form
+  state " " as Checking
+  state " " as Saved
+
+  [*] --> Form : Teacher opens the settings of an activity
+  Form --> Checking : Teacher saves with Autograder on
+  Checking --> Form : System refuses, for instance when the grade is above the maximum
+  Checking --> Saved : System saves the configuration and plans the decisions
+  Saved --> [*] : System leaves it on, or off with the reason when a rubric or a completion is missing
+
+  note on link
+    Teacher: chooses grade and waiting time
+    System: validates, saves, plans
+  end note
+}
+
+@enduml

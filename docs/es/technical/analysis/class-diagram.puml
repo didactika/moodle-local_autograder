@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Activity form" as form <<boundary>>
+class "Activity types page" as types <<boundary>>
+class "Teacher preference page" as optout <<boundary>>
+class "Configuration store" as config <<control>>
+class "Type policy" as policy <<control>>
+class "Decision planner" as planner <<control>>
+class "Decision store" as store <<control>>
+class "Event observer" as observer <<control>>
+class "Grading task" as task <<control>>
+class "Grader picker" as picker <<control>>
+class "Activity adapter" as adapter <<control>>
+class "Configuration" as c <<entity>>
+class "Decision" as d <<entity>>
+class "Grade log" as l <<entity>>
+
+form --> config
+types --> policy
+optout --> picker
+observer --> store
+task --> planner
+task --> picker
+task --> adapter
+task --> store
+store --> planner
+store --> d
+config --> c
+store --> l
+policy --> store
+
+@enduml

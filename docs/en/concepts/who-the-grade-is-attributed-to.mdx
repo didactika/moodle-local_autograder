@@ -1,0 +1,36 @@
+---
+title: Who the grade is attributed to
+summary: How Autograder chooses the teacher in whose name each grade is recorded.
+order: 20
+---
+
+Autograder never records a grade as itself or as a site administrator. It chooses one of the teachers of the student, and the grade appears under that teacher's name in the activity, in the gradebook and in the grade history.
+
+## How the teacher is chosen
+
+<Steps>
+1. **Course teachers.** Users with a teaching role assigned in the course and an active enrolment in it. The site setting **Teaching roles** decides whether every role that can grade counts or only the selected roles.
+2. **Permission to grade.** Only teachers who can grade the activity and can see the student in it. In an activity with separate groups, a teacher without access to all groups can only grade the students of their own groups.
+3. **Group match.** The teacher who shares the most groups with the student is preferred. If no teacher shares a group, a teacher with no group is chosen, and failing that, any remaining teacher. In a course with separate groups and a default grouping, only the groups of that grouping are considered.
+4. **Tie-break.** If several teachers are equally suitable, the one with the lowest user ID or the one who accessed the course most recently is chosen, depending on the site setting **Teacher selection**.
+</Steps>
+
+Teachers who chose not to have grades recorded in their name are left out, when the site allows that choice. See [Teacher opt-out](page:guides/teacher-opt-out).
+
+## When no teacher qualifies
+
+The grade is attributed to the **fallback grader** of the site. If no fallback grader is set, the student is not graded and the failure is recorded: the student appears as **Failed** in the report, with the reason.
+
+> [!WARNING]
+> Unlike the teachers, the fallback grader is not checked against each activity. Choose someone who is allowed to grade wherever Autograder is used.
+
+## Which capability decides who can grade
+
+Autograder does not add a capability to decide who a grade can be attributed to. It uses the grading capability of the activity itself.
+
+| Activity | Capability |
+|---|---|
+| Assignment | `mod/assign:grade` |
+| Forum | `mod/forum:grade` |
+| Quiz | `mod/quiz:grade` |
+| Any other type | `moodle/grade:edit` |

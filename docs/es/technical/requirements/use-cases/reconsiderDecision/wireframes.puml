@@ -1,0 +1,14 @@
+@startsalt
+{
+  {* Autograder report | Course }
+  ==
+  Autograder: Digital pedagogy 101
+  --
+  {#
+    Name | Activity | Status | Grading date
+    Hugo Castro | Design a micro-lesson | Pending | 15/11/26
+    Hugo Castro | Reflection on a learning story | Autograded | 12/11/26
+    Lucia Fernandez | Reflection on a learning story | Graded by a teacher | 12/11/26
+  }
+}
+@endsalt

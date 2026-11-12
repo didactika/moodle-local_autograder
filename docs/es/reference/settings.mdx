@@ -1,0 +1,34 @@
+---
+title: Ajustes
+summary: Cada ajuste del sitio del plugin, su valor predeterminado y lo que hace.
+order: 40
+---
+
+Los ajustes están en **Administración del sitio > Extensiones > Plugins locales > Autograder**. Se organizan en dos pestañas.
+
+<Screenshot src="asset:lg-settings-general.webp" alt="La pestaña General de los ajustes de Autograder" caption="La pestaña General." url="/admin/settings.php?section=local_autograder_settings" />
+
+## General
+
+| Ajuste | Valor predeterminado | Descripción |
+|---|---|---|
+| Notificar a los estudiantes | Desactivado | Envía a los estudiantes la notificación de calificación de Moodle cuando Autograder califica una tarea o un foro, como puede hacerlo un docente al calificar manualmente |
+| Notificar a los docentes los fallos de calificación | Desactivado | Envía un resumen semanal a los docentes que configuran Autograder, con los estudiantes que no pudieron ser calificados |
+| Conservar el historial durante (días) | 120 | Las decisiones completadas y las entradas del registro más antiguas se eliminan a diario. Introduzca `0` para conservarlo todo |
+
+La pestaña incluye también el enlace a la página de [Tipos de actividad](page:guides/choose-activity-types).
+
+## Docentes
+
+| Ajuste | Valor predeterminado | Descripción |
+|---|---|---|
+| Roles de docente | Automático | **Automático** incluye todos los roles que pueden calificar. **Solo los roles seleccionados** usa los roles elegidos en el ajuste siguiente |
+| Roles de docente seleccionados | Ninguno | Solo se muestra cuando se elige **Solo los roles seleccionados** |
+| Selección del docente | Menor ID de usuario | Cómo elegir entre docentes igual de adecuados: **Menor ID de usuario** o **Acceso más reciente al curso** |
+| Calificador de reserva | Ninguno | El usuario a cuyo nombre se registran las calificaciones cuando ningún docente cumple |
+| Permitir que los docentes se excluyan | Desactivado | Permite que los docentes elijan que no se registren calificaciones a su nombre. Mientras esté desactivado, las exclusiones existentes se ignoran |
+
+<Screenshot src="asset:lg-settings-teachers.webp" alt="La pestaña Docentes de los ajustes de Autograder" caption="La pestaña Docentes." url="/admin/settings.php?section=local_autograder_settings" />
+
+> [!WARNING]
+> A diferencia de los docentes, el calificador de reserva no se comprueba contra cada actividad. Elija a alguien que tenga permiso para calificar en todos los lugares donde se use Autograder.
