@@ -5,11 +5,10 @@
   Autograder: Digital pedagogy 101
   --
   {#
-    Status | Students
-    Pending | 11
-    Autograded | 10
-    Graded by a teacher | 1
-    Failed | 1
+    Name | Activity | Status | Grading date
+    Hugo Castro | Design a micro-lesson | Pending | 15/11/26
+    Hugo Castro | Reflection on a learning story | Autograded | 12/11/26
+    Lucia Fernandez | Reflection on a learning story | Graded by a teacher | 12/11/26
   }
 }
 @endsalt
