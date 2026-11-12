@@ -1,0 +1,25 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Teacher" as actor
+participant "backup plugin" as backup
+participant "restore plugin" as restore
+participant "advanced_grading" as adv
+participant "config_repository" as store
+
+actor -> backup : backs up the course
+backup --> actor : the configuration of each activity, without decisions or log
+actor -> restore : restores
+restore -> restore : process_autograder_config(data)
+restore -> restore : after_restore_module()
+alt the type is off or the activity has no grade
+  restore --> actor : writes nothing
+else
+  restore -> adv : remapped_filling(cm, method, json)
+  restore -> store : upsert_for_cm(... enabled only if it can grade)
+  restore -> restore : plan the students
+end
+
+@enduml

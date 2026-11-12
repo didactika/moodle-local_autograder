@@ -56,6 +56,13 @@ The vertical position of an entity expresses its importance to the project objec
 | RN-008 | A quiz that grades itself keeps its own grade: Autograder only grades while a question waits to be marked by hand and gives the gradebook back afterwards. | Decision | `observer::hand_back` |
 | RN-009 | Finished decisions and log entries older than the retention setting are deleted daily. | Decision, GradeLog | `purge_history` |
 | RN-010 | An activity type qualifies when it has a grade and either declares the purpose "assessment" or defines the capability `mod/<type>:grade`. A type that stops qualifying is withdrawn from the enabled ones and what was pending for it is cancelled. | ActivityType | `eligibility::is_module_type_supported`, `eligibility::withdraw_unsupported_types` |
+| RN-011 | A teacher who opted out is never chosen to sign a grade, but only while the site allows opting out. | OptOut, Grader | `grader_picker::usable` |
+| RN-012 | Each failure is reported once, grouped by activity, to the people enrolled in the course who can configure Autograder in the activity. | Decision, Grader | `notify_failures::execute` |
+| RN-013 | A pending decision that is due and has no task behind it is queued again; a healthy site finds none. | Decision | `reconcile_pending::execute`, `decision_repository::orphaned_pending` |
+| RN-014 | The configuration travels in a course backup and the decisions and the log do not. It is restored switched on only where there is something to grade with, and the students are decided again. | Configuration, Decision | `restore_local_autograder_plugin::after_restore_module` |
+| RN-015 | The decisions and the log of a user can be exported and erased through the privacy API; erasing a whole activity also removes its configuration. | Decision, GradeLog, Configuration | `privacy\provider` |
+| RN-016 | Site administrators and users without a role that can grade are never chosen to sign a grade, nor as the fallback grader. | SitePolicy, Grader | `grader_picker::must_never_grade`, `fallback_grader_setting` |
+| RN-017 | The result of a rubric or a marking guide is used only while it still matches the definition: every criterion answered and every answer one that the definition offers. | Configuration | `advanced_grading::filling_is_current` |
 
 ## Lifecycles
 

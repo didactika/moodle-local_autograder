@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Administrator" as user <<actor>>
+class "Settings page" as screen <<boundary>>
+class "Grader search" as search <<control>>
+class "Grader picker" as picker <<control>>
+class "Site policy" as policy <<entity>>
+
+user --> screen : 1: opens the settings
+screen --> search : 2: search(query)
+user --> screen : 3: saves the values
+screen --> policy : 4: stores the settings
+picker --> policy : 5: reads them when it chooses who signs
+
+@enduml

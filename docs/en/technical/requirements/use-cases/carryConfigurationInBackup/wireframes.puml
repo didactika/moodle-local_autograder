@@ -1,0 +1,13 @@
+@startsalt
+{
+  {* Course | Restore }
+  ==
+  Restore
+  --
+  {
+    [X] Include activities and resources
+    [X] Include Autograder configuration
+    [Next]
+  }
+}
+@endsalt

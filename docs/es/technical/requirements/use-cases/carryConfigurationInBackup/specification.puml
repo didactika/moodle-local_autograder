@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "carryConfigurationInBackup" as carryConfigurationInBackup {
+  state " " as BackedUp
+  state " " as Holding
+  state " " as Restored
+
+  [*] --> BackedUp : Teacher backs up the course
+  BackedUp --> Holding : Teacher restores the backup
+  Holding --> [*] : System writes nothing, the type is off or the activity has no grade
+  Holding --> Restored : System writes the configuration against the restored activity
+  Restored --> [*] : System plans the students of the restored course
+
+  note on link
+    Teacher: backs up and restores
+    System: carries the configuration and decides again
+  end note
+}
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+participant "Cron" as cron
+participant "reconcile_pending" as task
+participant "decision_repository" as store
+database "local_autograder_decision" as table
+
+cron -> task : execute() every 30 minutes
+task -> store : orphaned_pending(now)
+store -> table : pending, due, without a task
+store --> task : the orphans
+loop each orphan
+  task -> store : schedule(decision)
+end
+
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "managePersonalData" as managePersonalData {
+  state " " as Listing
+  state " " as Exporting
+  state " " as Erasing
+
+  [*] --> Listing : Administrator approves a request
+  Listing --> Exporting : Administrator asks to export
+  Listing --> Erasing : Administrator asks to erase
+  Exporting --> [*] : System writes the decisions, the log and the preference
+  Erasing --> [*] : System deletes the decisions, the log and their tasks
+
+  note on link
+    Administrator: approves the request
+    System: exports or erases
+  end note
+}
+
+@enduml

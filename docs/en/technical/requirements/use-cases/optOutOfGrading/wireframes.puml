@@ -1,0 +1,12 @@
+@startsalt
+{
+  {* Preferences | Autograder }
+  ==
+  Autograder
+  --
+  {
+    [ ] Do not record grades in my name
+    [Save changes]
+  }
+}
+@endsalt

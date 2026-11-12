@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "optOutOfGrading" as optOutOfGrading {
+  state " " as Checking
+  state " " as Form
+  state " " as Saved
+
+  [*] --> Checking : User opens the preference
+  Checking --> [*] : System refuses, the site does not offer it or the user has no permission
+  Checking --> Form : System shows the current value
+  Form --> [*] : User cancels
+  Form --> Saved : User saves the option
+  Saved --> [*] : System stores the preference and returns to the preferences
+
+  note on link
+    User: ticks or clears the option
+    System: stores the preference
+  end note
+}
+
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "purgeHistory" as purgeHistory {
+  state " " as Reading
+  state " " as Deleting
+
+  [*] --> Reading : The task runs
+  Reading --> [*] : System keeps everything, the retention is zero
+  Reading --> Deleting : System works out the date from the retention
+  Deleting --> [*] : System deletes the old decisions and log entries and reports how many
+
+  note on link
+    System: deletes what is older than the retention
+  end note
+}
+
+@enduml

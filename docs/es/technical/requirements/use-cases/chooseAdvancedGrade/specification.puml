@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "chooseAdvancedGrade" as chooseAdvancedGrade {
+  state " " as Checking
+  state " " as Filling
+  state " " as Saved
+
+  [*] --> Checking : Teacher opens the choice of the result
+  Checking --> [*] : System warns, the activity has no rubric or guide, or it is not defined
+  Checking --> Filling : System shows the criteria with the previous choice
+  Filling --> [*] : Teacher cancels
+  Filling --> Saved : Teacher saves the choice
+  Saved --> [*] : System stores it and returns to the settings of the activity
+
+  note on link
+    Teacher: chooses a level, or a score and a remark, for each criterion
+    System: checks, stores
+  end note
+}
+
+@enduml

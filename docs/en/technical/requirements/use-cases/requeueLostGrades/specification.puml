@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "requeueLostGrades" as requeueLostGrades {
+  state " " as Looking
+  state " " as Queueing
+
+  [*] --> Looking : The task runs
+  Looking --> [*] : System finds nothing
+  Looking --> Queueing : System finds due decisions without a task
+  Queueing --> [*] : System queues a task for each and reports how many
+
+  note on link
+    System: finds, queues
+  end note
+}
+
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Administrator" as user <<actor>>
+class "Data request" as request <<boundary>>
+class "Privacy provider" as provider <<control>>
+class "Decision, grade log and configuration" as data <<entity>>
+
+user --> request : 1: approves the request
+request --> provider : 2: lists the contexts
+request --> provider : 3: exports or erases
+provider --> data : 4: reads or deletes
+
+@enduml

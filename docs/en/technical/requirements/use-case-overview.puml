@@ -12,16 +12,38 @@ rectangle "local_autograder" {
   package "Configuration" {
     usecase "Configure Autograder in an activity" as UC_configureAutograder
     usecase "Choose the activity types" as UC_chooseActivityTypes
+    usecase "Choose the result of a rubric or marking guide" as UC_chooseAdvancedGrade
+    usecase "Opt out of having grades recorded in my name" as UC_optOutOfGrading
+    usecase "Set the policy of the site" as UC_setSitePolicy
   }
   package "Grading" {
     usecase "Grade a student" as UC_gradeStudent
     usecase "Reconsider a decision when something changes" as UC_reconsiderDecision
+    usecase "Queue again the grades that lost their task" as UC_requeueLostGrades
+  }
+  package "Notification" {
+    usecase "Tell the teachers which students could not be graded" as UC_notifyFailures
+  }
+  package "Maintenance" {
+    usecase "Delete the old history" as UC_purgeHistory
+    usecase "Carry the configuration in a course backup" as UC_carryConfigurationInBackup
+  }
+  package "Privacy" {
+    usecase "Export or erase personal data" as UC_managePersonalData
   }
 }
 
-A_Teacher --> UC_configureAutograder
 A_Administrator --> UC_chooseActivityTypes
 A_System --> UC_gradeStudent
 A_System --> UC_reconsiderDecision
+A_Teacher --> UC_chooseAdvancedGrade
+A_Teacher --> UC_optOutOfGrading
+A_Administrator --> UC_setSitePolicy
+A_System --> UC_notifyFailures
+A_System --> UC_requeueLostGrades
+A_System --> UC_purgeHistory
+A_Teacher --> UC_carryConfigurationInBackup
+A_Administrator --> UC_managePersonalData
+UC_chooseAdvancedGrade ..> UC_configureAutograder : <<extend>>
 
 @enduml

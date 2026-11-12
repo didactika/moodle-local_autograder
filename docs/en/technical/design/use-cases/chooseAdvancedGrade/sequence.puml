@@ -1,0 +1,25 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Teacher" as actor
+participant "advanced.php" as page
+participant "advanced_grading" as adv
+participant "config_repository" as store
+database "local_autograder_config" as table
+
+actor -> page : opens the choice (cmid)
+page -> adv : is_defined(cm), template_instance(cm)
+alt not a rubric or a guide, or not defined
+  page --> actor : message and back to the settings
+else
+  page --> actor : the criteria with the previous choice
+  actor -> page : chooses and saves
+  page -> adv : encode(criteria)
+  page -> store : upsert_for_cm(cmid, ..., encoded choice)
+  store -> table : update
+  page --> actor : message and back to the settings
+end
+
+@enduml

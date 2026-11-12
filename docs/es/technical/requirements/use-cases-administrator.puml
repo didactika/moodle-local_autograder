@@ -8,10 +8,16 @@ actor "Administrator" as A_Administrator
 
 rectangle "local_autograder" {
   package "Configuration" {
-    usecase "Choose the activity types" as UC_chooseActivityTypes
+    usecase "Elegir los tipos de actividad" as UC_chooseActivityTypes
+    usecase "Establecer la política del sitio" as UC_setSitePolicy
+  }
+  package "Privacy" {
+    usecase "Exportar o eliminar datos personales" as UC_managePersonalData
   }
 }
 
 A_Administrator --> UC_chooseActivityTypes
+A_Administrator --> UC_setSitePolicy
+A_Administrator --> UC_managePersonalData
 
 @enduml
