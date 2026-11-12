@@ -39,3 +39,11 @@ The plugin sits on completion, the gradebook and the grading methods, events, th
 | UC-002 | [Choose the activity types](./use-cases/chooseActivityTypes/README.md) | [sequence](./use-cases/chooseActivityTypes/sequence.svg) |
 | UC-003 | [Grade a student](./use-cases/gradeStudent/README.md) | [sequence](./use-cases/gradeStudent/sequence.svg) |
 | UC-004 | [Reconsider a decision when something changes](./use-cases/reconsiderDecision/README.md) | [sequence](./use-cases/reconsiderDecision/sequence.svg) |
+| UC-005 | [Choose the result of a rubric or marking guide](./use-cases/chooseAdvancedGrade/README.md) | [sequence](./use-cases/chooseAdvancedGrade/sequence.svg) |
+| UC-006 | [Opt out of having grades recorded in my name](./use-cases/optOutOfGrading/README.md) | [sequence](./use-cases/optOutOfGrading/sequence.svg) |
+| UC-007 | [Set the policy of the site](./use-cases/setSitePolicy/README.md) | [sequence](./use-cases/setSitePolicy/sequence.svg) |
+| UC-008 | [Tell the teachers which students could not be graded](./use-cases/notifyFailures/README.md) | [sequence](./use-cases/notifyFailures/sequence.svg) |
+| UC-009 | [Queue again the grades that lost their task](./use-cases/requeueLostGrades/README.md) | [sequence](./use-cases/requeueLostGrades/sequence.svg) |
+| UC-010 | [Delete the old history](./use-cases/purgeHistory/README.md) | [sequence](./use-cases/purgeHistory/sequence.svg) |
+| UC-011 | [Carry the configuration in a course backup](./use-cases/carryConfigurationInBackup/README.md) | [sequence](./use-cases/carryConfigurationInBackup/sequence.svg) |
+| UC-012 | [Export or erase personal data](./use-cases/managePersonalData/README.md) | [sequence](./use-cases/managePersonalData/sequence.svg) |
