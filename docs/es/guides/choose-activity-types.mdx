@@ -6,16 +6,31 @@ order: 30
 
 Los administradores deciden qué tipos de actividad pueden usar Autograder. Vaya a **Administración del sitio > Extensiones > Plugins locales > Autograder** y seleccione el enlace **Tipos de actividad** de la pestaña **General**.
 
-<Screenshot src="asset:lg-types.webp" alt="La página Tipos de actividad, con una fila y un interruptor por cada tipo de actividad" caption="Una fila y un interruptor por cada tipo de actividad. Un interruptor se guarda en cuanto se cambia." url="/local/autograder/modules.php" />
+<Screenshot src="asset:lg-types.webp" alt="La página Tipos de actividad, con un interruptor por cada tipo de actividad y los filtros Todos, Activados y Desactivados" caption="Los tipos que pueden usar Autograder, con el número de tipos en cada estado." url="/local/autograder/modules.php" />
+
+Cada fila muestra el nombre del tipo, lo que Autograder lee en él y un interruptor. Los filtros **Todos**, **Activados** y **Desactivados** que hay sobre la lista indican cuántos tipos hay en cada estado y reducen la lista a uno de ellos. Cuando el sitio ofrece ocho tipos o más, aparece además un cuadro de búsqueda.
 
 Las tareas, los foros y los cuestionarios están habilitados de forma predeterminada. El interruptor de un tipo se guarda en cuanto se cambia, lo indica con un mensaje y vuelve a su posición si el servidor rechaza el cambio.
 
+## Qué tipos se ofrecen
+
+Autograder se ofrece únicamente para los tipos de actividad que reciben el trabajo de los estudiantes y tienen una calificación que otorga un docente. Un tipo se ofrece cuando tiene calificación y, además, declara el propósito «evaluación» o define la capacidad `mod/<tipo>:grade`, con la que un docente califica el trabajo de los estudiantes. Las tareas, los foros, los cuestionarios, las lecciones y los talleres cumplen la regla. Los tipos que no se califican, como las páginas, los archivos o las etiquetas, no aparecen en la lista.
+
+La lista se construye a partir de los plugins de actividad instalados, de modo que un plugin de actividad que se añada al sitio y cumpla la regla aparece en esta página sin ningún paso adicional.
+
+## Qué lee Autograder en cada tipo
+
+La línea situada bajo el nombre de cada tipo indica cómo sabe Autograder que un estudiante ha realizado la actividad:
+
+- **Tarea:** las entregas de los estudiantes.
+- **Foro:** los mensajes de los estudiantes.
+- **Cuestionario:** los intentos de los estudiantes.
+- **Otros tipos:** la finalización de la actividad. La actividad necesita una condición de finalización que el estudiante pueda cumplir por sí mismo, como marcarla como hecha, verla o una de las condiciones propias de la actividad, y no debe incluir una condición de calificación. En caso contrario, Autograder se guarda desactivado y el formulario explica el motivo.
+
 ## Qué hace deshabilitar un tipo
 
-Deshabilitar un tipo oculta los ajustes de Autograder en las actividades de ese tipo y cancela sus calificaciones programadas. Cada actividad conserva su propia configuración, de modo que al habilitar de nuevo el tipo se recupera.
+Deshabilitar un tipo oculta los ajustes de Autograder en las actividades de ese tipo y cancela las calificaciones que están pendientes. Cada actividad conserva su propia configuración, de modo que al habilitar de nuevo el tipo se reanudan. Una calificación que ya se registró no se modifica nunca.
 
-## Otros tipos de actividad
-
-Para los tipos de actividad distintos de tareas, foros y cuestionarios, Autograder se apoya en la finalización de la actividad para saber cuándo terminó un estudiante. La actividad necesita una condición de finalización que el estudiante pueda cumplir por sí mismo, como marcarla como hecha, verla o una de las condiciones propias de la actividad, y no debe incluir una condición de calificación. En caso contrario, Autograder se guarda desactivado y el formulario explica el motivo.
+Si un plugin de actividad se desinstala o deja de cumplir la regla, su tipo se retira de los habilitados del mismo modo.
 
 Se necesita la capacidad `local/autograder:manage` para elegir los tipos de actividad. De forma predeterminada solo la tienen los gestores.

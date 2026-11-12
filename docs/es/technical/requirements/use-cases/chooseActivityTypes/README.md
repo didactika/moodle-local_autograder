@@ -32,7 +32,7 @@ extends:
 
 ## Contexto
 
-El sitio decide qué tipos de actividad puede calificar Autograder. Un tipo desactivado oculta los ajustes y detiene las calificaciones que esperaban.
+El sitio decide qué tipos de actividad puede calificar Autograder, entre los instalados que reciben el trabajo de los estudiantes y tienen una calificación que otorga un docente. Un tipo desactivado oculta los ajustes y detiene las calificaciones que esperaban.
 
 ## Precondiciones
 
@@ -47,7 +47,7 @@ El sitio decide qué tipos de actividad puede calificar Autograder. Un tipo desa
 
 | Paso | Actor | Sistema |
 | --- | --- | --- |
-| 1 | Abre **Tipos de actividad** desde los ajustes del plugin. | Lista cada tipo que puede calificarse, con su interruptor. |
+| 1 | Abre **Tipos de actividad** desde los ajustes del plugin. | Lista los tipos instalados que cumplen RN-010, con lo que Autograder lee en cada uno y su interruptor. |
 | 2 | Cambia el interruptor de un tipo. | Lo guarda al instante mediante la función de servicio web. |
 | 3 |  | Cuando el tipo se desactiva, encola la cancelación de las calificaciones pendientes de sus actividades. |
 | 4 |  | Muestra un mensaje con el resultado. |
@@ -63,6 +63,7 @@ El sitio decide qué tipos de actividad puede calificar Autograder. Un tipo desa
 | ID | Regla |
 | --- | --- |
 | RN-007 | Desactivar en el sitio el tipo de una actividad cancela las calificaciones que siguen pendientes. |
+| RN-010 | Un tipo se ofrece únicamente cuando tiene calificación y, además, declara el propósito «evaluación» o define la capacidad `mod/<tipo>:grade`. Un plugin instalado que la cumple se ofrece sin ningún cambio. |
 
 ## Especificación
 

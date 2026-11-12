@@ -6,16 +6,31 @@ order: 30
 
 Administrators decide which activity types can use Autograder. Go to **Site administration > Plugins > Local plugins > Autograder**, and select the **Activity types** link on the **General** tab.
 
-<Screenshot src="asset:lg-types.webp" alt="The Activity types page, with one row and one switch for each type of activity" caption="One row and one switch for each activity type. A switch saves the moment it is flipped." url="/local/autograder/modules.php" />
+<Screenshot src="asset:lg-types.webp" alt="The Activity types page, with a switch for each type of activity and the filters All, On and Off" caption="The types that can use Autograder, with the number of types in each state." url="/local/autograder/modules.php" />
+
+Each row shows the name of the type, what Autograder reads in it, and a switch. The filters **All**, **On** and **Off** above the list show how many types are in each state and narrow the list to one of them. When the site offers eight types or more, a search box also appears.
 
 Assignments, forums and quizzes are enabled by default. The switch of a type saves the moment it is flipped, says so in a message, and goes back to where it was if the server refuses the change.
 
+## Which types are offered
+
+Autograder is offered only for the activity types that take the work of students and have a grade that a teacher gives. A type is offered when it has a grade and either declares the purpose "assessment" or defines the capability `mod/<type>:grade`, with which a teacher grades the work of students. Assignments, forums, quizzes, lessons and workshops meet the rule. Types that are not graded, such as pages, files or labels, are not listed.
+
+The list is built from the activity plugins that are installed, so an activity plugin added to the site that meets the rule appears on this page with no further step.
+
+## What Autograder reads in each type
+
+The line under the name of each type says how Autograder knows that a student has done the activity:
+
+- **Assignment:** the hand-ins of the students.
+- **Forum:** the posts of the students.
+- **Quiz:** the attempts of the students.
+- **Other types:** the completion of the activity. The activity needs a completion condition that the student can meet on their own, such as marking it as done, viewing it, or one of the conditions of the activity itself, and must not include a grade condition. Otherwise Autograder is saved as disabled and the form explains why.
+
 ## What disabling a type does
 
-Disabling a type hides the Autograder settings in the activities of that type and cancels their scheduled grades. Each activity keeps its own configuration, so enabling the type again restores it.
+Disabling a type hides the Autograder settings in the activities of that type and cancels the grades that are still pending. Each activity keeps its own configuration, so enabling the type again resumes them. A grade that was already recorded is never changed.
 
-## Other activity types
-
-For the activity types other than assignments, forums and quizzes, Autograder relies on activity completion to know when a student has finished. The activity needs a completion condition that the student can meet on their own, such as marking it as done, viewing it, or one of the conditions of the activity itself, and must not include a grade condition. Otherwise Autograder is saved as disabled and the form explains why.
+If an activity plugin is uninstalled, or stops meeting the rule, its type is withdrawn from the enabled ones in the same way.
 
 You need the capability `local/autograder:manage` to choose the activity types. By default only managers have it.
