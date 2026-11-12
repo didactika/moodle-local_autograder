@@ -1,0 +1,14 @@
+@startsalt
+{
+  {* Autograder report | Activity }
+  ==
+  Reflection on a learning story
+  --
+  {#
+    Student | Status | Grade | Graded as
+    Hugo Castro | Autograded | 8 | Maria Ortega
+    Lucia Fernandez | Graded by a teacher | 9 | Maria Ortega
+    Javier Salazar | Failed | - | -
+  }
+}
+@endsalt

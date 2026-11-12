@@ -1,0 +1,24 @@
+---
+title: Review what was decided
+summary: Where to see who is waiting, who was graded, in whose name and what failed.
+order: 70
+---
+
+Autograder is only responsible for grading: it decides when and how each student is graded, and it does it, but it has no pages for following those decisions. To review them, install the companion [Autograder report](https://github.com/didactika/moodle-report_autograder) (`report_autograder`), which reads the records of Autograder and presents them per activity, per course and across the site.
+
+<Screenshot src="asset:rp-activity.webp" alt="The Autograder report of an assignment, with one row per student" caption="The report of an activity." url="/report/autograder/index.php" />
+
+For every student of every activity where Autograder is enabled, the report shows:
+
+- **Their current status:** pending, autograded, graded by a teacher, not autograded or failed.
+- **When:** the time they will be graded, or the time they were.
+- **The grade:** the one they will receive, or the one they received.
+- **The grader:** the teacher the grade is, or will be, attributed to.
+
+| Report | Where to find it | Typical use |
+|---|---|---|
+| Activity | The menu of the activity | A teacher following the students of one activity |
+| Course | The **Reports** menu of the course | A teacher or a course manager reviewing every activity of a course |
+| Site | **Site administration > Reports** | An administrator checking that nothing is stuck |
+
+The course and site reports open with a count of the students in each status, and each count opens the matching list. A graders page shows which teacher each student would be graded as before any grade is due, so a course where nobody is allowed to grade can be fixed in advance. Failed gradings and their reasons are shown to the users who have `report/autograder:viewfailed`, which only managers have by default. As Moodle does, the report shows teachers only the groups they can see.

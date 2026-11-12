@@ -1,0 +1,54 @@
+---
+title: Autocalificador
+summary: Califica las actividades completadas que ningún docente ha calificado, a tiempo y a nombre de un docente del propio estudiante.
+order: 1
+---
+
+Autograder (`local_autograder`) es un plugin local de Moodle que califica a los estudiantes de forma automática. Cuando un estudiante ha completado una actividad y su fecha límite ha pasado, Autograder espera el periodo configurado y asigna la calificación que el docente definió, salvo que un docente ya haya calificado al estudiante. La calificación se registra a nombre de uno de los docentes del propio estudiante y pasa por el proceso de calificación normal de la actividad, incluidas las rúbricas y las guías de evaluación.
+
+<Screenshot src="asset:lg-activity-form.webp" alt="La sección Autograder en los ajustes de una tarea, con el interruptor, la calificación a asignar y el tiempo de espera" caption="La sección Autograder de una actividad: si está activado, la calificación a asignar y cuánto esperar." url="/course/modedit.php" />
+
+> [!IMPORTANT]
+> **Instale también el [informe de Autograder](https://github.com/didactika/moodle-report_autograder) (`report_autograder`).** Este plugin solo califica y no tiene páginas propias para revisar lo que hace. El informe es donde docentes y administradores ven lo que Autograder decidió para cada estudiante: quién espera, quién fue calificado y con qué calificación, a nombre de quién y qué falló.
+
+> [!NOTE]
+> Autograder nunca cambia una calificación puesta por un docente. Una calificación manual siempre tiene prioridad, y un estudiante que ya fue calificado a mano no se vuelve a calificar.
+
+## Encuentre su camino
+
+Elija la ruta que corresponda a lo que desea hacer. Cada una enumera las páginas que debe leer, en orden, con su propósito.
+
+<div class="d-paths">
+<Path title="Administro el sitio" icon="admin-panel-settings-rounded" time="15 min" goal="Instalar el plugin, elegir los tipos de actividad y fijar la política del sitio." pages={['getting-started/installation', 'guides/choose-activity-types', 'reference/settings', 'reference/capabilities']} />
+<Path title="Imparto un curso" icon="school-rounded" time="10 min" goal="Activar Autograder en una actividad y entender cuándo se califica a los estudiantes." pages={['getting-started/quick-start', 'guides/enable-on-an-activity', 'guides/rubrics-and-marking-guides', 'concepts/when-a-student-is-graded']} />
+<Path title="Desarrollo sobre él o lo reviso" icon="code-rounded" time="45 min" goal="Entender cómo se planifican y se ejecutan las decisiones y cómo está construido el plugin." pages={['concepts/who-the-grade-is-attributed-to', 'concepts/when-autograder-does-not-grade', 'technical/index', 'reference/scheduled-tasks']} />
+</div>
+
+## Cómo se organiza esta documentación
+
+<FeatureGrid>
+  <Feature icon="rocket-launch-rounded" title="Primeros pasos" href="page:getting-started/installation">Instale el plugin y califique una primera actividad.</Feature>
+  <Feature icon="lightbulb-rounded" title="Conceptos" href="page:concepts/when-a-student-is-graded">Cuándo se califica a un estudiante, a nombre de quién y cuándo no se califica nada.</Feature>
+  <Feature icon="task-alt-rounded" title="Guías" href="page:guides/enable-on-an-activity">Una tarea por página, con las pantallas que verá.</Feature>
+  <Feature icon="menu-book-rounded" title="Referencia" href="page:reference/settings">Cada ajuste, capacidad y tarea programada, y qué se almacena.</Feature>
+  <Feature icon="schema-rounded" title="Documentación técnica" href="page:technical">El modelo de dominio, los casos de uso, el análisis, el diseño y un mapa del código.</Feature>
+</FeatureGrid>
+
+## Por qué existe
+
+Algunas actividades se evalúan por la participación de los estudiantes y no por la calidad de su trabajo: una intervención en un foro, una reflexión, un cuestionario de práctica. Calificar cada una a mano lleva tiempo, y los estudiantes que hicieron el trabajo pueden esperar semanas por una calificación. Autograder asigna estas calificaciones a tiempo.
+
+Las tareas, los foros y los cuestionarios se admiten desde el primer momento. Los administradores pueden habilitar cualquier otro tipo de actividad calificable.
+
+## Qué hace
+
+<FeatureGrid>
+  <Feature icon="tune-rounded" title="Configuración por actividad">Active Autograder, y fije su calificación y su tiempo de espera, en los ajustes de cada actividad.</Feature>
+  <Feature icon="grade-rounded" title="Todos los tipos de calificación">Puntos, escalas, rúbricas y guías de evaluación.</Feature>
+  <Feature icon="verified-rounded" title="Calificación nativa">Las calificaciones se guardan mediante el proceso de calificación de la actividad, de modo que el estado de la entrega, los comentarios y el libro de calificaciones se actualizan como con una calificación manual.</Feature>
+  <Feature icon="event-rounded" title="Gestión de fechas límite">Fechas de cierre, fechas de corte y excepciones de usuario y de grupo.</Feature>
+  <Feature icon="person-rounded" title="Atribución al docente">Cada calificación se registra a nombre del docente más cercano al estudiante que tiene permiso para calificarlo.</Feature>
+  <Feature icon="notifications-rounded" title="Resumen de fallos">Un mensaje semanal opcional a los docentes con los estudiantes que no pudieron ser calificados.</Feature>
+</FeatureGrid>
+
+Además, los docentes pueden elegir que no se registren calificaciones a su nombre cuando el sitio lo permite, y el plugin admite la API de privacidad y la copia de seguridad y restauración de sus ajustes.

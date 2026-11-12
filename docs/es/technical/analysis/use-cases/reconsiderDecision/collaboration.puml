@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Moodle" as user <<actor>>
+class "Event observer" as observer <<control>>
+class "Decision planner" as planner <<control>>
+class "Decision store" as store <<control>>
+class "Configuration" as config <<entity>>
+class "Decision" as decision <<entity>>
+
+user --> observer : 1: event (completion, submission, override, enrolment)
+observer --> config : 2: is Autograder on here?
+observer --> store : 3: ensure(student, activity)
+store --> planner : 4: plan from live data
+store --> decision : 5: create, move or call off
+
+@enduml

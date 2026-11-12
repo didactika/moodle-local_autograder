@@ -1,0 +1,18 @@
+---
+title: When Autograder does not grade
+summary: The cases in which a scheduled grade is cancelled or never given.
+order: 30
+---
+
+Autograder is built so that it never takes the place of a teacher. These are the cases in which a scheduled grade is not given.
+
+<FeatureGrid columns={2}>
+  <Feature icon="school-rounded" title="A teacher grades the student first">The scheduled grade is cancelled permanently. A manual grade always takes priority, and a student who has been graded by hand is never graded again.</Feature>
+  <Feature icon="undo-rounded" title="The student undoes their work">For example by unticking completion, withdrawing a submission or leaving the course. The scheduled grade is cancelled, and it is scheduled again if the student completes the activity later.</Feature>
+  <Feature icon="quiz-rounded" title="The activity grades itself">A quiz that is marked automatically keeps its own grade. Autograder only grades a quiz while a question, such as an essay, is waiting to be marked by hand. As soon as the teacher marks it, the grade of the quiz replaces the one from Autograder.</Feature>
+  <Feature icon="toggle-off-rounded" title="Autograder is switched off">Turning it off in an activity, or disabling the activity type, cancels the scheduled grades. Each activity keeps its own configuration, so turning it on again restores it.</Feature>
+</FeatureGrid>
+
+## Checked again when the grade is due
+
+Autograder does not trust what was true when the grade was scheduled. Everything that matters is checked again at the moment of grading: that the student is still enrolled, that the activity still exists and that a teacher can grade it. A student who no longer meets them is not graded, and the report shows the reason.

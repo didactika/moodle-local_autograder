@@ -1,0 +1,23 @@
+---
+title: Exclusión voluntaria del docente
+summary: Permita que los docentes elijan que no se registren calificaciones a su nombre.
+order: 60
+---
+
+Cuando el sitio lo permite, los docentes pueden elegir que nunca se registren calificaciones a su nombre.
+
+## Permitir la elección (administradores)
+
+Vaya a **Administración del sitio > Extensiones > Plugins locales > Autograder**, abra la pestaña **Docentes** y active **Permitir que los docentes se excluyan**. Mientras el ajuste esté desactivado, las exclusiones existentes se ignoran.
+
+## Elegir la exclusión (docentes)
+
+<Steps>
+1. Abra su perfil y vaya a **Preferencias**.
+2. Seleccione **Preferencias de Autograder**.
+3. Elija que nunca se registren calificaciones a su nombre y guarde.
+</Steps>
+
+<Screenshot src="asset:lg-optout.webp" alt="La página de preferencias de Autograder de un docente, con la opción de exclusión" caption="La preferencia de un docente." url="/local/autograder/optout.php" />
+
+Un docente que se excluyó se deja fuera cuando Autograder elige [a nombre de quién se registra una calificación](page:concepts/who-the-grade-is-attributed-to). Si eso no deja ningún docente para un estudiante, la calificación va al calificador de reserva, o falla si no lo hay.

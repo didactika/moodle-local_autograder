@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+[*] --> Pending : the student did the activity, with its time
+Pending --> Graded : the time came and the grade was saved
+Pending --> Failed : the time came and nobody could grade
+Pending --> Manual : a teacher graded first
+Pending --> Cancelled : the work was undone, the student left or Autograder went off
+Pending --> Pending : an override or an extension moves the time
+Graded --> [*]
+Failed --> [*]
+Manual --> [*]
+Cancelled --> [*]
+
+note right of Cancelled
+  A decision that is not pending is kept
+  until the history is purged; a new one
+  is planned if the student does the work again.
+end note
+
+@enduml
