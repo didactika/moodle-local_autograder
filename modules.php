@@ -111,9 +111,24 @@ echo $OUTPUT->render_from_template('local_autograder/modules', [
     'intro' => get_string('modules:intro', 'local_autograder'),
     'label' => get_string('settings:modulestab', 'local_autograder'),
     'filters' => [
-        ['key' => 'all', 'label' => get_string('modules:filter_all', 'local_autograder'), 'count' => count($types), 'active' => true],
-        ['key' => 'on', 'label' => get_string('modules:filter_on', 'local_autograder'), 'count' => $oncount, 'active' => false],
-        ['key' => 'off', 'label' => get_string('modules:filter_off', 'local_autograder'), 'count' => count($types) - $oncount, 'active' => false],
+        [
+            'key' => 'all',
+            'label' => get_string('modules:filter_all', 'local_autograder'),
+            'count' => count($types),
+            'active' => true,
+        ],
+        [
+            'key' => 'on',
+            'label' => get_string('modules:filter_on', 'local_autograder'),
+            'count' => $oncount,
+            'active' => false,
+        ],
+        [
+            'key' => 'off',
+            'label' => get_string('modules:filter_off', 'local_autograder'),
+            'count' => count($types) - $oncount,
+            'active' => false,
+        ],
     ],
     'search' => count($types) >= 8 ? get_string('modules:search', 'local_autograder') : '',
     'empty' => get_string('modules:empty', 'local_autograder'),

@@ -352,7 +352,6 @@
 
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
-    contain: inline-size;
 }
 
 #page-local-autograder-advanced .gradingform_rubric,
