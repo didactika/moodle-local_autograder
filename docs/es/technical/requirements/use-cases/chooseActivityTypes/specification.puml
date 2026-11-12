@@ -1,0 +1,25 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "chooseActivityTypes" as chooseActivityTypes {
+  state " " as List
+  state " " as Saving
+  state " " as Cancelling
+
+  [*] --> List : Administrator opens the activity types
+  List --> Saving : Administrator flips the switch of a type
+  Saving --> List : System refuses, the switch goes back
+  Saving --> Cancelling : System saves the type as off
+  Saving --> List : System saves the type as on
+  Cancelling --> List : System cancels the pending grades of that type
+  List --> [*] : Administrator leaves the page
+
+  note on link
+    Administrator: flips a switch
+    System: saves, cancels the grades still pending
+  end note
+}
+
+@enduml

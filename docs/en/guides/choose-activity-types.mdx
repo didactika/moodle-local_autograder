@@ -1,0 +1,21 @@
+---
+title: Choose the activity types
+summary: Decide which kinds of activity can use Autograder on the site.
+order: 30
+---
+
+Administrators decide which activity types can use Autograder. Go to **Site administration > Plugins > Local plugins > Autograder**, and select the **Activity types** link on the **General** tab.
+
+<Screenshot src="asset:lg-types.webp" alt="The Activity types page, with one row and one switch for each type of activity" caption="One row and one switch for each activity type. A switch saves the moment it is flipped." url="/local/autograder/modules.php" />
+
+Assignments, forums and quizzes are enabled by default. The switch of a type saves the moment it is flipped, says so in a message, and goes back to where it was if the server refuses the change.
+
+## What disabling a type does
+
+Disabling a type hides the Autograder settings in the activities of that type and cancels their scheduled grades. Each activity keeps its own configuration, so enabling the type again restores it.
+
+## Other activity types
+
+For the activity types other than assignments, forums and quizzes, Autograder relies on activity completion to know when a student has finished. The activity needs a completion condition that the student can meet on their own, such as marking it as done, viewing it, or one of the conditions of the activity itself, and must not include a grade condition. Otherwise Autograder is saved as disabled and the form explains why.
+
+You need the capability `local/autograder:manage` to choose the activity types. By default only managers have it.
