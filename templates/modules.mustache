@@ -17,32 +17,46 @@
 {{!
     @template local_autograder/modules
 
-    The activity types autograder may be switched on for: one row and one
-    toggle per gradeable type. Each toggle sits in a small form of its own,
-    which local_autograder/modules submits the moment it is flipped.
+    The activity types autograder may be switched on for: the ones that take the work of students and have a grade that a teacher
+    gives. Chips filter the rows by whether Autograder is on; each row has what Autograder reads for it and a toggle that sits in a
+    small form of its own, which local_autograder/modules submits the moment it is flipped.
 
     Context variables required for this template:
-    * intro - What the page is for, above the table.
-    * label - The accessible name of the scrolling region around the table.
-    * namecolumn - The heading of the first column.
-    * enabledcolumn - The heading of the second column.
-    * types - One entry per gradeable activity type:
+    * lead - What the page lists.
+    * intro - What switching a type off does, below the list.
+    * label - The accessible name of the list.
+    * filters - The chips: key (all, on or off), label, count and whether it is the active one.
+    * search - The placeholder of the search box, empty when there are few types and no box.
+    * empty - What to say when no row matches.
+    * count - The number of types, in words.
+    * types - One entry per activity type:
       * component - Its component, e.g. "mod_assign", for the icon.
       * name - Its name.
+      * reads - What Autograder reads for it.
+      * ison - Whether Autograder is on for it.
       * action - Where its form is posted.
       * params - The form's hidden inputs, each a name and a value.
       * toggle - Its switch, already rendered by core/toggle.
 
     Example context (json):
     {
-        "intro": "Autograder can only be turned on for activities of the types enabled here.",
+        "lead": "The activity types that take the work of students and have a grade that a teacher gives",
+        "intro": "Disabling a type hides the Autograder settings of its activities.",
         "label": "Activity types",
-        "namecolumn": "Name",
-        "enabledcolumn": "Enabled",
+        "filters": [
+            {"key": "all", "label": "All", "count": 2, "active": true},
+            {"key": "on", "label": "On", "count": 1, "active": false},
+            {"key": "off", "label": "Off", "count": 1, "active": false}
+        ],
+        "search": "",
+        "empty": "No activity type matches.",
+        "count": "2 activity types",
         "types": [
             {
                 "component": "mod_assign",
                 "name": "Assignment",
+                "reads": "Reads the hand-ins of students",
+                "ison": true,
                 "action": "https://example.com/local/autograder/modules.php",
                 "params": [
                     {"name": "modname", "value": "assign"},
@@ -54,29 +68,46 @@
         ]
     }
 }}
-<p>{{intro}}</p>
-<div class="local-autograder-table-scroll" tabindex="0" role="region" aria-label="{{label}}">
-    <table id="local-autograder-modules" class="admintable generaltable">
-        <thead>
-            <tr>
-                <th scope="col">{{namecolumn}}</th>
-                <th scope="col">{{enabledcolumn}}</th>
-            </tr>
-        </thead>
-        <tbody>
+<div class="lag" id="local-autograder-modules">
+    <div class="lag-head">
+        <span class="lag-tile" aria-hidden="true">{{#pix}} i/valid, core {{/pix}}</span>
+        <p class="lag-lead">{{lead}}</p>
+    </div>
+
+    <div class="lag-chips" role="group" aria-label="{{label}}">
+        {{#filters}}
+        <button type="button" class="lag-chip{{#active}} lag-chip-active{{/active}}" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
+            {{label}} <span class="lag-chip-count" data-count="{{key}}">{{count}}</span>
+        </button>
+        {{/filters}}
+    </div>
+
+    <div class="lag-card">
+        {{#search}}
+        <div class="lag-search">
+            <input type="search" class="lag-search-field" data-region="search" placeholder="{{search}}" aria-label="{{search}}">
+        </div>
+        {{/search}}
+        <ul class="lag-types" aria-label="{{label}}">
             {{#types}}
-            <tr>
-                <td><span>{{#pix}} monologo, {{component}} {{/pix}}{{name}}</span></td>
-                <td>
-                    <form method="post" action="{{action}}">
-                        {{#params}}
-                        <input type="hidden" name="{{name}}" value="{{value}}">
-                        {{/params}}
-                        {{{toggle}}}
-                    </form>
-                </td>
-            </tr>
+            <li class="lag-type{{#ison}} lag-type-on{{/ison}}" data-state="{{#ison}}on{{/ison}}{{^ison}}off{{/ison}}" data-name="{{name}}">
+                <span class="lag-type-tile">{{#pix}} monologo, {{component}} {{/pix}}</span>
+                <span class="lag-type-text">
+                    <span class="lag-type-name">{{name}}</span>
+                    <span class="lag-type-reads">{{reads}}</span>
+                </span>
+                <form method="post" action="{{action}}">
+                    {{#params}}
+                    <input type="hidden" name="{{name}}" value="{{value}}">
+                    {{/params}}
+                    {{{toggle}}}
+                </form>
+            </li>
             {{/types}}
-        </tbody>
-    </table>
+            <li class="lag-empty" data-region="empty" hidden>{{empty}}</li>
+        </ul>
+        <div class="lag-foot">{{count}}</div>
+    </div>
+
+    <p class="lag-note">{{intro}}</p>
 </div>

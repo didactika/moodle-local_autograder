@@ -14,12 +14,11 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Switches an activity type on or off the moment its toggle is flipped.
+ * The page of the activity types: switches a type on or off the moment its toggle is flipped, and filters the rows with the chips
+ * and the search box.
  *
- * Each toggle on the activity types page sits in a small form of its own that
- * already carries everything the change needs, so all this does is submit it.
- * One listener on the table rather than one per toggle, which also covers any
- * row the page might add later.
+ * Each toggle sits in a small form of its own that already carries everything the change needs, so all the switch does is submit
+ * it. One listener on the page rather than one per toggle, which also covers any row the page might add later.
  *
  * @module     local_autograder/modules
  * @copyright  2026 Didactika.org
@@ -28,22 +27,67 @@
  */
 
 /**
- * Submits a toggle's form as soon as the toggle changes.
+ * Shows the rows that match the chip that is active and what was typed, and the empty message when none does.
  *
- * @param {String} selector The table the toggles are in.
+ * @param {HTMLElement} page The page.
+ */
+const apply = (page) => {
+    const active = page.querySelector('.lag-chip-active');
+    const state = active ? active.dataset.filter : 'all';
+    const search = page.querySelector('[data-region="search"]');
+    const needle = search ? search.value.trim().toLowerCase() : '';
+    let shown = 0;
+
+    page.querySelectorAll('.lag-type').forEach((row) => {
+        const inState = state === 'all' || row.dataset.state === state;
+        const match = inState && (needle === '' || row.dataset.name.toLowerCase().includes(needle));
+        row.hidden = !match;
+        shown += match ? 1 : 0;
+    });
+
+    const empty = page.querySelector('[data-region="empty"]');
+    if (empty) {
+        empty.hidden = shown > 0;
+    }
+};
+
+/**
+ * Starts the page.
+ *
+ * @param {String} selector The element that holds the page.
  */
 export const init = (selector) => {
-    const table = document.querySelector(selector);
+    const page = document.querySelector(selector);
 
-    if (!table) {
+    if (!page) {
         return;
     }
 
-    table.addEventListener('change', (e) => {
+    page.addEventListener('change', (e) => {
         const toggle = e.target.closest('input[data-submitonchange]');
 
         if (toggle && toggle.form) {
             toggle.form.submit();
         }
     });
+
+    page.addEventListener('click', (e) => {
+        const chip = e.target.closest('.lag-chip');
+
+        if (!chip) {
+            return;
+        }
+
+        page.querySelectorAll('.lag-chip').forEach((other) => {
+            const on = other === chip;
+            other.classList.toggle('lag-chip-active', on);
+            other.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        apply(page);
+    });
+
+    const search = page.querySelector('[data-region="search"]');
+    if (search) {
+        search.addEventListener('input', () => apply(page));
+    }
 };
