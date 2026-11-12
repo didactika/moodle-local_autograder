@@ -27,6 +27,7 @@ namespace local_autograder\output;
 
 use core\output\react_component_renderable;
 use local_autograder\local\config\eligibility;
+use local_autograder\local\module\module_adapter;
 
 /**
  * The activity types that Autograder may be switched on for: the component local_autograder/Modules draws one switch for each.
@@ -52,12 +53,16 @@ class modules_page implements react_component_renderable, \renderable {
     public function get_react_component_props(\renderer_base $renderer): \stdClass {
         $enabled = eligibility::enabled_module_types();
         $types = [];
-        foreach (eligibility::gradeable_module_types() as $type) {
+        foreach (eligibility::supported_module_types() as $type) {
+            // What Autograder reads to know that a student took part: the hand-ins, posts or attempts of the types it knows,
+            // and the completion of the activity for the others.
+            $adapter = module_adapter::class_for($type);
             $types[] = [
                 'type' => $type,
                 'name' => get_string('modulename', $type),
                 'iconurl' => $renderer->image_url('monologo', 'mod_' . $type)->out(false),
                 'enabled' => in_array($type, $enabled, true),
+                'reads' => $adapter::knows_submissions() ? $type : 'completion',
             ];
         }
         return (object) ['types' => $types, 'strings' => self::strings()];

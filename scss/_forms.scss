@@ -2,21 +2,44 @@
 // Moodle is free software under the GNU General Public License, version 3 or later.
 
 // The forms of Autograder that stay Moodle forms: the section of the activity settings, the grading of an advanced method and
-// the preference of a teacher. Their layout is the one of Moodle, with a few adjustments so that nothing goes off the screen.
+// the preference of a teacher. Their layout is the one of Moodle, dressed with the tokens of the Didactika design system: the
+// height, the radius and the ring of focus of its controls, and a card for what the form asks.
 // @copyright 2026 Didactika.org
 // @author Hector Arrechea <hectorlazaroarrechea@gmail.com>
 // @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 
-#id_autogradersection {
+#id_autogradersection,
+#page-local-autograder-advanced,
+#page-local-autograder-optout {
+    --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
+    --dd-ink: var(--bs-body-color, #212529);
+    --dd-surface: var(--bs-body-bg, #fff);
+    --dd-muted: var(--bs-secondary-color, #6c757d);
+    --dd-hairline: var(--bs-border-color, #dee2e6);
+    --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
+    --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-radius-sm: 0.5rem;
+    --dd-radius-lg: 0.75rem;
+    --dd-h: 2.25rem;
+    --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
+
     & .felement {
         min-width: 0;
     }
 
     & input[type="text"],
+    & input[type="number"],
     & select {
         max-width: 100%;
-        min-height: 2.75rem;
-        border-radius: 0.375rem;
+        min-height: var(--dd-h);
+        border-color: var(--dd-line);
+        border-radius: var(--dd-radius-sm);
+
+        &:focus {
+            border-color: var(--dd-primary);
+            box-shadow: 0 0 0 0.2rem var(--dd-ring);
+        }
     }
 
     & .form-static {
@@ -24,11 +47,21 @@
     }
 }
 
-#page-local-autograder-advanced {
-    & .felement {
-        min-width: 0;
+#id_autogradersection {
+    & .fcontainer {
+        padding: 1rem 1.25rem 0.25rem;
+        background: var(--dd-surface);
+        border: 1px solid var(--dd-hairline);
+        border-radius: var(--dd-radius-lg);
+        box-shadow: var(--dd-shadow-sm);
     }
 
+    & .alert {
+        border-radius: var(--dd-radius-sm);
+    }
+}
+
+#page-local-autograder-advanced {
     & p {
         overflow-wrap: anywhere;
     }
@@ -52,25 +85,31 @@
 
     & .mform {
         max-width: 100%;
+        padding: 1.25rem;
+        background: var(--dd-surface);
+        border: 1px solid var(--dd-hairline);
+        border-radius: var(--dd-radius-lg);
+        box-shadow: var(--dd-shadow-sm);
 
         & .btn {
-            min-height: 2.75rem;
-            border-radius: 0.375rem;
+            min-height: var(--dd-h);
+            border-radius: var(--dd-radius-sm);
         }
     }
 }
 
 #page-local-autograder-optout {
-    & .felement {
-        min-width: 0;
-    }
-
     & .mform {
         max-width: 100%;
+        padding: 1.25rem;
+        background: var(--dd-surface);
+        border: 1px solid var(--dd-hairline);
+        border-radius: var(--dd-radius-lg);
+        box-shadow: var(--dd-shadow-sm);
 
         & .btn {
-            min-height: 2.75rem;
-            border-radius: 0.375rem;
+            min-height: var(--dd-h);
+            border-radius: var(--dd-radius-sm);
         }
     }
 }

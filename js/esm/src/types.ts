@@ -19,6 +19,8 @@ export interface ModuleType {
     name: string;
     iconurl: string;
     enabled: boolean;
+    /** What Autograder reads for it: the type itself when it knows its hand-ins, posts or attempts, or "completion". */
+    reads: string;
 }
 
 export interface ModulesProps {
