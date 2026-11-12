@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+package "Entry points" {
+  class autograder_section
+  class modules_page
+  class set_module_type
+  class observer
+  class grade_student
+}
+package "Services" {
+  class config_repository
+  class eligibility
+  class decision_planner
+  class decision_repository
+  class grader_picker
+  class module_adapter
+  class due_date_calculator
+}
+package "Adapters" {
+  class assign_adapter
+  class forum_adapter
+  class quiz_adapter
+  class generic_adapter
+}
+
+autograder_section --> config_repository
+modules_page --> eligibility
+set_module_type --> eligibility
+observer --> decision_repository
+grade_student --> decision_planner
+grade_student --> grader_picker
+grade_student --> module_adapter
+decision_planner --> due_date_calculator
+decision_repository --> decision_planner
+module_adapter <|-- assign_adapter
+module_adapter <|-- forum_adapter
+module_adapter <|-- quiz_adapter
+module_adapter <|-- generic_adapter
+
+@enduml

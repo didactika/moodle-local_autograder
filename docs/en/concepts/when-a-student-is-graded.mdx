@@ -1,0 +1,41 @@
+---
+title: When a student is graded
+summary: What counts as having done an activity, and how the moment of the grade is calculated.
+order: 10
+---
+
+Autograder only grades students who have **done** the activity, and it grades them at a moment that follows from the deadlines of that activity.
+
+## What counts as having done the activity
+
+<FeatureGrid columns={2}>
+  <Feature icon="checklist-rounded" title="The activity tracks completion">The student must meet the completion conditions set by the teacher. For example, a forum that requires three replies is not done after one. Conditions that depend on a grade, such as **Receive a grade** or **Receive a passing grade**, are ignored, because Autograder is the one that would provide that grade.</Feature>
+  <Feature icon="upload-file-rounded" title="The activity does not track completion">The student must hand something in: submit an assignment, post in a forum or finish a quiz attempt.</Feature>
+</FeatureGrid>
+
+## When the grade is scheduled
+
+Autograder schedules the grade of each student from the first row of this table that applies.
+
+| If the activity… | The student is graded at… |
+|---|---|
+| Has a close date | The close date (the cut-off date, or the due date if there is none), plus the waiting period |
+| Has a user override for the student | The override date, plus the waiting period |
+| Has a group override for the student's group | The latest of the group override dates, plus the waiting period |
+| Has no close date, or an override removes it | The time the student finished, plus the waiting period |
+
+If the student finishes after the scheduled time, they are graded as soon as they finish. If an override is added or changed later, the grade is rescheduled accordingly.
+
+## Statuses of a student
+
+Each student of an activity with Autograder on is in one of these statuses. The [Autograder report](https://github.com/didactika/moodle-report_autograder) shows them.
+
+| Status | Meaning |
+|---|---|
+| <Badge text="Pending" variant="note" /> | The student is scheduled to be graded on the date shown |
+| <Badge text="Autograded" variant="success" /> | Autograder has graded the student |
+| <Badge text="Graded by a teacher" variant="tip" /> | A teacher graded the student first, so Autograder did not |
+| <Badge text="Failed" variant="danger" /> | Autograder tried to grade the student and could not |
+| <Badge text="Not autograded" variant="caution" /> | Autograder will not grade the student, for example because the grading was cancelled |
+
+Who receives the grade as its author is explained in [Who the grade is attributed to](page:concepts/who-the-grade-is-attributed-to), and the cases in which nothing is graded in [When Autograder does not grade](page:concepts/when-autograder-does-not-grade).

@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Cron" as user <<actor>>
+class "Grading task" as task <<control>>
+class "Decision planner" as planner <<control>>
+class "Grader picker" as picker <<control>>
+class "Activity adapter" as adapter <<control>>
+class "Decision store" as store <<control>>
+class "Decision" as decision <<entity>>
+class "Grade log" as log <<entity>>
+
+user --> task : 1: runs the task of a decision
+task --> planner : 2: plan again from live data
+task --> picker : 3: choose the teacher
+task --> adapter : 4: write the grade
+task --> store : 5: settle the decision
+store --> decision : 6: graded or failed
+store --> log : 7: record the attempt
+
+@enduml

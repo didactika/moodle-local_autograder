@@ -1,0 +1,43 @@
+---
+title: Enable Autograder on an activity
+summary: Switch Autograder on, choose the grade to assign and how long to wait.
+order: 40
+---
+
+Teachers enable Autograder in the settings of each activity. You need the capability `local/autograder:configure` in the activity, which editing teachers and managers have by default, and the activity type must be [enabled by an administrator](page:guides/choose-activity-types).
+
+<Steps>
+1. Open the settings of the activity and expand the **Autograder** section.
+2. Select **Enable Autograder**.
+3. Enter the **grade to assign**: a number or an item of the scale, depending on how the activity is graded.
+4. Set the **time to wait** after the due date before grading, in days, hours and minutes.
+5. Save the settings.
+</Steps>
+
+<Screenshot src="asset:lg-activity-form.webp" alt="The Autograder section in the settings of an assignment, with the switch, the grade and the time to wait" caption="The Autograder section of an assignment." url="/course/modedit.php" />
+
+Students who have already completed the activity are processed on the next run of cron.
+
+## Grade types
+
+Autograder supports every way of grading an activity:
+
+| Grade type | What you enter |
+|---|---|
+| Points | The number of points to assign |
+| Scale | The item of the scale to assign |
+| Rubric | The level of each criterion. See [Rubrics and marking guides](page:guides/rubrics-and-marking-guides) |
+| Marking guide | The score and the remark of each criterion. See [Rubrics and marking guides](page:guides/rubrics-and-marking-guides) |
+
+## When Autograder is saved as disabled
+
+If you enable Autograder and save, it can be left switched off with a message that says why:
+
+- the rubric or the marking guide has no selection yet, or
+- for an activity type other than assignments, forums and quizzes, there is no completion condition that the student can meet on their own.
+
+The message states which one it is.
+
+## Changing or removing the configuration
+
+Changing the grade or the waiting time reschedules the grades that are still pending. Turning Autograder off cancels them. Grades already given stay as they are.

@@ -1,0 +1,34 @@
+---
+title: Settings
+summary: Every site setting of the plugin, its default and what it does.
+order: 40
+---
+
+The settings are at **Site administration > Plugins > Local plugins > Autograder**. They are organised in two tabs.
+
+<Screenshot src="asset:lg-settings-general.webp" alt="The General tab of the settings of Autograder" caption="The General tab." url="/admin/settings.php?section=local_autograder_settings" />
+
+## General
+
+| Setting | Default | Description |
+|---|---|---|
+| Notify students | Off | Sends students the grading notification of Moodle when an assignment or a forum is graded by Autograder, as a teacher can when grading manually |
+| Notify teachers of grading failures | Off | Sends a weekly summary to the teachers who configure Autograder, listing the students who could not be graded |
+| Keep history for (days) | 120 | Completed decisions and log entries older than this are deleted daily. Enter `0` to keep everything |
+
+The tab also has the link to the [Activity types](page:guides/choose-activity-types) page.
+
+## Teachers
+
+| Setting | Default | Description |
+|---|---|---|
+| Teaching roles | Automatic | **Automatic** includes every role that can grade. **Selected roles only** uses the roles chosen in the next setting |
+| Selected teaching roles | None | Only shown when **Selected roles only** is chosen |
+| Teacher selection | Lowest user ID | How to choose between equally suitable teachers: **Lowest user ID** or **Most recent course access** |
+| Fallback grader | None | The user the grades are attributed to when no teacher qualifies |
+| Allow teachers to opt out | Off | Lets teachers choose not to have grades recorded in their name. While disabled, existing opt-outs are ignored |
+
+<Screenshot src="asset:lg-settings-teachers.webp" alt="The Teachers tab of the settings of Autograder" caption="The Teachers tab." url="/admin/settings.php?section=local_autograder_settings" />
+
+> [!WARNING]
+> Unlike the teachers, the fallback grader is not checked against each activity. Choose someone who is allowed to grade wherever Autograder is used.

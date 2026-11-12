@@ -1,0 +1,15 @@
+@startsalt
+{
+  {* Local plugins | Autograder | Activity types }
+  ==
+  Activity types
+  --
+  {#
+    Assignment | [X]
+    Forum | [X]
+    Quiz | [X]
+    Lesson | [ ]
+    SCORM package | [ ]
+  }
+}
+@endsalt

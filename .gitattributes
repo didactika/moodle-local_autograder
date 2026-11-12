@@ -13,3 +13,5 @@ amd/build/** linguist-generated=true
 /.github        export-ignore
 /.gitignore     export-ignore
 /.gitattributes export-ignore
+/docs           export-ignore
+/rup.config.json export-ignore

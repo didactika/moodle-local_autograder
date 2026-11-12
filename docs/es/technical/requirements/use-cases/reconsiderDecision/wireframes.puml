@@ -1,0 +1,15 @@
+@startsalt
+{
+  {* Autograder report | Course }
+  ==
+  Autograder: Digital pedagogy 101
+  --
+  {#
+    Status | Students
+    Pending | 11
+    Autograded | 10
+    Graded by a teacher | 1
+    Failed | 1
+  }
+}
+@endsalt

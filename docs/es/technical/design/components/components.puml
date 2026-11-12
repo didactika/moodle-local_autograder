@@ -1,0 +1,37 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+left to right direction
+
+package "Moodle" {
+  [Course module form]
+  [Completion]
+  [Gradebook and grading methods]
+  [Task API and cron]
+  [Events]
+  [Capabilities]
+}
+package "local_autograder" {
+  [Form section]
+  [Observers]
+  [Decision planner]
+  [Grading task]
+  [Activity adapters]
+  [Activity types page]
+}
+database "Database" as db
+
+[Course module form] --> [Form section]
+[Events] --> [Observers]
+[Observers] --> [Decision planner]
+[Decision planner] --> [Completion]
+[Task API and cron] --> [Grading task]
+[Grading task] --> [Activity adapters]
+[Activity adapters] --> [Gradebook and grading methods]
+[Grading task] --> [Capabilities]
+[Form section] --> db
+[Observers] --> db
+[Grading task] --> db
+[Activity types page] --> db
+
+@enduml

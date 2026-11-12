@@ -1,0 +1,41 @@
+---
+title: Cuándo se califica a un estudiante
+summary: Qué cuenta como haber hecho una actividad y cómo se calcula el momento de la calificación.
+order: 10
+---
+
+Autograder solo califica a los estudiantes que han **hecho** la actividad, y los califica en un momento que se deduce de las fechas límite de esa actividad.
+
+## Qué cuenta como haber hecho la actividad
+
+<FeatureGrid columns={2}>
+  <Feature icon="checklist-rounded" title="La actividad hace seguimiento de finalización">El estudiante debe cumplir las condiciones de finalización que fijó el docente. Por ejemplo, un foro que exige tres respuestas no está hecho tras una. Las condiciones que dependen de una calificación, como **Recibir una calificación** o **Recibir una calificación de aprobado**, se ignoran, porque Autograder es quien aportaría esa calificación.</Feature>
+  <Feature icon="upload-file-rounded" title="La actividad no hace seguimiento de finalización">El estudiante debe entregar algo: enviar una tarea, publicar en un foro o terminar un intento de cuestionario.</Feature>
+</FeatureGrid>
+
+## Cuándo se programa la calificación
+
+Autograder programa la calificación de cada estudiante a partir de la primera fila de esta tabla que se aplique.
+
+| Si la actividad… | El estudiante se califica en… |
+|---|---|
+| Tiene fecha de cierre | La fecha de cierre (la fecha de corte, o la fecha de entrega si no hay corte), más el tiempo de espera |
+| Tiene una excepción de usuario para el estudiante | La fecha de la excepción, más el tiempo de espera |
+| Tiene una excepción de grupo para el grupo del estudiante | La más tardía de las fechas de las excepciones de grupo, más el tiempo de espera |
+| No tiene fecha de cierre, o una excepción la quita | El momento en que el estudiante terminó, más el tiempo de espera |
+
+Si el estudiante termina después del momento programado, se califica en cuanto termina. Si más adelante se añade o se cambia una excepción, la calificación se reprograma en consecuencia.
+
+## Estados de un estudiante
+
+Cada estudiante de una actividad con Autograder activado está en uno de estos estados. El [informe de Autograder](https://github.com/didactika/moodle-report_autograder) los muestra.
+
+| Estado | Significado |
+|---|---|
+| <Badge text="Pendiente" variant="note" /> | El estudiante está programado para calificarse en la fecha indicada |
+| <Badge text="Autocalificado" variant="success" /> | Autograder ha calificado al estudiante |
+| <Badge text="Calificado por un docente" variant="tip" /> | Un docente calificó antes al estudiante, de modo que Autograder no lo hizo |
+| <Badge text="Con error" variant="danger" /> | Autograder intentó calificar al estudiante y no pudo |
+| <Badge text="No autocalificado" variant="caution" /> | Autograder no calificará al estudiante, por ejemplo porque la calificación se canceló |
+
+A nombre de quién se registra la calificación se explica en [A nombre de quién se registra la calificación](page:concepts/who-the-grade-is-attributed-to), y los casos en que no se califica nada en [Cuándo Autograder no califica](page:concepts/when-autograder-does-not-grade).

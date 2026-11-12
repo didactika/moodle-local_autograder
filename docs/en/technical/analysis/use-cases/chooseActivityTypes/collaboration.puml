@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Administrator" as user <<actor>>
+class "Activity types page" as screen <<boundary>>
+class "Type policy" as policy <<control>>
+class "Decision store" as decisions <<control>>
+class "Site setting" as setting <<entity>>
+class "Decision" as decision <<entity>>
+
+user --> screen : 1: flips the switch of a type
+screen --> policy : 2: set_module_type(type, enabled)
+policy --> setting : 3: saves the enabled types
+policy --> decisions : 4: cancels the pending grades of the type
+decisions --> decision : 5: marks them cancelled
+
+@enduml

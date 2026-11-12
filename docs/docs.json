@@ -1,0 +1,11 @@
+{
+  "kind": "plugin",
+  "slug": "local-autograder",
+  "title": { "en": "Autograder", "es": "Autocalificador" },
+  "summary": {
+    "en": "Grades completed activities that no teacher has graded, on time and in the name of the student's own teacher.",
+    "es": "Califica las actividades completadas que ningún docente ha calificado, a tiempo y a nombre de un docente del propio estudiante."
+  },
+  "directory": { "published": "auto", "url": null },
+  "translations": { "source": "l10n" }
+}

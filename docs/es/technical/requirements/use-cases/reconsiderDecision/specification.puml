@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "reconsiderDecision" as reconsiderDecision {
+  state " " as Event
+  state " " as Looking
+  state " " as Pending
+  state " " as Called
+
+  [*] --> Event : Something changes, such as a submission or an override
+  Event --> Looking : System reacts to the event
+  Looking --> Pending : The student has done the activity, with its time
+  Looking --> Called : The student has not, or a teacher graded, or Autograder is off
+  Pending --> [*] : System schedules the task at the new time
+  Called --> [*] : System calls the decision off
+
+  note on link
+    System: plans again from live data
+  end note
+}
+
+@enduml
