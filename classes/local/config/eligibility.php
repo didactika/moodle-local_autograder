@@ -244,9 +244,13 @@ final class eligibility {
             return false;
         }
 
-        if (defined('FEATURE_MOD_PURPOSE') && defined('MOD_PURPOSE_ASSESSMENT')
-                && plugin_supports('mod', $modname, FEATURE_MOD_PURPOSE, null) === MOD_PURPOSE_ASSESSMENT) {
-            return true;
+        // Older releases of Moodle do not have the purposes of the activities.
+        if (defined('FEATURE_MOD_PURPOSE') && defined('MOD_PURPOSE_ASSESSMENT')) {
+            $purpose = plugin_supports('mod', $modname, FEATURE_MOD_PURPOSE, null);
+
+            if ($purpose === MOD_PURPOSE_ASSESSMENT) {
+                return true;
+            }
         }
 
         return $DB->record_exists('capabilities', ['name' => 'mod/' . $modname . ':grade']);
