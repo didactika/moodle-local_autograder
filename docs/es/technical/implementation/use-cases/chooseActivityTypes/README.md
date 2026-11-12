@@ -22,9 +22,12 @@ Diseño: [README](../../../design/use-cases/chooseActivityTypes/README.md)
 | `modules.php` | página | `modules.php` | sí |
 | Script de tipos de actividad | AMD | `amd/src/modules.js` | sí |
 | Plantilla de tipos de actividad | plantilla | `templates/modules.mustache` | sí |
+| `eligibility` | servicio | `classes/local/config/eligibility.php` | sí |
+| Paso de actualización | actualización | `db/upgrade.php` | sí |
 
 ## Pruebas
 
 | Prueba | Cubre | Ubicación |
 | --- | --- | --- |
-| El formulario de la actividad sigue a los tipos habilitados | flujo principal, RN-007 | `tests/form/module_form_test.php` |
+| La regla de los tipos de actividad y la actualización que retira los demás | flujo principal, RN-010 | `tests/local/eligibility_test.php` |
+| | El formulario de la actividad sigue a los tipos habilitados | flujo principal, RN-007 | `tests/form/module_form_test.php` |

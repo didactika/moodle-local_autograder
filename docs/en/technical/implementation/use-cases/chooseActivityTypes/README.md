@@ -22,9 +22,12 @@ Design: [README](../../../design/use-cases/chooseActivityTypes/README.md)
 | `modules.php` | page | `modules.php` | yes |
 | Activity types script | AMD | `amd/src/modules.js` | yes |
 | Activity types template | template | `templates/modules.mustache` | yes |
+| `eligibility` | service | `classes/local/config/eligibility.php` | yes |
+| Upgrade step | upgrade | `db/upgrade.php` | yes |
 
 ## Tests
 
 | Test | Covers | Location |
 | --- | --- | --- |
-| The form of the activity follows the enabled types | main flow, RN-007 | `tests/form/module_form_test.php` |
+| The rule of the activity types and the upgrade that withdraws the others | main flow, RN-010 | `tests/local/eligibility_test.php` |
+| | The form of the activity follows the enabled types | main flow, RN-007 | `tests/form/module_form_test.php` |

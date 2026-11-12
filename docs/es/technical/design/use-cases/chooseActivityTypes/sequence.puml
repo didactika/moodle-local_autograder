@@ -11,6 +11,7 @@ database "local_autograder_decision" as table
 
 actor -> page : flips the switch (modname, enabled, sesskey)
 page -> eligibility : set_module_type_enabled(modname, enabled)
+eligibility -> eligibility : is_module_type_supported(modname)
 alt the type is switched off
   eligibility -> task : queue the cancellation of its activities
   task -> table : cancelled, with the reason
