@@ -94,7 +94,7 @@
                 <thead>
                     <tr>
                         <th scope="col">{{#str}}modules:name, local_autograder{{/str}}</th>
-                        <th scope="col">{{#str}}modules:reads, local_autograder{{/str}}</th>
+                        <th scope="col" class="d-none d-md-table-cell">{{#str}}modules:reads, local_autograder{{/str}}</th>
                         <th scope="col" class="text-right text-end">{{#str}}modules:state, local_autograder{{/str}}</th>
                     </tr>
                 </thead>
@@ -104,10 +104,13 @@
                         <td>
                             <span class="lag-type-name">
                                 <span class="activityiconcontainer {{purpose}}"><img class="activityicon" src="{{iconurl}}" alt="" width="24" height="24"></span>
-                                <strong>{{name}}</strong>
+                                <span class="d-flex flex-column">
+                                    <strong>{{name}}</strong>
+                                    <span class="small text-muted d-md-none">{{reads}}</span>
+                                </span>
                             </span>
                         </td>
-                        <td class="text-muted">{{reads}}</td>
+                        <td class="text-muted d-none d-md-table-cell">{{reads}}</td>
                         <td class="text-right text-end">
                             <form method="post" action="{{action}}">
                                 {{#params}}
