@@ -20,6 +20,7 @@
     --dd-muted: var(--bs-secondary-color, #6c757d);
     --dd-hairline: var(--bs-border-color, #dee2e6);
     --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-line-hover: color-mix(in srgb, var(--dd-ink) 62%, var(--dd-surface));
     --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
     --dd-surface-3: color-mix(in srgb, var(--dd-ink) 9%, var(--dd-surface));
     --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
@@ -46,6 +47,8 @@
 }
 
 .lag {
+    display: grid;
+    gap: 1rem;
     min-width: 0;
     color: var(--dd-ink);
 }
@@ -72,11 +75,6 @@
     flex: 1 1 14rem;
     width: auto;
     max-width: 24rem;
-}
-
-.lag .btn-group .badge {
-    --bs-bg-opacity: 0.18;
-    color: inherit;
 }
 
 .lag .table {
@@ -113,8 +111,76 @@
 }
 
 .lag .activityiconcontainer {
+    display: inline-grid;
     flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
     margin: 0;
+    padding: 0;
+    border-radius: 0.75rem;
+    background-color: var(--dd-surface-3);
+}
+
+.lag .activityiconcontainer .activityicon {
+    width: 1.375rem;
+    height: 1.375rem;
+}
+
+.lag .dd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lag .dd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    min-height: 2rem;
+    padding: 0.1875rem 0.75rem;
+    border: 1px solid var(--dd-line);
+    border-radius: 999px;
+    background: var(--dd-surface);
+    color: var(--dd-ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background-color var(--dd-ease), border-color var(--dd-ease), color var(--dd-ease);
+}
+
+.lag .dd-chip:hover {
+    border-color: var(--dd-line-hover);
+    background: var(--dd-surface-2);
+}
+
+.lag .dd-chip:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+
+.lag .dd-chip[aria-pressed=true] {
+    border-color: var(--dd-primary);
+    background: var(--dd-primary-soft);
+    color: var(--dd-primary-ink);
+    font-weight: 600;
+}
+
+.lag .dd-chip[aria-pressed=true] .dd-chip-count {
+    background: var(--dd-primary);
+    color: #fff;
+}
+
+.lag .dd-chip-count {
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--dd-surface-3);
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .lag .form-switch .form-check-input {

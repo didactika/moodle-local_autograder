@@ -32,7 +32,7 @@
  * @param {HTMLElement} page The page.
  */
 const apply = (page) => {
-    const active = page.querySelector('[data-filter].active');
+    const active = page.querySelector('[data-filter][aria-pressed="true"]');
     const state = active ? active.dataset.filter : 'all';
     const search = page.querySelector('[data-region="search"]');
     const needle = search ? search.value.trim().toLowerCase() : '';
@@ -80,7 +80,6 @@ export const init = (selector) => {
 
         page.querySelectorAll('[data-filter]').forEach((other) => {
             const on = other === chip;
-            other.classList.toggle('active', on);
             other.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         apply(page);

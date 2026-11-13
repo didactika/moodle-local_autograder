@@ -18,7 +18,7 @@
     @template local_autograder/modules
 
     The activity types autograder may be switched on for: the ones that take the work of students and have a grade that a teacher
-    gives. Buttons filter the rows by whether Autograder is on; each row has the icon and colour of its purpose, what Autograder reads for it and a toggle that sits in a
+    gives. Chips filter the rows by whether Autograder is on; each row has the icon and colour of its purpose, what Autograder reads for it and a toggle that sits in a
     small form of its own, which local_autograder/modules submits the moment it is flipped.
 
     Context variables required for this template:
@@ -71,23 +71,23 @@
     }
 }}
 <div class="lag" id="local-autograder-modules">
-    <p class="text-muted mb-3">{{lead}}</p>
+    <p class="text-muted mb-0">{{lead}}</p>
+    <div class="dd-chips" role="group" aria-label="{{label}}">
+        {{#filters}}
+        <button type="button" class="dd-chip" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
+            {{label}} <span class="dd-chip-count" data-count="{{key}}">{{count}}</span>
+        </button>
+        {{/filters}}
+    </div>
     <div class="card">
+        {{#search}}
         <div class="table-toolbar">
-            {{#search}}
             <div class="input-group">
                 <label class="sr-only visually-hidden" for="local-autograder-search">{{search}}</label>
                 <input type="search" class="form-control" id="local-autograder-search" data-region="search" placeholder="{{search}}…">
             </div>
-            {{/search}}
-            <div class="btn-group" role="group" aria-label="{{label}}">
-                {{#filters}}
-                <button type="button" class="btn btn-outline-secondary btn-sm{{#active}} active{{/active}}" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
-                    {{label}} <span class="badge badge-secondary" data-count="{{key}}">{{count}}</span>
-                </button>
-                {{/filters}}
-            </div>
         </div>
+        {{/search}}
         <div class="table-responsive">
             <table class="table">
                 <caption class="sr-only visually-hidden">{{label}}</caption>
@@ -124,5 +124,5 @@
         </div>
         <div class="table-foot text-muted small">{{count}}</div>
     </div>
-    <p class="small text-muted mt-3">{{intro}}</p>
+    <p class="small text-muted mb-0">{{intro}}</p>
 </div>
