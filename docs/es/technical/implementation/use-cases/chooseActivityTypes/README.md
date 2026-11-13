@@ -22,10 +22,13 @@ Diseño: [README](../../../design/use-cases/chooseActivityTypes/README.md)
 | `set_module_type` | servicio web | `classes/external/set_module_type.php` | sí |
 | Página de tipos de actividad | componente React | `js/esm/src/Modules.tsx` | sí |
 | `modules_page` | renderable | `classes/output/modules_page.php` | sí |
+| `eligibility` | servicio | `classes/local/config/eligibility.php` | sí |
+| Paso de actualización | actualización | `db/upgrade.php` | sí |
 
 ## Pruebas
 
 | Prueba | Cubre | Ubicación |
 | --- | --- | --- |
-| Cambiar un tipo modifica el ajuste | flujo principal | `tests/external/set_module_type_test.php` |
+| La regla de los tipos de actividad y la actualización que retira los demás | flujo principal, RN-010 | `tests/local/eligibility_test.php` |
+| | Cambiar un tipo modifica el ajuste | flujo principal | `tests/external/set_module_type_test.php` |
 | La página de tipos de actividad | flujo principal | `tests/behat/pages.feature` |

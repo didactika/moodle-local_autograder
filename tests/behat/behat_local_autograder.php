@@ -43,7 +43,7 @@ class behat_local_autograder extends behat_base {
      * @When /^I wait for the autograder page$/
      */
     public function i_wait_for_the_autograder_page(): void {
-        $this->getSession()->wait(15000, "document.querySelector('.lag') !== null && document.querySelector('.lag-sk') === null");
+        $this->getSession()->wait(15000, "document.querySelector('.lag [role=\"switch\"]') !== null");
     }
 
     /**

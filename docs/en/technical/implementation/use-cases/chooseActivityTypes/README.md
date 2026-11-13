@@ -22,10 +22,13 @@ Design: [README](../../../design/use-cases/chooseActivityTypes/README.md)
 | `set_module_type` | web service | `classes/external/set_module_type.php` | yes |
 | Activity types page | React component | `js/esm/src/Modules.tsx` | yes |
 | `modules_page` | renderable | `classes/output/modules_page.php` | yes |
+| `eligibility` | service | `classes/local/config/eligibility.php` | yes |
+| Upgrade step | upgrade | `db/upgrade.php` | yes |
 
 ## Tests
 
 | Test | Covers | Location |
 | --- | --- | --- |
-| Switching a type changes the setting | main flow | `tests/external/set_module_type_test.php` |
+| The rule of the activity types and the upgrade that withdraws the others | main flow, RN-010 | `tests/local/eligibility_test.php` |
+| | Switching a type changes the setting | main flow | `tests/external/set_module_type_test.php` |
 | The page of the activity types | main flow | `tests/behat/pages.feature` |

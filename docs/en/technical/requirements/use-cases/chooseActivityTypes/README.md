@@ -32,7 +32,7 @@ extends:
 
 ## Context
 
-The site decides which activity types Autograder may grade. A type that is switched off hides the settings and stops the grades that were waiting.
+The site decides which activity types Autograder may grade, among the installed ones that take the work of students and have a grade that a teacher gives. A type that is switched off hides the settings and stops the grades that were waiting.
 
 ## Preconditions
 
@@ -47,7 +47,7 @@ The site decides which activity types Autograder may grade. A type that is switc
 
 | Step | Actor | System |
 | --- | --- | --- |
-| 1 | Opens **Activity types** from the settings of the plugin. | Lists every type that can be graded, with its switch. |
+| 1 | Opens **Activity types** from the settings of the plugin. | Lists the installed types that meet RN-010, with what Autograder reads in each and its switch. |
 | 2 | Flips the switch of a type. | Saves it at once through the web-service function. |
 | 3 |  | When the type goes off, queues the cancellation of the pending grades of its activities. |
 | 4 |  | Shows a message with the result. |
@@ -63,6 +63,7 @@ The site decides which activity types Autograder may grade. A type that is switc
 | ID | Rule |
 | --- | --- |
 | RN-007 | Turning the type of an activity off on the site cancels the grades still pending. |
+| RN-010 | A type is offered only when it has a grade and either declares the purpose "assessment" or defines the capability `mod/<type>:grade`. An installed plugin that meets it is offered with no change. |
 
 ## Specification
 

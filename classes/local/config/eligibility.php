@@ -92,10 +92,13 @@ final class eligibility {
         $raw = get_config('local_autograder', 'enabled_modules');
 
         if ($raw === false) {
-            return self::DEFAULT_MODULE_TYPES;
+            $types = self::DEFAULT_MODULE_TYPES;
+        } else {
+            $types = array_values(array_filter(array_map('trim', explode(',', (string) $raw))));
         }
 
-        return array_values(array_filter(array_map('trim', explode(',', (string) $raw))));
+        // A type that no longer meets the rule, such as one whose plugin was uninstalled, is not one the site allows.
+        return array_values(array_filter($types, [self::class, 'is_module_type_supported']));
     }
 
     /**
@@ -106,6 +109,10 @@ final class eligibility {
      * @param bool $enabled
      */
     public static function set_module_type_enabled(string $modname, bool $enabled): void {
+        if ($enabled && !self::is_module_type_supported($modname)) {
+            throw new \invalid_parameter_exception('Autograder cannot be used with ' . $modname . '.');
+        }
+
         if (self::is_module_type_enabled($modname) === $enabled) {
             return;
         }
@@ -146,7 +153,7 @@ final class eligibility {
      * @param string $modname
      * @param bool $enabled
      */
-    private static function apply_type_switch(string $modname, bool $enabled): void {
+    public static function apply_type_switch(string $modname, bool $enabled): void {
         $cmids = $enabled
             ? config_repository::enabled_cmids_of_type($modname)
             : decision_repository::pending_cmids_of_type($modname);
@@ -166,24 +173,87 @@ final class eligibility {
     }
 
     /**
-     * Every installed module type that could ever be offered on the site
-     * settings page — anything gradeable, whether or not it is one of the
-     * types currently enabled.
+     * Takes the types that do not meet the rule off the ones the site allows, and calls off what was waiting for them.
      *
-     * @return string[] Module names, e.g. ["assign", "forum", "quiz", ...].
+     * The configuration of their activities stays saved, and so does every grade that was given.
+     *
+     * @return string[] The types that were taken off, in the order the setting listed them.
      */
-    public static function gradeable_module_types(): array {
-        $gradeable = [];
+    public static function withdraw_unsupported_types(): array {
+        $raw = get_config('local_autograder', 'enabled_modules');
 
-        foreach (\core_component::get_plugin_list('mod') as $modname => $unused) {
-            if (plugin_supports('mod', $modname, FEATURE_GRADE_HAS_GRADE, false)) {
-                $gradeable[] = $modname;
+        if ($raw === false) {
+            return [];
+        }
+
+        $listed = array_values(array_filter(array_map('trim', explode(',', (string) $raw))));
+        $kept = array_values(array_filter($listed, [self::class, 'is_module_type_supported']));
+        $dropped = array_values(array_diff($listed, $kept));
+
+        if ($dropped !== []) {
+            set_config('enabled_modules', implode(',', $kept), 'local_autograder');
+
+            foreach ($dropped as $modname) {
+                self::apply_type_switch($modname, false);
             }
         }
 
-        sort($gradeable);
+        return $dropped;
+    }
 
-        return $gradeable;
+    /**
+     * Every installed module type that Autograder can be used with, whether or
+     * not the site has switched it on: the ones for which
+     * {@see self::is_module_type_supported()} is true.
+     *
+     * @return string[] Module names, e.g. ["assign", "forum", "lesson", "quiz", "workshop"].
+     */
+    public static function supported_module_types(): array {
+        $supported = [];
+
+        foreach (\core_component::get_plugin_list('mod') as $modname => $unused) {
+            if (self::is_module_type_supported($modname)) {
+                $supported[] = $modname;
+            }
+        }
+
+        sort($supported);
+
+        return $supported;
+    }
+
+    /**
+     * Whether a module type takes the work of students and has a grade that a teacher gives.
+     *
+     * Moodle has no single flag for "students hand something in", so the rule reads what every activity plugin already
+     * declares, which means a plugin of the site is offered with no change here as soon as it declares it. The type must
+     * have a grade, and then either declare the purpose "assessment" or define the capability mod/<type>:grade, with
+     * which a teacher grades the work of students.
+     *
+     * @param string $modname The module type, e.g. "assign".
+     * @return bool
+     */
+    public static function is_module_type_supported(string $modname): bool {
+        global $DB;
+
+        if (!array_key_exists($modname, \core_component::get_plugin_list('mod'))) {
+            return false;
+        }
+
+        if (!plugin_supports('mod', $modname, FEATURE_GRADE_HAS_GRADE, false)) {
+            return false;
+        }
+
+        // Older releases of Moodle do not have the purposes of the activities.
+        if (defined('FEATURE_MOD_PURPOSE') && defined('MOD_PURPOSE_ASSESSMENT')) {
+            $purpose = plugin_supports('mod', $modname, FEATURE_MOD_PURPOSE, null);
+
+            if ($purpose === MOD_PURPOSE_ASSESSMENT) {
+                return true;
+            }
+        }
+
+        return $DB->record_exists('capabilities', ['name' => 'mod/' . $modname . ':grade']);
     }
 
     /**

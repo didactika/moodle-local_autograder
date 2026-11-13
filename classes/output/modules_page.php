@@ -27,6 +27,7 @@ namespace local_autograder\output;
 
 use core\output\react_component_renderable;
 use local_autograder\local\config\eligibility;
+use local_autograder\local\module\module_adapter;
 
 /**
  * The activity types that Autograder may be switched on for: the component local_autograder/Modules draws one switch for each.
@@ -52,12 +53,17 @@ class modules_page implements react_component_renderable, \renderable {
     public function get_react_component_props(\renderer_base $renderer): \stdClass {
         $enabled = eligibility::enabled_module_types();
         $types = [];
-        foreach (eligibility::gradeable_module_types() as $type) {
+        foreach (eligibility::supported_module_types() as $type) {
+            // What Autograder reads to know that a student took part: the hand-ins, posts or attempts of the types it knows,
+            // and the completion of the activity for the others.
+            $adapter = module_adapter::class_for($type);
             $types[] = [
                 'type' => $type,
                 'name' => get_string('modulename', $type),
                 'iconurl' => $renderer->image_url('monologo', 'mod_' . $type)->out(false),
+                'purpose' => self::purpose_of($type),
                 'enabled' => in_array($type, $enabled, true),
+                'reads' => $adapter::knows_submissions() ? $type : 'completion',
             ];
         }
         return (object) ['types' => $types, 'strings' => self::strings()];
@@ -69,9 +75,25 @@ class modules_page implements react_component_renderable, \renderable {
      * @return string The HTML.
      */
     public static function placeholder(): string {
-        return '<div class="lag" aria-hidden="true">' .
-            str_repeat('<div class="lag-sk-row"><span class="lag-sk lag-sk-line"></span></div>', 6) . '</div>' .
+        return '<div class="lag" aria-hidden="true"><div class="card"><div class="card-body">' .
+            str_repeat('<p class="placeholder-glow"><span class="placeholder col-8"></span></p>', 5) . '</div></div></div>' .
             '<span class="sr-only visually-hidden" role="status">' . get_string('loading') . '</span>';
+    }
+
+    /**
+     * The purpose that Moodle gives an activity type, which is what colours its icon on the course page.
+     *
+     * @param string $type The module type.
+     * @return string The purpose, or "other" on a Moodle that has none.
+     */
+    private static function purpose_of(string $type): string {
+        if (!defined('FEATURE_MOD_PURPOSE')) {
+            return 'other';
+        }
+
+        $purpose = plugin_supports('mod', $type, FEATURE_MOD_PURPOSE, 'other');
+
+        return is_string($purpose) && preg_match('/^[a-z]+$/', $purpose) ? $purpose : 'other';
     }
 
     /**
@@ -82,7 +104,11 @@ class modules_page implements react_component_renderable, \renderable {
      * @return string[] Texts by name.
      */
     public static function strings(): array {
+        global $OUTPUT;
+
         $strings = get_string_manager()->load_component_strings('local_autograder', current_language());
+        // The icon of the empty state, drawn with the icon map of the theme.
+        $strings['pix:a/search'] = $OUTPUT->pix_icon('a/search', '', 'core');
         foreach ($strings as $name => $value) {
             $strings[$name] = preg_replace(['/\{\$a->([a-z]+)\}/', '/\{\$a\}/'], ['{$1}', '{n}'], $value);
         }

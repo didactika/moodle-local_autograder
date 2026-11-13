@@ -20,10 +20,10 @@ Feature: The pages of Autograder
     When I open the autograder page "modules.php"
     And I wait for the autograder page
     Then autograder should be allowed for the "assign" activity type
-    And I click on "Disable Autograder for Assignment" "button"
+    And I click on "//input[@role='switch'][@aria-label='Disable Autograder for Assignment']" "xpath_element"
     And I wait "1" seconds
     And autograder should not be allowed for the "assign" activity type
-    And I click on "Enable Autograder for Assignment" "button"
+    And I click on "//input[@role='switch'][@aria-label='Enable Autograder for Assignment']" "xpath_element"
     And I wait "1" seconds
     And autograder should be allowed for the "assign" activity type
 

@@ -61,7 +61,7 @@ final class set_module_type extends external_api {
         self::validate_context($context);
         require_capability('local/autograder:manage', $context);
 
-        if (!in_array($params['modname'], eligibility::gradeable_module_types(), true)) {
+        if (!eligibility::is_module_type_supported($params['modname'])) {
             throw new \invalid_parameter_exception('Autograder cannot be used with ' . $params['modname'] . '.');
         }
         eligibility::set_module_type_enabled($params['modname'], (bool) $params['enabled']);
