@@ -104,7 +104,11 @@ class modules_page implements react_component_renderable, \renderable {
      * @return string[] Texts by name.
      */
     public static function strings(): array {
+        global $OUTPUT;
+
         $strings = get_string_manager()->load_component_strings('local_autograder', current_language());
+        // The icon of the empty state, drawn with the icon map of the theme.
+        $strings['pix:a/search'] = $OUTPUT->pix_icon('a/search', '', 'core');
         foreach ($strings as $name => $value) {
             $strings[$name] = preg_replace(['/\{\$a->([a-z]+)\}/', '/\{\$a\}/'], ['{$1}', '{n}'], $value);
         }

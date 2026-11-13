@@ -120,36 +120,52 @@ function Modules({ types, strings }) {
         lineNumber: 77,
         columnNumber: 45
       }, this),
-      /* @__PURE__ */ jsxDEV("div", { className: "table-responsive", children: [
-        /* @__PURE__ */ jsxDEV("table", { className: "table", children: [
-          /* @__PURE__ */ jsxDEV("caption", { className: "visually-hidden sr-only", children: text("settings:modulestab") }, void 0, false, {
+      /* @__PURE__ */ jsxDEV("div", { className: "table-responsive", "data-region": "tablewrap", children: [
+        shown.length === 0 && /* @__PURE__ */ jsxDEV("div", { className: "dd-empty", "data-region": "empty", role: "status", children: [
+          /* @__PURE__ */ jsxDEV("span", { className: "dd-tile", "aria-hidden": "true", dangerouslySetInnerHTML: { __html: text("pix:a/search") } }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
             lineNumber: 93,
+            columnNumber: 21
+          }, this),
+          /* @__PURE__ */ jsxDEV("p", { className: "dd-empty-text", children: text("modules:empty") }, void 0, false, {
+            fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+            lineNumber: 94,
+            columnNumber: 21
+          }, this)
+        ] }, void 0, true, {
+          fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+          lineNumber: 92,
+          columnNumber: 40
+        }, this),
+        shown.length > 0 && /* @__PURE__ */ jsxDEV("table", { className: "table", children: [
+          /* @__PURE__ */ jsxDEV("caption", { className: "visually-hidden sr-only", children: text("settings:modulestab") }, void 0, false, {
+            fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+            lineNumber: 97,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ jsxDEV("thead", { children: /* @__PURE__ */ jsxDEV("tr", { children: [
             /* @__PURE__ */ jsxDEV("th", { scope: "col", children: text("modules:name") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 96,
+              lineNumber: 100,
               columnNumber: 29
             }, this),
             /* @__PURE__ */ jsxDEV("th", { scope: "col", children: text("modules:reads") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 97,
+              lineNumber: 101,
               columnNumber: 29
             }, this),
             /* @__PURE__ */ jsxDEV("th", { scope: "col", className: "text-end", children: text("modules:state") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 98,
+              lineNumber: 102,
               columnNumber: 29
             }, this)
           ] }, void 0, true, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 95,
+            lineNumber: 99,
             columnNumber: 25
           }, this) }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 94,
+            lineNumber: 98,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ jsxDEV("tbody", { children: shown.map((item) => {
@@ -159,30 +175,30 @@ function Modules({ types, strings }) {
               /* @__PURE__ */ jsxDEV("td", { children: /* @__PURE__ */ jsxDEV("span", { className: "d-inline-flex align-items-center gap-3", children: [
                 /* @__PURE__ */ jsxDEV("span", { className: `activityiconcontainer ${item.purpose}`, children: /* @__PURE__ */ jsxDEV("img", { className: "activityicon", src: item.iconurl, alt: "", width: 24, height: 24 }, void 0, false, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 109,
+                  lineNumber: 113,
                   columnNumber: 45
                 }, this) }, void 0, false, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 108,
+                  lineNumber: 112,
                   columnNumber: 41
                 }, this),
                 /* @__PURE__ */ jsxDEV("strong", { children: item.name }, void 0, false, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 111,
+                  lineNumber: 115,
                   columnNumber: 41
                 }, this)
               ] }, void 0, true, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 107,
+                lineNumber: 111,
                 columnNumber: 37
               }, this) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 106,
+                lineNumber: 110,
                 columnNumber: 33
               }, this),
               /* @__PURE__ */ jsxDEV("td", { className: "text-muted", children: text(`modules:reads_${item.reads}`) || text("modules:reads_completion") }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 114,
+                lineNumber: 118,
                 columnNumber: 33
               }, this),
               /* @__PURE__ */ jsxDEV("td", { className: "text-end", children: /* @__PURE__ */ jsxDEV("div", { className: "form-check form-switch d-inline-block mb-0", children: /* @__PURE__ */ jsxDEV(
@@ -201,38 +217,33 @@ function Modules({ types, strings }) {
                 false,
                 {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 117,
+                  lineNumber: 121,
                   columnNumber: 41
                 },
                 this
               ) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 116,
+                lineNumber: 120,
                 columnNumber: 37
               }, this) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 115,
+                lineNumber: 119,
                 columnNumber: 33
               }, this)
             ] }, item.type, true, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 105,
+              lineNumber: 109,
               columnNumber: 36
             }, this);
           }) }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 101,
+            lineNumber: 105,
             columnNumber: 21
           }, this)
         ] }, void 0, true, {
           fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 92,
-          columnNumber: 17
-        }, this),
-        shown.length === 0 && /* @__PURE__ */ jsxDEV("p", { className: "text-center text-muted p-5 mb-0", role: "status", children: text("modules:empty") }, void 0, false, {
-          fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 133,
-          columnNumber: 40
+          lineNumber: 96,
+          columnNumber: 38
         }, this)
       ] }, void 0, true, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
@@ -241,7 +252,7 @@ function Modules({ types, strings }) {
       }, this),
       /* @__PURE__ */ jsxDEV("div", { className: "table-foot text-muted small", children: text("modules:count", types.length) }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 135,
+        lineNumber: 138,
         columnNumber: 13
       }, this)
     ] }, void 0, true, {
@@ -251,7 +262,7 @@ function Modules({ types, strings }) {
     }, this),
     /* @__PURE__ */ jsxDEV("p", { className: "small text-muted mb-0", children: text("modules:intro") }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 137,
+      lineNumber: 140,
       columnNumber: 9
     }, this)
   ] }, void 0, true, {

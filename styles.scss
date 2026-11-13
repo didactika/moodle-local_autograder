@@ -31,6 +31,7 @@
     --dd-radius-sm: 0.5rem;
     --dd-radius-lg: 0.75rem;
     --dd-h: 2.25rem;
+    --dd-table-h: 34rem;
     --dd-ease: 140ms cubic-bezier(0.2, 0, 0, 1);
     --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
     --dd-shadow-md: 0 14px 34px -12px rgb(15 23 42 / 30%), 0 2px 6px rgb(15 23 42 / 8%);
@@ -192,6 +193,60 @@
 
     & .form-switch .form-check-input {
         cursor: pointer;
+    }
+
+    // The table keeps one height whatever it holds: with few rows there is room below them, with many it scrolls and the header
+    // stays in view. The room of the scrollbar is kept while there is none, so the columns do not move.
+    & .table-responsive[data-region="tablewrap"] {
+        block-size: var(--dd-table-h);
+        margin: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+
+        & thead th {
+            position: sticky;
+            inset-block-start: 0;
+            z-index: 1;
+            background-color: var(--dd-surface);
+        }
+    }
+
+    // With nothing to show, the empty state takes the height of the table.
+    & .dd-empty {
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 0.5rem;
+        min-block-size: 100%;
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+    }
+
+    & .dd-tile {
+        display: inline-grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 1rem;
+        background-color: var(--dd-primary-soft);
+        color: var(--dd-primary-ink);
+        font-size: 1.5rem;
+
+        & .icon {
+            margin: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+    }
+
+    & .dd-empty-text {
+        max-width: 28rem;
+        margin: 0;
+        color: var(--dd-muted);
+        font-size: 0.9375rem;
+        line-height: 1.5;
     }
 
     & .table-foot {

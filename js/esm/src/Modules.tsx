@@ -88,8 +88,12 @@ export default function Modules({types, strings}: ModulesProps) {
                     />
                 </div>
             </div>}
-            <div className="table-responsive">
-                <table className="table">
+            <div className="table-responsive" data-region="tablewrap">
+                {shown.length === 0 && <div className="dd-empty" data-region="empty" role="status">
+                    <span className="dd-tile" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
+                    <p className="dd-empty-text">{text('modules:empty')}</p>
+                </div>}
+                {shown.length > 0 && <table className="table">
                     <caption className="visually-hidden sr-only">{text('settings:modulestab')}</caption>
                     <thead>
                         <tr>
@@ -129,8 +133,7 @@ export default function Modules({types, strings}: ModulesProps) {
                             </tr>;
                         })}
                     </tbody>
-                </table>
-                {shown.length === 0 && <p className="text-center text-muted p-5 mb-0" role="status">{text('modules:empty')}</p>}
+                </table>}
             </div>
             <div className="table-foot text-muted small">{text('modules:count', types.length)}</div>
         </div>
