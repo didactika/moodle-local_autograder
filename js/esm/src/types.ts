@@ -18,6 +18,8 @@ export interface ModuleType {
     type: string;
     name: string;
     iconurl: string;
+    /** The purpose that Moodle gives the type, which names the colour of its icon: assessment, collaboration, communication... */
+    purpose: string;
     enabled: boolean;
     /** What Autograder reads for it: the type itself when it knows its hand-ins, posts or attempts, or "completion". */
     reads: string;
