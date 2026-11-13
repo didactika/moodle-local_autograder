@@ -98,7 +98,7 @@ export default function Modules({types, strings}: ModulesProps) {
                     <thead>
                         <tr>
                             <th scope="col">{text('modules:name')}</th>
-                            <th scope="col">{text('modules:reads')}</th>
+                            <th scope="col" className="d-none d-md-table-cell">{text('modules:reads')}</th>
                             <th scope="col" className="text-end">{text('modules:state')}</th>
                         </tr>
                     </thead>
@@ -106,16 +106,20 @@ export default function Modules({types, strings}: ModulesProps) {
                         {shown.map((item) => {
                             const on = state[item.type];
                             const label = text(on ? 'setting:modules_disable' : 'setting:modules_enable', item.name);
+                            const reads = text(`modules:reads_${item.reads}`) || text('modules:reads_completion');
                             return <tr key={item.type}>
                                 <td>
                                     <span className="d-inline-flex align-items-center gap-3">
                                         <span className={`activityiconcontainer ${item.purpose}`}>
                                             <img className="activityicon" src={item.iconurl} alt="" width={24} height={24} />
                                         </span>
-                                        <strong>{item.name}</strong>
+                                        <span className="d-flex flex-column">
+                                            <strong>{item.name}</strong>
+                                            <span className="small text-muted d-md-none">{reads}</span>
+                                        </span>
                                     </span>
                                 </td>
-                                <td className="text-muted">{text(`modules:reads_${item.reads}`) || text('modules:reads_completion')}</td>
+                                <td className="text-muted d-none d-md-table-cell">{reads}</td>
                                 <td className="text-end">
                                     <div className="form-check form-switch d-inline-block mb-0">
                                         <input
