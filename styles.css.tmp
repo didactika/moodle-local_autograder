@@ -193,6 +193,7 @@
     margin: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* stylelint-disable-next-line csstree/validator */
     scrollbar-gutter: stable;
 }
 
@@ -324,6 +325,7 @@
 
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
+    /* stylelint-disable-next-line csstree/validator */
     contain: inline-size;
 }
 
