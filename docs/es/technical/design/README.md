@@ -27,6 +27,10 @@ Dos decisiones dan forma al diseño. Primero, **cada condición se lee de nuevo 
 
 El plugin se apoya en la finalización, el libro de calificaciones y los métodos de calificación, los eventos, la API de tareas, las capacidades y la base de datos de Moodle. No añade cambios al núcleo.
 
+## La lista de tipos de actividad
+
+La lista de la página de los tipos de actividad se dibuja como cada lista del sistema de diseño de Didactika: su caja toma la altura que le deja la ventana, menos lo que va debajo, y al menos 18rem (`amd/src/fit_tables.js`); la línea de cada fila llega al final de la caja y la última fila conserva su línea (`styles.css`); y el ancho de cada columna se conserva cuando un filtro cambia las filas (`amd/src/modules.js`).
+
 ## Modelo de datos
 
 ![Modelo de datos](./data-model/data-model.svg)

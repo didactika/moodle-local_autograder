@@ -7,11 +7,10 @@
 /*
  * The tokens of the Didactika design system, scoped to the screens of the plugin. Every colour comes from the theme and ends in
  * the colour that Boost has, so a theme changes the plugin by changing its own colours. The colour modes of Moodle 5 change them
- * too. The names that start with lag are the ones of the field of the grader, which are the same tokens.
+ * too.
  */
 
-.lag,
-.lag-picker {
+.lag {
     --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
     --dd-success: var(--bs-success, var(--success, #357a32));
     --dd-danger: var(--bs-danger, var(--danger, #ca3120));
@@ -34,17 +33,6 @@
     --dd-ease: 140ms cubic-bezier(0.2, 0, 0, 1);
     --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
     --dd-shadow-md: 0 14px 34px -12px rgb(15 23 42 / 30%), 0 2px 6px rgb(15 23 42 / 8%);
-    --lag-text: var(--dd-ink);
-    --lag-surface: var(--dd-surface);
-    --lag-border: var(--dd-hairline);
-    --lag-border-strong: var(--dd-line);
-    --lag-muted: var(--dd-muted);
-    --lag-accent: var(--dd-primary);
-    --lag-accent-soft: var(--dd-primary-soft);
-    --lag-accent-ring: var(--dd-ring);
-    --lag-hover: var(--dd-surface-2);
-    --lag-faint: color-mix(in srgb, var(--dd-ink) 3%, var(--dd-surface));
-    color: var(--dd-ink);
 }
 
 .lag {
@@ -105,6 +93,10 @@
 
 .lag .table tbody tr:hover > * {
     background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
+}
+
+.lag .table tbody tr:last-child > * {
+    border-bottom: 1px solid var(--dd-hairline);
 }
 
 .lag .activityiconcontainer {
@@ -189,8 +181,6 @@
     margin: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    /* stylelint-disable-next-line csstree/validator */
-    scrollbar-gutter: stable;
 }
 
 .lag .table-responsive[data-region=tablewrap] thead th {
@@ -239,6 +229,118 @@
 .lag .table-foot {
     padding: 0.75rem 1rem;
     border-top: 1px solid var(--dd-hairline);
+}
+
+span.lag.dd-menu {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+    max-width: 26rem;
+}
+
+span.lag.dd-menu .dd-select {
+    width: 100%;
+    min-height: var(--dd-h);
+    padding-left: 1rem;
+    border-color: var(--dd-line);
+    border-radius: 999px;
+    background-color: var(--dd-surface);
+    color: var(--dd-ink);
+    text-align: left;
+}
+
+span.lag.dd-menu .dd-select:focus {
+    border-color: var(--dd-primary);
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+
+span.lag.dd-menu .dd-select.border-primary {
+    border-color: var(--dd-primary);
+    background-color: var(--dd-primary-soft);
+    color: var(--dd-primary-ink);
+    font-weight: 600;
+}
+
+span.lag.dd-menu .dd-select.dd-select-set {
+    padding-right: 2.5rem;
+    background-image: none;
+}
+
+span.lag.dd-menu .dd-select:is(button) {
+    display: block;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+span.lag.dd-menu .dd-select-clear {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--dd-primary-ink);
+    transform: translateY(-50%);
+}
+
+span.lag.dd-menu .dd-select-clear .icon {
+    margin: 0;
+}
+
+span.lag.dd-menu .dd-select-clear:hover {
+    background-color: color-mix(in srgb, var(--dd-primary) 14%, transparent);
+}
+
+span.lag.dd-menu .dd-select-clear:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+
+span.lag.dd-menu .dd-select-menu {
+    position: absolute;
+    inset: calc(100% + 2px) auto auto 0;
+    z-index: 1060;
+    width: 100%;
+    max-height: 18rem;
+    padding: 0.25rem;
+    overflow: auto;
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius);
+    background-color: var(--dd-surface);
+    box-shadow: var(--dd-shadow-md);
+}
+
+span.lag.dd-menu .dd-menu-form {
+    padding: 0.25rem 0.25rem 0.5rem;
+}
+
+span.lag.dd-menu .dropdown-item {
+    width: 100%;
+    border: 0;
+    border-radius: var(--dd-radius-sm);
+    background: none;
+    text-align: left;
+}
+
+span.lag.dd-menu .dropdown-item:hover,
+span.lag.dd-menu .dropdown-item:focus-visible {
+    outline: 0;
+    background-color: var(--dd-surface-2);
+}
+
+span.lag.dd-menu .dropdown-item[aria-selected=true] {
+    background-color: var(--dd-primary-soft);
+    color: var(--dd-primary-ink);
+    font-weight: 600;
 }
 
 #id_autogradersection,
