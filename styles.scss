@@ -96,6 +96,11 @@
         & tbody tr:hover > * {
             background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
         }
+
+        // The last row keeps its line under it, also with Bootstrap 4, which draws the line of a cell above the cell.
+        & tbody tr:last-child > * {
+            border-bottom: 1px solid var(--dd-hairline);
+        }
     }
 
     // The icon of each type is the one Moodle draws on its course page, with the colour of its purpose, in the tile of the system.
@@ -184,8 +189,6 @@
         margin: 0;
         overflow-y: auto;
         overscroll-behavior: contain;
-        /* stylelint-disable-next-line csstree/validator */
-        scrollbar-gutter: stable;
 
         & thead th {
             position: sticky;

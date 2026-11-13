@@ -93,6 +93,10 @@
     background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
 }
 
+.lag .table tbody tr:last-child > * {
+    border-bottom: 1px solid var(--dd-hairline);
+}
+
 .lag .activityiconcontainer {
     display: inline-grid;
     flex: none;
@@ -175,8 +179,6 @@
     margin: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    /* stylelint-disable-next-line csstree/validator */
-    scrollbar-gutter: stable;
 }
 
 .lag .table-responsive[data-region=tablewrap] thead th {
