@@ -273,6 +273,15 @@ span.lag.dd-menu {
             padding-right: 2.5rem;
             background-image: none;
         }
+
+        // A menu drawn as a button cuts a long value with an ellipsis where its text ends, so it never runs under the cross.
+        &:is(button) {
+            display: block;
+            overflow: hidden;
+            text-align: start;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     & .dd-select-clear {

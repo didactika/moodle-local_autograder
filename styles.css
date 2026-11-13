@@ -263,6 +263,14 @@ span.lag.dd-menu .dd-select.dd-select-set {
     background-image: none;
 }
 
+span.lag.dd-menu .dd-select:is(button) {
+    display: block;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 span.lag.dd-menu .dd-select-clear {
     position: absolute;
     top: 50%;
