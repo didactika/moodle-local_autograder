@@ -107,10 +107,6 @@
             white-space: nowrap;
         }
 
-        & tbody tr:last-child > * {
-            border-bottom: 0;
-        }
-
         & tbody tr:hover > * {
             background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
         }
