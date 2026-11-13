@@ -88,7 +88,7 @@
             </div>
         </div>
         {{/search}}
-        <div class="table-responsive">
+        <div class="table-responsive" data-region="tablewrap">
             <table class="table">
                 <caption class="sr-only visually-hidden">{{label}}</caption>
                 <thead>
@@ -120,7 +120,10 @@
                     {{/types}}
                 </tbody>
             </table>
-            <p class="text-center text-muted p-5 mb-0" data-region="empty" role="status" hidden>{{empty}}</p>
+            <div class="dd-empty" data-region="empty" role="status" hidden>
+                <span class="dd-tile" aria-hidden="true">{{#pix}}a/search, core{{/pix}}</span>
+                <p class="dd-empty-text">{{empty}}</p>
+            </div>
         </div>
         <div class="table-foot text-muted small">{{count}}</div>
     </div>

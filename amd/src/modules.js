@@ -48,6 +48,8 @@ const apply = (page) => {
     const empty = page.querySelector('[data-region="empty"]');
     if (empty) {
         empty.hidden = shown > 0;
+        // With nothing to show, the empty state takes the place of the table, which keeps its height.
+        page.querySelector('[data-region="tablewrap"] table').hidden = shown === 0;
     }
 };
 
