@@ -18,7 +18,7 @@
     @template local_autograder/modules
 
     The activity types autograder may be switched on for: the ones that take the work of students and have a grade that a teacher
-    gives. Chips filter the rows by whether Autograder is on; each row has what Autograder reads for it and a toggle that sits in a
+    gives. Buttons filter the rows by whether Autograder is on; each row has the icon and colour of its purpose, what Autograder reads for it and a toggle that sits in a
     small form of its own, which local_autograder/modules submits the moment it is flipped.
 
     Context variables required for this template:
@@ -30,7 +30,8 @@
     * empty - What to say when no row matches.
     * count - The number of types, in words.
     * types - One entry per activity type:
-      * component - Its component, e.g. "mod_assign", for the icon.
+      * iconurl - The address of its icon, which Moodle draws on its course page.
+      * purpose - The purpose that Moodle gives it, which names the colour of the icon.
       * name - Its name.
       * reads - What Autograder reads for it.
       * ison - Whether Autograder is on for it.
@@ -53,7 +54,8 @@
         "count": "2 activity types",
         "types": [
             {
-                "component": "mod_assign",
+                "iconurl": "https://example.com/mod/assign/pix/monologo.svg",
+                "purpose": "assessment",
                 "name": "Assignment",
                 "reads": "Reads the hand-ins of students",
                 "ison": true,
@@ -69,45 +71,58 @@
     }
 }}
 <div class="lag" id="local-autograder-modules">
-    <div class="lag-head">
-        <span class="lag-tile" aria-hidden="true">{{#pix}} i/valid, core {{/pix}}</span>
-        <p class="lag-lead">{{lead}}</p>
-    </div>
-
-    <div class="lag-chips" role="group" aria-label="{{label}}">
-        {{#filters}}
-        <button type="button" class="lag-chip{{#active}} lag-chip-active{{/active}}" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
-            {{label}} <span class="lag-chip-count" data-count="{{key}}">{{count}}</span>
-        </button>
-        {{/filters}}
-    </div>
-
-    <div class="lag-card">
-        {{#search}}
-        <div class="lag-search">
-            <input type="search" class="lag-search-field" data-region="search" placeholder="{{search}}" aria-label="{{search}}">
+    <p class="text-muted mb-3">{{lead}}</p>
+    <div class="card">
+        <div class="table-toolbar">
+            {{#search}}
+            <div class="input-group">
+                <label class="sr-only visually-hidden" for="local-autograder-search">{{search}}</label>
+                <input type="search" class="form-control" id="local-autograder-search" data-region="search" placeholder="{{search}}…">
+            </div>
+            {{/search}}
+            <div class="btn-group" role="group" aria-label="{{label}}">
+                {{#filters}}
+                <button type="button" class="btn btn-outline-secondary btn-sm{{#active}} active{{/active}}" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
+                    {{label}} <span class="badge badge-secondary" data-count="{{key}}">{{count}}</span>
+                </button>
+                {{/filters}}
+            </div>
         </div>
-        {{/search}}
-        <ul class="lag-types" aria-label="{{label}}">
-            {{#types}}
-            <li class="lag-type{{#ison}} lag-type-on{{/ison}}" data-state="{{#ison}}on{{/ison}}{{^ison}}off{{/ison}}" data-name="{{name}}">
-                <span class="lag-type-tile">{{#pix}} monologo, {{component}} {{/pix}}</span>
-                <span class="lag-type-text">
-                    <span class="lag-type-name">{{name}}</span>
-                    <span class="lag-type-reads">{{reads}}</span>
-                </span>
-                <form method="post" action="{{action}}">
-                    {{#params}}
-                    <input type="hidden" name="{{name}}" value="{{value}}">
-                    {{/params}}
-                    {{{toggle}}}
-                </form>
-            </li>
-            {{/types}}
-            <li class="lag-empty" data-region="empty" hidden>{{empty}}</li>
-        </ul>
-        <div class="lag-foot">{{count}}</div>
+        <div class="table-responsive">
+            <table class="table">
+                <caption class="sr-only visually-hidden">{{label}}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">{{#str}}modules:name, local_autograder{{/str}}</th>
+                        <th scope="col">{{#str}}modules:reads, local_autograder{{/str}}</th>
+                        <th scope="col" class="text-right text-end">{{#str}}modules:state, local_autograder{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#types}}
+                    <tr data-state="{{#ison}}on{{/ison}}{{^ison}}off{{/ison}}" data-name="{{name}}">
+                        <td>
+                            <span class="lag-type-name">
+                                <span class="activityiconcontainer {{purpose}}"><img class="activityicon" src="{{iconurl}}" alt="" width="24" height="24"></span>
+                                <strong>{{name}}</strong>
+                            </span>
+                        </td>
+                        <td class="text-muted">{{reads}}</td>
+                        <td class="text-right text-end">
+                            <form method="post" action="{{action}}">
+                                {{#params}}
+                                <input type="hidden" name="{{name}}" value="{{value}}">
+                                {{/params}}
+                                {{{toggle}}}
+                            </form>
+                        </td>
+                    </tr>
+                    {{/types}}
+                </tbody>
+            </table>
+            <p class="text-center text-muted p-5 mb-0" data-region="empty" role="status" hidden>{{empty}}</p>
+        </div>
+        <div class="table-foot text-muted small">{{count}}</div>
     </div>
-
-    <p class="lag-note">{{intro}}</p>
+    <p class="small text-muted mt-3">{{intro}}</p>
 </div>

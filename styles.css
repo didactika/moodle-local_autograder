@@ -1,5 +1,7 @@
 /* The styles of the page of the activity types and of the forms of Autograder, with the tokens of the Didactika design system.
    Every colour comes from the theme and ends in the colour that Boost has. */
+/* Generated from styles.scss. Edit the SCSS component sources and rebuild. */
+/* Moodle 4.0 and later cores disagree on decimal formatting; use the current leading-zero style. */
 /* stylelint-disable number-leading-zero */
 
 /*
@@ -43,233 +45,85 @@
     color: var(--dd-ink);
 }
 
-.lag .lag-head {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    margin: 0 0 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--dd-hairline);
-}
-
-.lag .lag-tile {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    color: var(--dd-primary-ink);
-    background: var(--dd-primary-soft);
-    border-radius: var(--dd-radius-lg);
-}
-
-.lag .lag-lead {
-    margin: 0;
-    color: var(--dd-muted);
-}
-
-.lag .lag-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0 0 0.9rem;
-}
-
-.lag .lag-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-height: 2rem;
-    padding: 0 0.85rem;
-    font-weight: 600;
+.lag {
+    min-width: 0;
     color: var(--dd-ink);
-    background: var(--dd-surface);
-    border: 1px solid var(--dd-line);
-    border-radius: 999px;
-    transition: background var(--dd-ease), border-color var(--dd-ease);
 }
 
-.lag .lag-chip:hover {
-    background: var(--dd-surface-2);
-}
-
-.lag .lag-chip:focus-visible {
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem var(--dd-ring);
-}
-
-.lag .lag-chip-active {
-    color: var(--dd-primary-ink);
-    background: var(--dd-primary-soft);
-    border-color: var(--dd-primary);
-}
-
-.lag .lag-chip-count {
-    padding: 0 0.45rem;
-    font-size: 0.75rem;
-    line-height: 1.25rem;
-    color: var(--dd-muted);
-    background: var(--dd-surface-3);
-    border-radius: 999px;
-}
-
-.lag .lag-chip-active .lag-chip-count {
-    color: var(--dd-primary-ink);
-    background: var(--dd-surface);
-}
-
-.lag .lag-card {
+.lag .card {
     overflow: hidden;
-    background: var(--dd-surface);
     border: 1px solid var(--dd-hairline);
     border-radius: var(--dd-radius-lg);
-    box-shadow: var(--dd-shadow-sm);
-}
-
-.lag .lag-search {
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--dd-hairline);
-}
-
-.lag .lag-search-field {
-    width: 100%;
-    max-width: 24rem;
-    height: var(--dd-h);
-    padding: 0 1rem;
-    color: var(--dd-ink);
     background: var(--dd-surface);
-    border: 1px solid var(--dd-line);
-    border-radius: 999px;
+    box-shadow: none;
 }
 
-.lag .lag-search-field:focus {
-    outline: 0;
-    border-color: var(--dd-primary);
-    box-shadow: 0 0 0 0.2rem var(--dd-ring);
-}
-
-.lag .lag-types {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.lag .lag-type {
+.lag .table-toolbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.9rem;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--dd-hairline);
-    transition: background var(--dd-ease);
 }
 
-.lag .lag-type:last-child {
+.lag .input-group {
+    flex: 1 1 14rem;
+    width: auto;
+    max-width: 24rem;
+}
+
+.lag .btn-group .badge {
+    --bs-bg-opacity: 0.18;
+    color: inherit;
+}
+
+.lag .table {
+    --bs-table-bg: transparent;
+    margin-bottom: 0;
+    color: var(--dd-ink);
+    font-size: 0.9375rem;
+}
+
+.lag .table th,
+.lag .table td {
+    padding: 0.75rem 1rem;
+    border-color: var(--dd-hairline);
+    vertical-align: middle;
+}
+
+.lag .table thead th {
+    border-top: 0;
+    border-bottom: 1px solid var(--dd-line);
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.lag .table tbody tr:last-child > * {
     border-bottom: 0;
 }
 
-.lag .lag-type:hover {
-    background: var(--dd-surface-2);
+.lag .table tbody tr:hover > * {
+    background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
 }
 
-.lag .lag-type-tile {
-    display: inline-grid;
+.lag .activityiconcontainer {
     flex: none;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    background: var(--dd-surface-2);
-    border-radius: var(--dd-radius);
+    margin: 0;
 }
 
-.lag .lag-type-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+.lag .form-switch .form-check-input {
+    cursor: pointer;
 }
 
-.lag .lag-type-text {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.lag .lag-type-name {
-    font-weight: 600;
-}
-
-.lag .lag-type-reads {
-    font-size: 0.8125rem;
-    color: var(--dd-muted);
-}
-
-.lag .lag-empty {
-    padding: 1.25rem 1rem;
-    color: var(--dd-muted);
-    text-align: center;
-}
-
-.lag .lag-foot {
-    padding: 0.6rem 1rem;
-    font-size: 0.8125rem;
-    color: var(--dd-muted);
-    background: var(--dd-surface-2);
+.lag .table-foot {
+    padding: 0.75rem 1rem;
     border-top: 1px solid var(--dd-hairline);
-}
-
-.lag .lag-note {
-    margin: 0.9rem 0 0;
-    font-size: 0.875rem;
-    color: var(--dd-muted);
-}
-
-.lag .lag-switch {
-    position: relative;
-    flex: none;
-    width: 2.75rem;
-    height: 1.5rem;
-    padding: 0;
-    background: var(--dd-line);
-    border: 0;
-    border-radius: 999px;
-    transition: background var(--dd-ease);
-}
-
-.lag .lag-switch:focus-visible {
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem var(--dd-ring);
-}
-
-.lag .lag-switch:disabled {
-    opacity: 0.6;
-}
-
-.lag .lag-switch[aria-checked=true] {
-    background: var(--dd-primary);
-}
-
-.lag .lag-switch-knob {
-    position: absolute;
-    top: 0.2rem;
-    left: 0.2rem;
-    width: 1.1rem;
-    height: 1.1rem;
-    background: #fff;
-    border-radius: 999px;
-    transition: transform var(--dd-ease);
-}
-
-.lag .lag-switch[aria-checked=true] .lag-switch-knob {
-    transform: translateX(1.25rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-    .lag .lag-chip,
-    .lag .lag-type,
-    .lag .lag-switch,
-    .lag .lag-switch-knob {
-        transition: none;
-    }
 }
 
 #id_autogradersection,
@@ -352,6 +206,7 @@
 
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
+    contain: inline-size;
 }
 
 #page-local-autograder-advanced .gradingform_rubric,
@@ -403,4 +258,48 @@
     #page-local-autograder-optout .mform .btn {
         white-space: normal;
     }
+}
+
+/* Bootstrap 4 names the colour of a badge badge-secondary, and what the template of this line writes. */
+.lag .badge.badge-secondary {
+    padding: 0.4em 0.65em;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--dd-muted) 18%, var(--dd-surface));
+    color: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.lag .btn-group .btn.active:not(:disabled):not(.disabled) {
+    border-color: var(--dd-ink);
+    background: var(--dd-ink);
+    color: var(--dd-surface);
+}
+
+.lag .btn-group .btn.active .badge.badge-secondary {
+    background-color: color-mix(in srgb, var(--dd-surface) 25%, var(--dd-ink));
+    color: var(--dd-surface);
+}
+
+.lag .lag-type-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lag .table-toolbar .input-group .form-control {
+    border-left: 1px solid var(--dd-line);
+}
+
+.lag .table td form {
+    margin: 0;
+}
+
+.lag .table td .custom-switch {
+    display: inline-block;
+    margin: 0;
+}
+
+.lag [data-region="empty"][hidden] {
+    display: none;
 }

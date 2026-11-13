@@ -32,13 +32,13 @@
  * @param {HTMLElement} page The page.
  */
 const apply = (page) => {
-    const active = page.querySelector('.lag-chip-active');
+    const active = page.querySelector('[data-filter].active');
     const state = active ? active.dataset.filter : 'all';
     const search = page.querySelector('[data-region="search"]');
     const needle = search ? search.value.trim().toLowerCase() : '';
     let shown = 0;
 
-    page.querySelectorAll('.lag-type').forEach((row) => {
+    page.querySelectorAll('tbody tr[data-state]').forEach((row) => {
         const inState = state === 'all' || row.dataset.state === state;
         const match = inState && (needle === '' || row.dataset.name.toLowerCase().includes(needle));
         row.hidden = !match;
@@ -72,15 +72,15 @@ export const init = (selector) => {
     });
 
     page.addEventListener('click', (e) => {
-        const chip = e.target.closest('.lag-chip');
+        const chip = e.target.closest('[data-filter]');
 
         if (!chip) {
             return;
         }
 
-        page.querySelectorAll('.lag-chip').forEach((other) => {
+        page.querySelectorAll('[data-filter]').forEach((other) => {
             const on = other === chip;
-            other.classList.toggle('lag-chip-active', on);
+            other.classList.toggle('active', on);
             other.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         apply(page);

@@ -87,8 +87,13 @@ foreach (eligibility::supported_module_types() as $type) {
         'labelclasses' => 'sr-only',
     ]);
 
+    // The purpose that Moodle gives the type, which names the colour of its icon on the course page.
+    $purpose = defined('FEATURE_MOD_PURPOSE') ? plugin_supports('mod', $type, FEATURE_MOD_PURPOSE, 'other') : 'other';
+    $purpose = is_string($purpose) && preg_match('/^[a-z]+$/', $purpose) ? $purpose : 'other';
+
     $types[] = [
-        'component' => 'mod_' . $type,
+        'iconurl' => $OUTPUT->image_url('monologo', 'mod_' . $type)->out(false),
+        'purpose' => $purpose,
         'name' => $typename,
         'reads' => get_string('modules:reads_' . $reads, 'local_autograder'),
         'ison' => $ison,

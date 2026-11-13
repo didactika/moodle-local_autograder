@@ -1,0 +1,261 @@
+/* The styles of the page of the activity types and of the forms of Autograder, with the tokens of the Didactika design system.
+   Every colour comes from the theme and ends in the colour that Boost has. */
+/* Generated from styles.scss. Edit the SCSS component sources and rebuild. */
+/* Moodle 4.0 and later cores disagree on decimal formatting; use the current leading-zero style. */
+/* stylelint-disable number-leading-zero */
+
+/*
+ * The tokens of the Didactika design system, scoped to the screens of the plugin. Every colour comes from the theme and ends in
+ * the colour that Boost has, so a theme changes the plugin by changing its own colours. The colour modes of Moodle 5 change them
+ * too. The names that start with lag are the ones of the field of the grader, which are the same tokens.
+ */
+
+.lag,
+.lag-picker {
+    --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
+    --dd-success: var(--bs-success, var(--success, #357a32));
+    --dd-danger: var(--bs-danger, var(--danger, #ca3120));
+    --dd-ink: var(--bs-body-color, #212529);
+    --dd-surface: var(--bs-body-bg, #fff);
+    --dd-muted: var(--bs-secondary-color, #6c757d);
+    --dd-hairline: var(--bs-border-color, #dee2e6);
+    --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
+    --dd-surface-3: color-mix(in srgb, var(--dd-ink) 9%, var(--dd-surface));
+    --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-primary-soft: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-surface));
+    --dd-primary-ink: color-mix(in srgb, var(--dd-primary) 78%, var(--dd-ink));
+    --dd-radius: 0.625rem;
+    --dd-radius-sm: 0.5rem;
+    --dd-radius-lg: 0.75rem;
+    --dd-h: 2.25rem;
+    --dd-ease: 140ms cubic-bezier(0.2, 0, 0, 1);
+    --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
+    --dd-shadow-md: 0 14px 34px -12px rgb(15 23 42 / 30%), 0 2px 6px rgb(15 23 42 / 8%);
+    --lag-text: var(--dd-ink);
+    --lag-surface: var(--dd-surface);
+    --lag-border: var(--dd-hairline);
+    --lag-border-strong: var(--dd-line);
+    --lag-muted: var(--dd-muted);
+    --lag-accent: var(--dd-primary);
+    --lag-accent-soft: var(--dd-primary-soft);
+    --lag-accent-ring: var(--dd-ring);
+    --lag-hover: var(--dd-surface-2);
+    --lag-faint: color-mix(in srgb, var(--dd-ink) 3%, var(--dd-surface));
+    color: var(--dd-ink);
+}
+
+.lag {
+    min-width: 0;
+    color: var(--dd-ink);
+}
+
+.lag .card {
+    overflow: hidden;
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    background: var(--dd-surface);
+    box-shadow: none;
+}
+
+.lag .table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--dd-hairline);
+}
+
+.lag .input-group {
+    flex: 1 1 14rem;
+    width: auto;
+    max-width: 24rem;
+}
+
+.lag .btn-group .badge {
+    --bs-bg-opacity: 0.18;
+    color: inherit;
+}
+
+.lag .table {
+    --bs-table-bg: transparent;
+    margin-bottom: 0;
+    color: var(--dd-ink);
+    font-size: 0.9375rem;
+}
+
+.lag .table th,
+.lag .table td {
+    padding: 0.75rem 1rem;
+    border-color: var(--dd-hairline);
+    vertical-align: middle;
+}
+
+.lag .table thead th {
+    border-top: 0;
+    border-bottom: 1px solid var(--dd-line);
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.lag .table tbody tr:last-child > * {
+    border-bottom: 0;
+}
+
+.lag .table tbody tr:hover > * {
+    background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
+}
+
+.lag .activityiconcontainer {
+    flex: none;
+    margin: 0;
+}
+
+.lag .form-switch .form-check-input {
+    cursor: pointer;
+}
+
+.lag .table-foot {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--dd-hairline);
+}
+
+#id_autogradersection,
+#page-local-autograder-advanced,
+#page-local-autograder-optout {
+    --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
+    --dd-ink: var(--bs-body-color, #212529);
+    --dd-surface: var(--bs-body-bg, #fff);
+    --dd-muted: var(--bs-secondary-color, #6c757d);
+    --dd-hairline: var(--bs-border-color, #dee2e6);
+    --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
+    --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-radius-sm: 0.5rem;
+    --dd-radius-lg: 0.75rem;
+    --dd-h: 2.25rem;
+    --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
+}
+
+#id_autogradersection .felement,
+#page-local-autograder-advanced .felement,
+#page-local-autograder-optout .felement {
+    min-width: 0;
+}
+
+#id_autogradersection input[type=text],
+#id_autogradersection input[type=number],
+#id_autogradersection select,
+#page-local-autograder-advanced input[type=text],
+#page-local-autograder-advanced input[type=number],
+#page-local-autograder-advanced select,
+#page-local-autograder-optout input[type=text],
+#page-local-autograder-optout input[type=number],
+#page-local-autograder-optout select {
+    max-width: 100%;
+    min-height: var(--dd-h);
+    border-color: var(--dd-line);
+    border-radius: var(--dd-radius-sm);
+}
+
+#id_autogradersection input[type=text]:focus,
+#id_autogradersection input[type=number]:focus,
+#id_autogradersection select:focus,
+#page-local-autograder-advanced input[type=text]:focus,
+#page-local-autograder-advanced input[type=number]:focus,
+#page-local-autograder-advanced select:focus,
+#page-local-autograder-optout input[type=text]:focus,
+#page-local-autograder-optout input[type=number]:focus,
+#page-local-autograder-optout select:focus {
+    border-color: var(--dd-primary);
+    box-shadow: 0 0 0 0.2rem var(--dd-ring);
+}
+
+#id_autogradersection .form-static,
+#page-local-autograder-advanced .form-static,
+#page-local-autograder-optout .form-static {
+    overflow-wrap: anywhere;
+}
+
+#id_autogradersection .fcontainer {
+    padding: 1rem 1.25rem 0.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#id_autogradersection .alert {
+    border-radius: var(--dd-radius-sm);
+}
+
+#page-local-autograder-advanced {
+    /* Core rubrics need space for their levels; scroll only the grading field, keeping the page heading and the save and cancel
+     buttons within the viewport. */
+}
+
+#page-local-autograder-advanced p {
+    overflow-wrap: anywhere;
+}
+
+#page-local-autograder-advanced #fitem_id_advancedgrading .felement {
+    overflow-x: auto;
+    contain: inline-size;
+}
+
+#page-local-autograder-advanced .gradingform_rubric,
+#page-local-autograder-advanced .gradingform_guide {
+    width: 100%;
+    min-width: 0;
+}
+
+#page-local-autograder-advanced .gradingform_rubric .criterion .levels .level {
+    min-width: 8rem;
+}
+
+#page-local-autograder-advanced .mform {
+    max-width: 100%;
+    padding: 1.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#page-local-autograder-advanced .mform .btn {
+    min-height: var(--dd-h);
+    border-radius: var(--dd-radius-sm);
+}
+
+#page-local-autograder-optout .mform {
+    max-width: 100%;
+    padding: 1.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#page-local-autograder-optout .mform .btn {
+    min-height: var(--dd-h);
+    border-radius: var(--dd-radius-sm);
+}
+
+@media (max-width: 767.98px) {
+
+    #id_autogradersection input[type=text],
+    #id_autogradersection select {
+        width: 100%;
+    }
+
+    #page-local-autograder-advanced .mform .btn,
+    #page-local-autograder-optout .mform .btn {
+        white-space: normal;
+    }
+}
