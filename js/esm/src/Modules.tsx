@@ -13,7 +13,8 @@
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {useId, useMemo, useState} from 'react';
+import {useId, useMemo, useState, useLayoutEffect, useRef} from 'react';
+import type {RefObject} from 'react';
 import {createText} from './engine/text';
 import {addToast} from './engine/toast';
 import {describeError, setModuleType} from './services/api';
@@ -60,6 +61,9 @@ export default function Modules({types, strings}: ModulesProps) {
         return (filter === 'all' || (filter === 'on') === on) && (needle === '' || item.name.toLowerCase().includes(needle));
     });
 
+    const table = useRef<HTMLTableElement>(null);
+    useStableColumns(table, shown.length > 0);
+
     return <div className="lag">
         <p className="text-muted mb-0">{text('modules:lead')}</p>
         <div className="dd-chips" role="group" aria-label={text('settings:modulestab')}>
@@ -93,7 +97,7 @@ export default function Modules({types, strings}: ModulesProps) {
                     <span className="dd-tile" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
                     <p className="dd-empty-text">{text('modules:empty')}</p>
                 </div>}
-                {shown.length > 0 && <table className="table">
+                {shown.length > 0 && <table className="table" ref={table}>
                     <caption className="visually-hidden sr-only">{text('settings:modulestab')}</caption>
                     <thead>
                         <tr>
@@ -143,4 +147,43 @@ export default function Modules({types, strings}: ModulesProps) {
         </div>
         <p className="small text-muted mb-0">{text('modules:intro')}</p>
     </div>;
+}
+
+/**
+ * Keeps the columns of a table still: once the table has rows, the width the browser gives each column is measured and kept, so a
+ * filter, a sort or another page never moves them. They are measured again only when the box of the table changes width.
+ *
+ * @param table The table.
+ * @param ready Whether the table has its first rows.
+ */
+function useStableColumns(table: RefObject<HTMLTableElement | null>, ready: boolean): void {
+    useLayoutEffect(() => {
+        const element = table.current;
+        const box = element?.parentElement;
+        if (!element || !box || !ready) {
+            return undefined;
+        }
+        const freeze = (): void => {
+            const heads = Array.from(element.tHead?.rows[0]?.cells ?? []);
+            element.style.tableLayout = '';
+            heads.forEach((head) => {
+                head.style.width = '';
+            });
+            const widths = heads.map((head) => head.getBoundingClientRect().width);
+            heads.forEach((head, index) => {
+                head.style.width = `${widths[index]}px`;
+            });
+            element.style.tableLayout = 'fixed';
+        };
+        freeze();
+        let width = box.clientWidth;
+        const observer = new ResizeObserver(() => {
+            if (Math.abs(box.clientWidth - width) > 1) {
+                width = box.clientWidth;
+                freeze();
+            }
+        });
+        observer.observe(box);
+        return () => observer.disconnect();
+    }, [ready]);
 }

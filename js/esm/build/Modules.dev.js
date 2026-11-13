@@ -16,7 +16,7 @@ import { jsxDEV } from "react/jsx-dev-runtime";
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, useLayoutEffect, useRef } from "react";
 import { createText } from "./engine/text";
 import { addToast } from "./engine/toast";
 import { describeError, setModuleType } from "./services/api";
@@ -48,10 +48,12 @@ function Modules({ types, strings }) {
     const on = state[item.type];
     return (filter === "all" || filter === "on" === on) && (needle === "" || item.name.toLowerCase().includes(needle));
   });
+  const table = useRef(null);
+  useStableColumns(table, shown.length > 0);
   return /* @__PURE__ */ jsxDEV("div", { className: "lag", children: [
     /* @__PURE__ */ jsxDEV("p", { className: "text-muted mb-0", children: text("modules:lead") }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 64,
+      lineNumber: 68,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ jsxDEV("div", { className: "dd-chips", role: "group", "aria-label": text("settings:modulestab"), children: ["all", "on", "off"].map((name) => /* @__PURE__ */ jsxDEV(
@@ -66,7 +68,7 @@ function Modules({ types, strings }) {
           " ",
           /* @__PURE__ */ jsxDEV("span", { className: "dd-chip-count", children: counts[name] }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 73,
+            lineNumber: 77,
             columnNumber: 50
           }, this)
         ]
@@ -75,20 +77,20 @@ function Modules({ types, strings }) {
       true,
       {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 66,
+        lineNumber: 70,
         columnNumber: 63
       },
       this
     )) }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 65,
+      lineNumber: 69,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ jsxDEV("div", { className: "card", children: [
       types.length >= SEARCH_FROM && /* @__PURE__ */ jsxDEV("div", { className: "table-toolbar", children: /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
         /* @__PURE__ */ jsxDEV("label", { className: "visually-hidden sr-only", htmlFor: searchId, children: text("modules:search") }, void 0, false, {
           fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 79,
+          lineNumber: 83,
           columnNumber: 21
         }, this),
         /* @__PURE__ */ jsxDEV(
@@ -106,66 +108,66 @@ function Modules({ types, strings }) {
           false,
           {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 80,
+            lineNumber: 84,
             columnNumber: 21
           },
           this
         )
       ] }, void 0, true, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 78,
+        lineNumber: 82,
         columnNumber: 17
       }, this) }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 77,
+        lineNumber: 81,
         columnNumber: 45
       }, this),
       /* @__PURE__ */ jsxDEV("div", { className: "table-responsive", "data-region": "tablewrap", children: [
         shown.length === 0 && /* @__PURE__ */ jsxDEV("div", { className: "dd-empty", "data-region": "empty", role: "status", children: [
           /* @__PURE__ */ jsxDEV("span", { className: "dd-tile", "aria-hidden": "true", dangerouslySetInnerHTML: { __html: text("pix:a/search") } }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 93,
+            lineNumber: 97,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ jsxDEV("p", { className: "dd-empty-text", children: text("modules:empty") }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 94,
+            lineNumber: 98,
             columnNumber: 21
           }, this)
         ] }, void 0, true, {
           fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 92,
+          lineNumber: 96,
           columnNumber: 40
         }, this),
-        shown.length > 0 && /* @__PURE__ */ jsxDEV("table", { className: "table", children: [
+        shown.length > 0 && /* @__PURE__ */ jsxDEV("table", { className: "table", ref: table, children: [
           /* @__PURE__ */ jsxDEV("caption", { className: "visually-hidden sr-only", children: text("settings:modulestab") }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 97,
+            lineNumber: 101,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ jsxDEV("thead", { children: /* @__PURE__ */ jsxDEV("tr", { children: [
             /* @__PURE__ */ jsxDEV("th", { scope: "col", children: text("modules:name") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 100,
+              lineNumber: 104,
               columnNumber: 29
             }, this),
             /* @__PURE__ */ jsxDEV("th", { scope: "col", className: "d-none d-md-table-cell", children: text("modules:reads") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 101,
+              lineNumber: 105,
               columnNumber: 29
             }, this),
             /* @__PURE__ */ jsxDEV("th", { scope: "col", className: "text-end", children: text("modules:state") }, void 0, false, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 102,
+              lineNumber: 106,
               columnNumber: 29
             }, this)
           ] }, void 0, true, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 99,
+            lineNumber: 103,
             columnNumber: 25
           }, this) }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 98,
+            lineNumber: 102,
             columnNumber: 21
           }, this),
           /* @__PURE__ */ jsxDEV("tbody", { children: shown.map((item) => {
@@ -176,41 +178,41 @@ function Modules({ types, strings }) {
               /* @__PURE__ */ jsxDEV("td", { children: /* @__PURE__ */ jsxDEV("span", { className: "d-inline-flex align-items-center gap-3", children: [
                 /* @__PURE__ */ jsxDEV("span", { className: `activityiconcontainer ${item.purpose}`, children: /* @__PURE__ */ jsxDEV("img", { className: "activityicon", src: item.iconurl, alt: "", width: 24, height: 24 }, void 0, false, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 114,
+                  lineNumber: 118,
                   columnNumber: 45
                 }, this) }, void 0, false, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 113,
+                  lineNumber: 117,
                   columnNumber: 41
                 }, this),
                 /* @__PURE__ */ jsxDEV("span", { className: "d-flex flex-column", children: [
                   /* @__PURE__ */ jsxDEV("strong", { children: item.name }, void 0, false, {
                     fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                    lineNumber: 117,
+                    lineNumber: 121,
                     columnNumber: 45
                   }, this),
                   /* @__PURE__ */ jsxDEV("span", { className: "small text-muted d-md-none", children: reads }, void 0, false, {
                     fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                    lineNumber: 118,
+                    lineNumber: 122,
                     columnNumber: 45
                   }, this)
                 ] }, void 0, true, {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 116,
+                  lineNumber: 120,
                   columnNumber: 41
                 }, this)
               ] }, void 0, true, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 112,
+                lineNumber: 116,
                 columnNumber: 37
               }, this) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 111,
+                lineNumber: 115,
                 columnNumber: 33
               }, this),
               /* @__PURE__ */ jsxDEV("td", { className: "text-muted d-none d-md-table-cell", children: reads }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 122,
+                lineNumber: 126,
                 columnNumber: 33
               }, this),
               /* @__PURE__ */ jsxDEV("td", { className: "text-end", children: /* @__PURE__ */ jsxDEV("div", { className: "form-check form-switch d-inline-block mb-0", children: /* @__PURE__ */ jsxDEV(
@@ -229,61 +231,93 @@ function Modules({ types, strings }) {
                 false,
                 {
                   fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                  lineNumber: 125,
+                  lineNumber: 129,
                   columnNumber: 41
                 },
                 this
               ) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 124,
+                lineNumber: 128,
                 columnNumber: 37
               }, this) }, void 0, false, {
                 fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 123,
+                lineNumber: 127,
                 columnNumber: 33
               }, this)
             ] }, item.type, true, {
               fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 110,
+              lineNumber: 114,
               columnNumber: 36
             }, this);
           }) }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 105,
+            lineNumber: 109,
             columnNumber: 21
           }, this)
         ] }, void 0, true, {
           fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 96,
+          lineNumber: 100,
           columnNumber: 38
         }, this)
       ] }, void 0, true, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 91,
+        lineNumber: 95,
         columnNumber: 13
       }, this),
       /* @__PURE__ */ jsxDEV("div", { className: "table-foot text-muted small", children: text("modules:count", types.length) }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 142,
+        lineNumber: 146,
         columnNumber: 13
       }, this)
     ] }, void 0, true, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 76,
+      lineNumber: 80,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ jsxDEV("p", { className: "small text-muted mb-0", children: text("modules:intro") }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 144,
+      lineNumber: 148,
       columnNumber: 9
     }, this)
   ] }, void 0, true, {
     fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-    lineNumber: 63,
+    lineNumber: 67,
     columnNumber: 12
   }, this);
 }
 __name(Modules, "Modules");
+function useStableColumns(table, ready) {
+  useLayoutEffect(() => {
+    const element = table.current;
+    const box = element?.parentElement;
+    if (!element || !box || !ready) {
+      return void 0;
+    }
+    const freeze = /* @__PURE__ */ __name(() => {
+      const heads = Array.from(element.tHead?.rows[0]?.cells ?? []);
+      element.style.tableLayout = "";
+      heads.forEach((head) => {
+        head.style.width = "";
+      });
+      const widths = heads.map((head) => head.getBoundingClientRect().width);
+      heads.forEach((head, index) => {
+        head.style.width = `${widths[index]}px`;
+      });
+      element.style.tableLayout = "fixed";
+    }, "freeze");
+    freeze();
+    let width = box.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (Math.abs(box.clientWidth - width) > 1) {
+        width = box.clientWidth;
+        freeze();
+      }
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [ready]);
+}
+__name(useStableColumns, "useStableColumns");
 export {
   Modules as default
 };
