@@ -21,6 +21,7 @@
     --dd-muted: var(--bs-secondary-color, #6c757d);
     --dd-hairline: var(--bs-border-color, #dee2e6);
     --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-line-hover: color-mix(in srgb, var(--dd-ink) 62%, var(--dd-surface));
     --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
     --dd-surface-3: color-mix(in srgb, var(--dd-ink) 9%, var(--dd-surface));
     --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
@@ -50,6 +51,8 @@
 
 // The page of the activity types is written with the classes of Bootstrap and Moodle; what follows only adjusts them inside the page.
 .lag {
+    display: grid;
+    gap: 1rem;
     min-width: 0;
     color: var(--dd-ink);
 
@@ -77,11 +80,6 @@
         max-width: 24rem;
     }
 
-    & .btn-group .badge {
-        --bs-bg-opacity: 0.18;
-
-        color: inherit;
-    }
 
     & .table {
         --bs-table-bg: transparent;
@@ -117,10 +115,79 @@
         }
     }
 
-    // The icon of each type is the one Moodle draws on its course page, with the colour of its purpose.
+    // The icon of each type is the one Moodle draws on its course page, with the colour of its purpose, in the tile of the system.
     & .activityiconcontainer {
+        display: inline-grid;
         flex: none;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
         margin: 0;
+        padding: 0;
+        border-radius: 0.75rem;
+        background-color: var(--dd-surface-3);
+
+        & .activityicon {
+            width: 1.375rem;
+            height: 1.375rem;
+        }
+    }
+
+    // Filter chips: the filters used all the time, with the rows each one leaves.
+    & .dd-chips {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    & .dd-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4375rem;
+        min-height: 2rem;
+        padding: 0.1875rem 0.75rem;
+        border: 1px solid var(--dd-line);
+        border-radius: 999px;
+        background: var(--dd-surface);
+        color: var(--dd-ink);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.4;
+        cursor: pointer;
+        transition: background-color var(--dd-ease), border-color var(--dd-ease), color var(--dd-ease);
+
+        &:hover {
+            border-color: var(--dd-line-hover);
+            background: var(--dd-surface-2);
+        }
+
+        &:focus-visible {
+            outline: 0;
+            box-shadow: 0 0 0 3px var(--dd-ring);
+        }
+
+        &[aria-pressed="true"] {
+            border-color: var(--dd-primary);
+            background: var(--dd-primary-soft);
+            color: var(--dd-primary-ink);
+            font-weight: 600;
+
+            & .dd-chip-count {
+                background: var(--dd-primary);
+                color: #fff;
+            }
+        }
+    }
+
+    & .dd-chip-count {
+        padding: 0 0.4rem;
+        border-radius: 999px;
+        background: var(--dd-surface-3);
+        color: var(--dd-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
     }
 
     & .form-switch .form-check-input {

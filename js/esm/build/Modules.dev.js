@@ -9,7 +9,7 @@ import { jsxDEV } from "react/jsx-dev-runtime";
  * and the colour that Moodle gives its purpose, what Autograder reads in it and a switch that saves the moment it is flipped.
  *
  * Mounted by core/react_autoinit from the data-react-component that the page writes. It is written with the classes of Bootstrap
- * and Moodle (card, table, form-switch, btn-group, activityiconcontainer); the styles only adjust them inside the page.
+ * and Moodle (card, table, form-switch, activityiconcontainer) and the chips of the design system (dd-chips); the styles only adjust them inside the page.
  *
  * @module     local_autograder/Modules
  * @copyright  2026 Didactika.org
@@ -49,78 +49,76 @@ function Modules({ types, strings }) {
     return (filter === "all" || filter === "on" === on) && (needle === "" || item.name.toLowerCase().includes(needle));
   });
   return /* @__PURE__ */ jsxDEV("div", { className: "lag", children: [
-    /* @__PURE__ */ jsxDEV("p", { className: "text-muted mb-3", children: text("modules:lead") }, void 0, false, {
+    /* @__PURE__ */ jsxDEV("p", { className: "text-muted mb-0", children: text("modules:lead") }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
       lineNumber: 64,
       columnNumber: 9
     }, this),
-    /* @__PURE__ */ jsxDEV("div", { className: "card", children: [
-      /* @__PURE__ */ jsxDEV("div", { className: "table-toolbar", children: [
-        types.length >= SEARCH_FROM && /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
-          /* @__PURE__ */ jsxDEV("label", { className: "visually-hidden sr-only", htmlFor: searchId, children: text("modules:search") }, void 0, false, {
+    /* @__PURE__ */ jsxDEV("div", { className: "dd-chips", role: "group", "aria-label": text("settings:modulestab"), children: ["all", "on", "off"].map((name) => /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        className: "dd-chip",
+        "aria-pressed": filter === name,
+        onClick: () => setFilter(name),
+        children: [
+          text(`modules:filter_${name}`),
+          " ",
+          /* @__PURE__ */ jsxDEV("span", { className: "dd-chip-count", children: counts[name] }, void 0, false, {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-            lineNumber: 68,
-            columnNumber: 21
-          }, this),
-          /* @__PURE__ */ jsxDEV(
-            "input",
-            {
-              id: searchId,
-              type: "search",
-              className: "form-control",
-              value: query,
-              placeholder: `${text("modules:search")}\u2026`,
-              autoComplete: "off",
-              onChange: (event) => setQuery(event.target.value)
-            },
-            void 0,
-            false,
-            {
-              fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-              lineNumber: 69,
-              columnNumber: 21
-            },
-            this
-          )
-        ] }, void 0, true, {
+            lineNumber: 73,
+            columnNumber: 50
+          }, this)
+        ]
+      },
+      name,
+      true,
+      {
+        fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+        lineNumber: 66,
+        columnNumber: 63
+      },
+      this
+    )) }, void 0, false, {
+      fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+      lineNumber: 65,
+      columnNumber: 9
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "card", children: [
+      types.length >= SEARCH_FROM && /* @__PURE__ */ jsxDEV("div", { className: "table-toolbar", children: /* @__PURE__ */ jsxDEV("div", { className: "input-group", children: [
+        /* @__PURE__ */ jsxDEV("label", { className: "visually-hidden sr-only", htmlFor: searchId, children: text("modules:search") }, void 0, false, {
           fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 67,
-          columnNumber: 49
+          lineNumber: 79,
+          columnNumber: 21
         }, this),
-        /* @__PURE__ */ jsxDEV("div", { className: "btn-group", role: "group", "aria-label": text("settings:modulestab"), children: ["all", "on", "off"].map((name) => /* @__PURE__ */ jsxDEV(
-          "button",
+        /* @__PURE__ */ jsxDEV(
+          "input",
           {
-            type: "button",
-            className: `btn btn-outline-secondary btn-sm${filter === name ? " active" : ""}`,
-            "aria-pressed": filter === name,
-            onClick: () => setFilter(name),
-            children: [
-              text(`modules:filter_${name}`),
-              " ",
-              /* @__PURE__ */ jsxDEV("span", { className: "badge badge-secondary bg-secondary rounded-pill", children: counts[name] }, void 0, false, {
-                fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-                lineNumber: 87,
-                columnNumber: 58
-              }, this)
-            ]
+            id: searchId,
+            type: "search",
+            className: "form-control",
+            value: query,
+            placeholder: `${text("modules:search")}\u2026`,
+            autoComplete: "off",
+            onChange: (event) => setQuery(event.target.value)
           },
-          name,
-          true,
+          void 0,
+          false,
           {
             fileName: "public/local/autograder/js/esm/src/Modules.tsx",
             lineNumber: 80,
-            columnNumber: 71
+            columnNumber: 21
           },
           this
-        )) }, void 0, false, {
-          fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-          lineNumber: 79,
-          columnNumber: 17
-        }, this)
+        )
       ] }, void 0, true, {
         fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-        lineNumber: 66,
-        columnNumber: 13
+        lineNumber: 78,
+        columnNumber: 17
+      }, this) }, void 0, false, {
+        fileName: "public/local/autograder/js/esm/src/Modules.tsx",
+        lineNumber: 77,
+        columnNumber: 45
       }, this),
       /* @__PURE__ */ jsxDEV("div", { className: "table-responsive", children: [
         /* @__PURE__ */ jsxDEV("table", { className: "table", children: [
@@ -248,10 +246,10 @@ function Modules({ types, strings }) {
       }, this)
     ] }, void 0, true, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
-      lineNumber: 65,
+      lineNumber: 76,
       columnNumber: 9
     }, this),
-    /* @__PURE__ */ jsxDEV("p", { className: "small text-muted mt-3", children: text("modules:intro") }, void 0, false, {
+    /* @__PURE__ */ jsxDEV("p", { className: "small text-muted mb-0", children: text("modules:intro") }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/Modules.tsx",
       lineNumber: 137,
       columnNumber: 9

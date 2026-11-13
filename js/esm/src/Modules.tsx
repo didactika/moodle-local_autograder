@@ -6,7 +6,7 @@
  * and the colour that Moodle gives its purpose, what Autograder reads in it and a switch that saves the moment it is flipped.
  *
  * Mounted by core/react_autoinit from the data-react-component that the page writes. It is written with the classes of Bootstrap
- * and Moodle (card, table, form-switch, btn-group, activityiconcontainer); the styles only adjust them inside the page.
+ * and Moodle (card, table, form-switch, activityiconcontainer) and the chips of the design system (dd-chips); the styles only adjust them inside the page.
  *
  * @module     local_autograder/Modules
  * @copyright  2026 Didactika.org
@@ -61,10 +61,21 @@ export default function Modules({types, strings}: ModulesProps) {
     });
 
     return <div className="lag">
-        <p className="text-muted mb-3">{text('modules:lead')}</p>
+        <p className="text-muted mb-0">{text('modules:lead')}</p>
+        <div className="dd-chips" role="group" aria-label={text('settings:modulestab')}>
+            {(['all', 'on', 'off'] as Filter[]).map((name) => <button
+                key={name}
+                type="button"
+                className="dd-chip"
+                aria-pressed={filter === name}
+                onClick={() => setFilter(name)}
+            >
+                {text(`modules:filter_${name}`)} <span className="dd-chip-count">{counts[name]}</span>
+            </button>)}
+        </div>
         <div className="card">
-            <div className="table-toolbar">
-                {types.length >= SEARCH_FROM && <div className="input-group">
+            {types.length >= SEARCH_FROM && <div className="table-toolbar">
+                <div className="input-group">
                     <label className="visually-hidden sr-only" htmlFor={searchId}>{text('modules:search')}</label>
                     <input
                         id={searchId}
@@ -75,19 +86,8 @@ export default function Modules({types, strings}: ModulesProps) {
                         autoComplete="off"
                         onChange={(event) => setQuery(event.target.value)}
                     />
-                </div>}
-                <div className="btn-group" role="group" aria-label={text('settings:modulestab')}>
-                    {(['all', 'on', 'off'] as Filter[]).map((name) => <button
-                        key={name}
-                        type="button"
-                        className={`btn btn-outline-secondary btn-sm${filter === name ? ' active' : ''}`}
-                        aria-pressed={filter === name}
-                        onClick={() => setFilter(name)}
-                    >
-                        {text(`modules:filter_${name}`)} <span className="badge badge-secondary bg-secondary rounded-pill">{counts[name]}</span>
-                    </button>)}
                 </div>
-            </div>
+            </div>}
             <div className="table-responsive">
                 <table className="table">
                     <caption className="visually-hidden sr-only">{text('settings:modulestab')}</caption>
@@ -134,6 +134,6 @@ export default function Modules({types, strings}: ModulesProps) {
             </div>
             <div className="table-foot text-muted small">{text('modules:count', types.length)}</div>
         </div>
-        <p className="small text-muted mt-3">{text('modules:intro')}</p>
+        <p className="small text-muted mb-0">{text('modules:intro')}</p>
     </div>;
 }
