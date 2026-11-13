@@ -72,44 +72,49 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
         setQuery('');
     };
 
-    return <div className="lag lag-picker" ref={root}>
+    return <span className="lag dd-menu dd-select-filter" ref={root}>
         <input type="hidden" name={name} value={chosen?.id ?? 0} />
-        <div className="lag-picker-box">
-            <button
+        <button
+            type="button"
+            className={`form-select dd-select${chosen ? ' dd-select-set border-primary' : ''}`}
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+        >
+            {chosen ? chosen.name : strings.none}
+        </button>
+        {chosen && <button type="button" className="dd-select-clear" title={strings.clear} aria-label={strings.clear}
+            onClick={() => pick(null)}>
+            <i className="icon fa-solid fa-xmark" aria-hidden="true" />
+        </button>}
+        {open && <div className="dd-select-menu" role="listbox" aria-busy={loading} aria-label={strings.placeholder}>
+            <div className="dd-menu-form">
+                <input
+                    type="search"
+                    className="form-control form-control-sm"
+                    value={query}
+                    placeholder={strings.placeholder}
+                    aria-label={strings.placeholder}
+                    autoComplete="off"
+                    onChange={(event) => setQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                        // A search box inside the form must not submit the settings page.
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                        }
+                    }}
+                />
+            </div>
+            {found.map((user) => <button
+                key={user.id}
                 type="button"
-                className="lag-picker-button"
-                aria-haspopup="listbox"
-                aria-expanded={open}
-                onClick={() => setOpen(!open)}
-            >
-                {chosen ? chosen.name : strings.none}
-            </button>
-            {chosen && <button type="button" className="lag-picker-clear" aria-label={strings.clear} onClick={() => pick(null)}>
-                <i className="fa-solid fa-xmark" aria-hidden="true" />
-            </button>}
-        </div>
-        {open && <div className="lag-picker-panel">
-            <input
-                type="search"
-                className="lag-picker-field"
-                value={query}
-                placeholder={strings.placeholder}
-                aria-label={strings.placeholder}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={(event) => {
-                    // A search box inside the form must not submit the settings page.
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                    }
-                }}
-            />
-            <ul className="lag-picker-list" role="listbox" aria-busy={loading}>
-                {found.map((user) => <li key={user.id} role="option" aria-selected={chosen?.id === user.id}>
-                    <button type="button" className="lag-picker-option" onClick={() => pick(user)}>{user.name}</button>
-                </li>)}
-            </ul>
-            {loading && <p className="lag-picker-status" role="status">{strings.loading}</p>}
-            {!loading && found.length === 0 && <p className="lag-picker-status" role="status">{strings.nomatches}</p>}
+                role="option"
+                className="dropdown-item"
+                aria-selected={chosen?.id === user.id}
+                onClick={() => pick(user)}
+            >{user.name}</button>)}
+            {loading && <span className="dropdown-item disabled" role="status">{strings.loading}</span>}
+            {!loading && found.length === 0 && <span className="dropdown-item disabled" role="status">{strings.nomatches}</span>}
         </div>}
-    </div>;
+    </span>;
 }

@@ -63,55 +63,64 @@ function GraderPicker({ name, current, currentname, strings }) {
     setOpen(false);
     setQuery("");
   }, "pick");
-  return /* @__PURE__ */ jsxDEV("div", { className: "lag lag-picker", ref: root, children: [
+  return /* @__PURE__ */ jsxDEV("span", { className: "lag dd-menu dd-select-filter", ref: root, children: [
     /* @__PURE__ */ jsxDEV("input", { type: "hidden", name, value: chosen?.id ?? 0 }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
       lineNumber: 76,
       columnNumber: 9
     }, this),
-    /* @__PURE__ */ jsxDEV("div", { className: "lag-picker-box", children: [
-      /* @__PURE__ */ jsxDEV(
-        "button",
-        {
-          type: "button",
-          className: "lag-picker-button",
-          "aria-haspopup": "listbox",
-          "aria-expanded": open,
-          onClick: () => setOpen(!open),
-          children: chosen ? chosen.name : strings.none
-        },
-        void 0,
-        false,
-        {
+    /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        className: `form-select dd-select${chosen ? " dd-select-set border-primary" : ""}`,
+        "aria-haspopup": "listbox",
+        "aria-expanded": open,
+        onClick: () => setOpen(!open),
+        children: chosen ? chosen.name : strings.none
+      },
+      void 0,
+      false,
+      {
+        fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
+        lineNumber: 77,
+        columnNumber: 9
+      },
+      this
+    ),
+    chosen && /* @__PURE__ */ jsxDEV(
+      "button",
+      {
+        type: "button",
+        className: "dd-select-clear",
+        title: strings.clear,
+        "aria-label": strings.clear,
+        onClick: () => pick(null),
+        children: /* @__PURE__ */ jsxDEV("i", { className: "icon fa-solid fa-xmark", "aria-hidden": "true" }, void 0, false, {
           fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-          lineNumber: 78,
+          lineNumber: 88,
           columnNumber: 13
-        },
-        this
-      ),
-      chosen && /* @__PURE__ */ jsxDEV("button", { type: "button", className: "lag-picker-clear", "aria-label": strings.clear, onClick: () => pick(null), children: /* @__PURE__ */ jsxDEV("i", { className: "fa-solid fa-xmark", "aria-hidden": "true" }, void 0, false, {
+        }, this)
+      },
+      void 0,
+      false,
+      {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 88,
-        columnNumber: 17
-      }, this) }, void 0, false, {
-        fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 87,
-        columnNumber: 24
-      }, this)
-    ] }, void 0, true, {
-      fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-      lineNumber: 77,
-      columnNumber: 9
-    }, this),
-    open && /* @__PURE__ */ jsxDEV("div", { className: "lag-picker-panel", children: [
-      /* @__PURE__ */ jsxDEV(
+        lineNumber: 86,
+        columnNumber: 20
+      },
+      this
+    ),
+    open && /* @__PURE__ */ jsxDEV("div", { className: "dd-select-menu", role: "listbox", "aria-busy": loading, "aria-label": strings.placeholder, children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "dd-menu-form", children: /* @__PURE__ */ jsxDEV(
         "input",
         {
           type: "search",
-          className: "lag-picker-field",
+          className: "form-control form-control-sm",
           value: query,
           placeholder: strings.placeholder,
           "aria-label": strings.placeholder,
+          autoComplete: "off",
           onChange: (event) => setQuery(event.target.value),
           onKeyDown: (event) => {
             if (event.key === "Enter") {
@@ -124,36 +133,46 @@ function GraderPicker({ name, current, currentname, strings }) {
         {
           fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
           lineNumber: 92,
-          columnNumber: 13
+          columnNumber: 17
         },
         this
-      ),
-      /* @__PURE__ */ jsxDEV("ul", { className: "lag-picker-list", role: "listbox", "aria-busy": loading, children: found.map((user) => /* @__PURE__ */ jsxDEV("li", { role: "option", "aria-selected": chosen?.id === user.id, children: /* @__PURE__ */ jsxDEV("button", { type: "button", className: "lag-picker-option", onClick: () => pick(user), children: user.name }, void 0, false, {
+      ) }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 108,
-        columnNumber: 21
-      }, this) }, user.id, false, {
-        fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 107,
-        columnNumber: 38
-      }, this)) }, void 0, false, {
-        fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 106,
+        lineNumber: 91,
         columnNumber: 13
       }, this),
-      loading && /* @__PURE__ */ jsxDEV("p", { className: "lag-picker-status", role: "status", children: strings.loading }, void 0, false, {
+      found.map((user) => /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          type: "button",
+          role: "option",
+          className: "dropdown-item",
+          "aria-selected": chosen?.id === user.id,
+          onClick: () => pick(user),
+          children: user.name
+        },
+        user.id,
+        false,
+        {
+          fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
+          lineNumber: 108,
+          columnNumber: 34
+        },
+        this
+      )),
+      loading && /* @__PURE__ */ jsxDEV("span", { className: "dropdown-item disabled", role: "status", children: strings.loading }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 111,
+        lineNumber: 116,
         columnNumber: 25
       }, this),
-      !loading && found.length === 0 && /* @__PURE__ */ jsxDEV("p", { className: "lag-picker-status", role: "status", children: strings.nomatches }, void 0, false, {
+      !loading && found.length === 0 && /* @__PURE__ */ jsxDEV("span", { className: "dropdown-item disabled", role: "status", children: strings.nomatches }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 112,
+        lineNumber: 117,
         columnNumber: 48
       }, this)
     ] }, void 0, true, {
       fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-      lineNumber: 91,
+      lineNumber: 90,
       columnNumber: 18
     }, this)
   ] }, void 0, true, {

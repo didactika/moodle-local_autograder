@@ -16,6 +16,7 @@
 import {useId, useMemo, useState, useLayoutEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import {createText} from './engine/text';
+import {useFitHeight} from './hooks/useFitHeight';
 import {addToast} from './engine/toast';
 import {describeError, setModuleType} from './services/api';
 import type {ModulesProps} from './types';
@@ -62,6 +63,8 @@ export default function Modules({types, strings}: ModulesProps) {
     });
 
     const table = useRef<HTMLTableElement>(null);
+    const fitbox = useRef<HTMLDivElement>(null);
+    useFitHeight(fitbox);
     useStableColumns(table, shown.length > 0);
 
     return <div className="lag">
@@ -92,7 +95,7 @@ export default function Modules({types, strings}: ModulesProps) {
                     />
                 </div>
             </div>}
-            <div className="table-responsive" data-region="tablewrap">
+            <div ref={fitbox} className="table-responsive" data-region="tablewrap">
                 {shown.length === 0 && <div className="dd-empty" data-region="empty" role="status">
                     <span className="dd-tile" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
                     <p className="dd-empty-text">{text('modules:empty')}</p>
