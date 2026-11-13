@@ -26,6 +26,8 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import {init as fitTables} from 'local_autograder/fit_tables';
+
 /**
  * Shows the rows that match the chip that is active and what was typed, and the empty message when none does.
  *
@@ -92,6 +94,8 @@ const keepColumns = (table) => {
 };
 
 export const init = (selector) => {
+    // The box of the table takes the height the window leaves it.
+    fitTables();
     const page = document.querySelector(selector);
 
     if (!page) {

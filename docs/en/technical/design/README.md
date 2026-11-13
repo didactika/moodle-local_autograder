@@ -27,6 +27,10 @@ Two decisions shape the design. First, **every condition is read again when a gr
 
 The plugin sits on completion, the gradebook and the grading methods, events, the task API, capabilities and the database of Moodle. It adds no change to core.
 
+## The list of activity types
+
+The list of the page of the activity types is drawn as every list of the Didactika design system: its box takes the height the window leaves it, less what comes under it, and at least 18rem (`amd/src/fit_tables.js`); the line of every row reaches the end of the box and the last row keeps its line (`styles.css`); and the width of each column is kept when a filter changes the rows (`amd/src/modules.js`).
+
 ## Data model
 
 ![Data model](./data-model/data-model.svg)
