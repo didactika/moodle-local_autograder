@@ -1,0 +1,22 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Teacher" as actor
+participant "optout.php" as page
+participant "optout_form" as form
+database "user_preferences" as table
+participant "grader_picker" as picker
+
+actor -> page : opens the preference (userid)
+page -> page : permissions and allowoptout
+page --> actor : the form with the current value
+actor -> form : ticks the option and saves
+form -> page : optout
+page -> table : set local_autograder_optout
+page --> actor : message and back to the preferences
+...later...
+picker -> table : usable(userids) reads the preference
+
+@enduml

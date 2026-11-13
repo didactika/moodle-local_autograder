@@ -17,32 +17,48 @@
 {{!
     @template local_autograder/modules
 
-    The activity types autograder may be switched on for: one row and one
-    toggle per gradeable type. Each toggle sits in a small form of its own,
-    which local_autograder/modules submits the moment it is flipped.
+    The activity types autograder may be switched on for: the ones that take the work of students and have a grade that a teacher
+    gives. Chips filter the rows by whether Autograder is on; each row has the icon and colour of its purpose, what Autograder reads for it and a toggle that sits in a
+    small form of its own, which local_autograder/modules submits the moment it is flipped.
 
     Context variables required for this template:
-    * intro - What the page is for, above the table.
-    * label - The accessible name of the scrolling region around the table.
-    * namecolumn - The heading of the first column.
-    * enabledcolumn - The heading of the second column.
-    * types - One entry per gradeable activity type:
-      * component - Its component, e.g. "mod_assign", for the icon.
+    * lead - What the page lists.
+    * intro - What switching a type off does, below the list.
+    * label - The accessible name of the list.
+    * filters - The chips: key (all, on or off), label, count and whether it is the active one.
+    * search - The placeholder of the search box, empty when there are few types and no box.
+    * empty - What to say when no row matches.
+    * count - The number of types, in words.
+    * types - One entry per activity type:
+      * iconurl - The address of its icon, which Moodle draws on its course page.
+      * purpose - The purpose that Moodle gives it, which names the colour of the icon.
       * name - Its name.
+      * reads - What Autograder reads for it.
+      * ison - Whether Autograder is on for it.
       * action - Where its form is posted.
       * params - The form's hidden inputs, each a name and a value.
       * toggle - Its switch, already rendered by core/toggle.
 
     Example context (json):
     {
-        "intro": "Autograder can only be turned on for activities of the types enabled here.",
+        "lead": "The activity types that take the work of students and have a grade that a teacher gives",
+        "intro": "Disabling a type hides the Autograder settings of its activities.",
         "label": "Activity types",
-        "namecolumn": "Name",
-        "enabledcolumn": "Enabled",
+        "filters": [
+            {"key": "all", "label": "All", "count": 2, "active": true},
+            {"key": "on", "label": "On", "count": 1, "active": false},
+            {"key": "off", "label": "Off", "count": 1, "active": false}
+        ],
+        "search": "",
+        "empty": "No activity type matches.",
+        "count": "2 activity types",
         "types": [
             {
-                "component": "mod_assign",
+                "iconurl": "https://example.com/mod/assign/pix/monologo.svg",
+                "purpose": "assessment",
                 "name": "Assignment",
+                "reads": "Reads the hand-ins of students",
+                "ison": true,
                 "action": "https://example.com/local/autograder/modules.php",
                 "params": [
                     {"name": "modname", "value": "assign"},
@@ -54,29 +70,65 @@
         ]
     }
 }}
-<p>{{intro}}</p>
-<div class="local-autograder-table-scroll" tabindex="0" role="region" aria-label="{{label}}">
-    <table id="local-autograder-modules" class="admintable generaltable">
-        <thead>
-            <tr>
-                <th scope="col">{{namecolumn}}</th>
-                <th scope="col">{{enabledcolumn}}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{#types}}
-            <tr>
-                <td><span>{{#pix}} monologo, {{component}} {{/pix}}{{name}}</span></td>
-                <td>
-                    <form method="post" action="{{action}}">
-                        {{#params}}
-                        <input type="hidden" name="{{name}}" value="{{value}}">
-                        {{/params}}
-                        {{{toggle}}}
-                    </form>
-                </td>
-            </tr>
-            {{/types}}
-        </tbody>
-    </table>
+<div class="lag" id="local-autograder-modules">
+    <p class="text-muted mb-0">{{lead}}</p>
+    <div class="dd-chips" role="group" aria-label="{{label}}">
+        {{#filters}}
+        <button type="button" class="dd-chip" data-filter="{{key}}" aria-pressed="{{#active}}true{{/active}}{{^active}}false{{/active}}">
+            {{label}} <span class="dd-chip-count" data-count="{{key}}">{{count}}</span>
+        </button>
+        {{/filters}}
+    </div>
+    <div class="card">
+        {{#search}}
+        <div class="table-toolbar">
+            <div class="input-group">
+                <label class="sr-only visually-hidden" for="local-autograder-search">{{search}}</label>
+                <input type="search" class="form-control" id="local-autograder-search" data-region="search" placeholder="{{search}}…">
+            </div>
+        </div>
+        {{/search}}
+        <div class="table-responsive" data-region="tablewrap">
+            <table class="table">
+                <caption class="sr-only visually-hidden">{{label}}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">{{#str}}modules:name, local_autograder{{/str}}</th>
+                        <th scope="col" class="d-none d-md-table-cell">{{#str}}modules:reads, local_autograder{{/str}}</th>
+                        <th scope="col" class="text-right text-end">{{#str}}modules:state, local_autograder{{/str}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#types}}
+                    <tr data-state="{{#ison}}on{{/ison}}{{^ison}}off{{/ison}}" data-name="{{name}}">
+                        <td>
+                            <span class="lag-type-name">
+                                <span class="activityiconcontainer {{purpose}}"><img class="activityicon" src="{{iconurl}}" alt="" width="24" height="24"></span>
+                                <span class="d-flex flex-column">
+                                    <strong>{{name}}</strong>
+                                    <span class="small text-muted d-md-none">{{reads}}</span>
+                                </span>
+                            </span>
+                        </td>
+                        <td class="text-muted d-none d-md-table-cell">{{reads}}</td>
+                        <td class="text-right text-end">
+                            <form method="post" action="{{action}}">
+                                {{#params}}
+                                <input type="hidden" name="{{name}}" value="{{value}}">
+                                {{/params}}
+                                {{{toggle}}}
+                            </form>
+                        </td>
+                    </tr>
+                    {{/types}}
+                </tbody>
+            </table>
+            <div class="dd-empty" data-region="empty" role="status" hidden>
+                <span class="dd-tile" aria-hidden="true">{{#pix}}a/search, core{{/pix}}</span>
+                <p class="dd-empty-text">{{empty}}</p>
+            </div>
+        </div>
+        <div class="table-foot text-muted small">{{count}}</div>
+    </div>
+    <p class="small text-muted mb-0">{{intro}}</p>
 </div>

@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Teacher" as user <<actor>>
+class "Choice of the result" as screen <<boundary>>
+class "Advanced grading" as adv <<control>>
+class "Configuration store" as store <<control>>
+class "Configuration" as config <<entity>>
+
+user --> screen : 1: opens the choice
+screen --> adv : 2: template_instance(cm)
+user --> screen : 3: chooses a level or a score for each criterion
+screen --> adv : 4: encode(criteria)
+screen --> store : 5: upsert_for_cm(...)
+store --> config : 6: saves the choice
+
+@enduml

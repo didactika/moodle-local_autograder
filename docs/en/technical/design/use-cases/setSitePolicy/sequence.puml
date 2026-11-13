@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Administrator" as actor
+participant "settings.php" as page
+participant "search_graders" as service
+participant "grader_search" as search
+database "config_plugins" as table
+
+actor -> page : types the name of the fallback grader
+page -> service : search(query)
+service -> search : search(query)
+service --> page : the users that may sign
+actor -> page : saves the settings
+page -> table : the values of the policy
+page -> page : notify_failures::setting_changed
+
+@enduml

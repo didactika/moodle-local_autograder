@@ -1,0 +1,12 @@
+@startsalt
+{
+  {* Site administration | Users | Privacy and policies | Data requests }
+  ==
+  Data request
+  --
+  {
+    Pablo Iglesias | Export | [Approve]
+    Lucia Fernandez | Delete | [Approve]
+  }
+}
+@endsalt

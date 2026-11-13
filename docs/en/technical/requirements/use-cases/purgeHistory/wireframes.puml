@@ -1,0 +1,12 @@
+@startsalt
+{
+  {* Site administration | Plugins | Autograder | General }
+  ==
+  General
+  --
+  {
+    Keep history for (days) | "120"
+    [Save changes]
+  }
+}
+@endsalt

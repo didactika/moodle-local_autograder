@@ -1,0 +1,12 @@
+@startsalt
+{
+  {* Site administration | Server | Scheduled tasks }
+  ==
+  Scheduled tasks
+  --
+  {#
+    Task | Schedule
+    Queue again the grades that lost their task | Every 30 minutes
+  }
+}
+@endsalt

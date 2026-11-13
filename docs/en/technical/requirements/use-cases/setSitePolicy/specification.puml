@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "setSitePolicy" as setSitePolicy {
+  state " " as Settings
+  state " " as Searching
+  state " " as Saved
+
+  [*] --> Settings : Administrator opens the settings
+  Settings --> Saved : Administrator saves the values
+  Settings --> Searching : Administrator types the name of the fallback grader
+  Searching --> Settings : System lists the users that may sign
+  Saved --> Settings : System refuses a value that is not valid
+  Saved --> [*] : System stores the settings
+
+  note on link
+    Administrator: chooses the policy
+    System: validates and stores
+  end note
+}
+
+@enduml

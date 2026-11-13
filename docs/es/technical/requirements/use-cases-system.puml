@@ -8,12 +8,22 @@ actor "System" as A_System
 
 rectangle "local_autograder" {
   package "Grading" {
-    usecase "Grade a student" as UC_gradeStudent
-    usecase "Reconsider a decision when something changes" as UC_reconsiderDecision
+    usecase "Calificar a un estudiante" as UC_gradeStudent
+    usecase "Reconsiderar una decisión cuando algo cambia" as UC_reconsiderDecision
+    usecase "Poner de nuevo en cola las calificaciones que perdieron su tarea" as UC_requeueLostGrades
+  }
+  package "Notification" {
+    usecase "Avisar a los docentes de los estudiantes que no se pudieron calificar" as UC_notifyFailures
+  }
+  package "Maintenance" {
+    usecase "Eliminar el historial antiguo" as UC_purgeHistory
   }
 }
 
 A_System --> UC_gradeStudent
 A_System --> UC_reconsiderDecision
+A_System --> UC_notifyFailures
+A_System --> UC_requeueLostGrades
+A_System --> UC_purgeHistory
 
 @enduml

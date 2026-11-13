@@ -30,5 +30,14 @@
  * @return bool Always true.
  */
 function xmldb_local_autograder_upgrade($oldversion) {
+    if ($oldversion < 2026101402) {
+        // Autograder is only for the activities that take the work of students and have a grade that a teacher gives, which
+        // the site no longer chooses from a list of every gradeable type: take the other types off the ones it allows and
+        // call off what was waiting for them. The configuration of their activities stays saved, and so does every grade.
+        \local_autograder\local\config\eligibility::withdraw_unsupported_types();
+
+        upgrade_plugin_savepoint(true, 2026101402, 'local', 'autograder');
+    }
+
     return true;
 }

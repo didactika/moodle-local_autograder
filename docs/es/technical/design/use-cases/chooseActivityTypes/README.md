@@ -20,7 +20,11 @@ Análisis: [README](../../../analysis/use-cases/chooseActivityTypes/README.md)
 | Elemento de diseño | Tipo | Código |
 | --- | --- | --- |
 | `modules.php` | página | `modules.php` |
-| `eligibility::set_module_type_enabled` | servicio | `classes/local/config/eligibility.php:108` |
+| `eligibility::set_module_type_enabled` | servicio | `classes/local/config/eligibility.php:111` |
+| `eligibility::is_module_type_supported` | servicio | `classes/local/config/eligibility.php:236` |
+| `eligibility::supported_module_types` | servicio | `classes/local/config/eligibility.php:211` |
+| `eligibility::withdraw_unsupported_types` | servicio | `classes/local/config/eligibility.php:182` |
+| Paso de actualización | actualización | `db/upgrade.php` |
 | Tarea `cancel_module` | tarea | `classes/task/cancel_module.php:41` |
 
 ## Secuencia
@@ -38,4 +42,5 @@ Análisis: [README](../../../analysis/use-cases/chooseActivityTypes/README.md)
 | Tabla o entidad | Operación |
 | --- | --- |
 | `config_plugins` | actualización (tipos habilitados) |
+| `capabilities` | lectura (la capacidad `mod/<tipo>:grade` de cada tipo) |
 | `local_autograder_decision` | actualización (canceladas) |

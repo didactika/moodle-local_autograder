@@ -14,7 +14,8 @@ sourceOfTruth: code
 | Grade log | table | `db/install.xml` (`local_autograder_grade_log`) | yes |
 | Saving the configuration | method | `classes/local/config/config_repository.php:101` | yes |
 | Section of the activity form | class | `classes/form/autograder_section.php` | yes |
-| Enabled activity types | method | `classes/local/config/eligibility.php:108` | yes |
+| Enabled activity types | method | `classes/local/config/eligibility.php:111` | yes |
+| Rule of the activity types | methods | `classes/local/config/eligibility.php:182`, `:211`, `:236` | yes |
 | Planning a decision | method | `classes/local/decision/decision_planner.php:62` | yes |
 | Due date | method | `classes/local/decision/due_date_calculator.php` | yes |
 | Decision lifecycle | methods | `classes/local/decision/decision_repository.php:207`, `:413`, `:440` | yes |

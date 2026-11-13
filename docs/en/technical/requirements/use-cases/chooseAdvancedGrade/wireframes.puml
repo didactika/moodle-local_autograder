@@ -1,0 +1,15 @@
+@startsalt
+{
+  {* Activity settings | Autograder | Choose the result }
+  ==
+  Choose the result for Reflection on a learning story
+  --
+  {#
+    Criterion | Level or score
+    Argument | Good (4)
+    Evidence | Excellent (5)
+    Presentation | Fair (2)
+  }
+  [Save] | [Cancel]
+}
+@endsalt

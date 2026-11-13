@@ -10,10 +10,20 @@ rectangle "local_autograder" {
   package "Grading" {
     usecase "Grade a student" as UC_gradeStudent
     usecase "Reconsider a decision when something changes" as UC_reconsiderDecision
+    usecase "Queue again the grades that lost their task" as UC_requeueLostGrades
+  }
+  package "Notification" {
+    usecase "Tell the teachers which students could not be graded" as UC_notifyFailures
+  }
+  package "Maintenance" {
+    usecase "Delete the old history" as UC_purgeHistory
   }
 }
 
 A_System --> UC_gradeStudent
 A_System --> UC_reconsiderDecision
+A_System --> UC_notifyFailures
+A_System --> UC_requeueLostGrades
+A_System --> UC_purgeHistory
 
 @enduml

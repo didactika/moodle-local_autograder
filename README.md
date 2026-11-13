@@ -27,7 +27,7 @@ Autograder (`local_autograder`) is a Moodle local plugin that grades students au
 
 Some activities are assessed on whether students take part rather than on the quality of their work: a forum contribution, a reflection, a practice quiz. Grading each one by hand takes time, and students who did the work may wait weeks for a grade. Autograder assigns these grades on time.
 
-Assignments, forums and quizzes are supported out of the box. Administrators can enable any other gradable activity type.
+Assignments, forums and quizzes are supported out of the box. Autograder is offered for every activity type that takes the work of students and has a grade that a teacher gives, which means the types that declare the purpose "assessment" or define the capability `mod/<type>:grade`: today also lessons and workshops. A plugin of the site that declares one of them is offered with no change.
 
 ### When a student is graded
 
@@ -98,7 +98,7 @@ php admin/cli/upgrade.php
 
 Go to **Site administration → Plugins → Local plugins → Autograder** and select the **Activity types** link on the *General* tab.
 
-Assignments, forums and quizzes are enabled by default. Disabling a type hides the Autograder settings on activities of that type and cancels their scheduled grades. Each activity keeps its own configuration, so re-enabling the type restores it.
+The page lists the types that qualify, with what Autograder reads for each. Assignments, forums and quizzes are enabled by default. Disabling a type hides the Autograder settings on activities of that type and cancels their scheduled grades. Each activity keeps its own configuration, so re-enabling the type restores it.
 
 ### 2. Enable Autograder on an activity (teachers)
 
@@ -114,7 +114,7 @@ Students who have already completed the activity are processed on the next cron 
 > [!TIP]
 > **Rubrics and marking guides:** Autograder needs to know which level to select for each criterion. After saving, follow the link in the Autograder section and fill in the rubric or marking guide as you would for a student. Autograder remains disabled until you complete this step.
 
-**Other activity types:** for activity types other than assignments, forums and quizzes, Autograder relies on activity completion to know when a student has finished. The activity needs a completion condition the student can meet on their own, such as marking it as done, viewing it, or one of the activity's own conditions, and must not include a grade condition. Otherwise, Autograder is saved as disabled and the form explains why.
+**Other activity types:** for the types other than assignments, forums and quizzes, such as lessons and workshops, Autograder relies on activity completion to know when a student has finished. The activity needs a completion condition the student can meet on their own, such as marking it as done, viewing it, or one of the activity's own conditions, and must not include a grade condition. Otherwise, Autograder is saved as disabled and the form explains why.
 
 ### 3. Teacher opt-out (optional)
 

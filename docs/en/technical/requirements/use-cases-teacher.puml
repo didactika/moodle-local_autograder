@@ -9,9 +9,17 @@ actor "Teacher" as A_Teacher
 rectangle "local_autograder" {
   package "Configuration" {
     usecase "Configure Autograder in an activity" as UC_configureAutograder
+    usecase "Choose the result of a rubric or marking guide" as UC_chooseAdvancedGrade
+    usecase "Opt out of having grades recorded in my name" as UC_optOutOfGrading
+  }
+  package "Maintenance" {
+    usecase "Carry the configuration in a course backup" as UC_carryConfigurationInBackup
   }
 }
 
-A_Teacher --> UC_configureAutograder
+A_Teacher --> UC_chooseAdvancedGrade
+A_Teacher --> UC_optOutOfGrading
+A_Teacher --> UC_carryConfigurationInBackup
+UC_chooseAdvancedGrade ..> UC_configureAutograder : <<extend>>
 
 @enduml

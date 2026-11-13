@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Teacher" as user <<actor>>
+class "Backup plugin" as backup <<control>>
+class "Restore plugin" as restore <<control>>
+class "Advanced grading" as adv <<control>>
+class "Configuration" as config <<entity>>
+
+user --> backup : 1: backs up the course
+backup --> config : 2: adds the configuration
+user --> restore : 3: restores
+restore --> adv : 4: remapped_filling(...)
+restore --> config : 5: writes the configuration
+
+@enduml

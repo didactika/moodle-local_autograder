@@ -1,0 +1,24 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+participant "Cron" as cron
+participant "purge_history" as task
+participant "decision_repository" as decisions
+participant "grade_log_repository" as log
+database "local_autograder_decision" as table
+database "local_autograder_grade_log" as logtable
+
+cron -> task : execute() every day
+task -> task : retentiondays
+alt retention is zero
+  task --> cron : keeps everything
+else
+  task -> decisions : purge_settled_before(date)
+  decisions -> table : delete
+  task -> log : purge_before(date)
+  log -> logtable : delete
+end
+
+@enduml

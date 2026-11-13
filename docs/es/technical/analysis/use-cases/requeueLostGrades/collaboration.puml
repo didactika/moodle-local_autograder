@@ -1,0 +1,17 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "System" as user <<actor>>
+class "Safety-net task" as task <<control>>
+class "Decision store" as store <<control>>
+class "Decision" as decision <<entity>>
+
+user --> task : 1: the task runs
+task --> store : 2: orphaned_pending(now)
+store --> decision : 3: finds the due ones without a task
+task --> store : 4: schedule(decision)
+
+@enduml

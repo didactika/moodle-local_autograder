@@ -33,3 +33,11 @@ Estereotipos: `<<boundary>>` interfaz, `<<control>>` coordinación, `<<entity>>`
 | UC-002 | [Elegir los tipos de actividad](./use-cases/chooseActivityTypes/README.md) | [colaboración](./use-cases/chooseActivityTypes/collaboration.svg) |
 | UC-003 | [Calificar a un estudiante](./use-cases/gradeStudent/README.md) | [colaboración](./use-cases/gradeStudent/collaboration.svg) |
 | UC-004 | [Reconsiderar una decisión cuando algo cambia](./use-cases/reconsiderDecision/README.md) | [colaboración](./use-cases/reconsiderDecision/collaboration.svg) |
+| UC-005 | [Elegir el resultado de una rúbrica o pauta de calificación](./use-cases/chooseAdvancedGrade/README.md) | [colaboración](./use-cases/chooseAdvancedGrade/collaboration.svg) |
+| UC-006 | [Excluirme de que se registren calificaciones a mi nombre](./use-cases/optOutOfGrading/README.md) | [colaboración](./use-cases/optOutOfGrading/collaboration.svg) |
+| UC-007 | [Establecer la política del sitio](./use-cases/setSitePolicy/README.md) | [colaboración](./use-cases/setSitePolicy/collaboration.svg) |
+| UC-008 | [Avisar a los docentes de los estudiantes que no se pudieron calificar](./use-cases/notifyFailures/README.md) | [colaboración](./use-cases/notifyFailures/collaboration.svg) |
+| UC-009 | [Poner de nuevo en cola las calificaciones que perdieron su tarea](./use-cases/requeueLostGrades/README.md) | [colaboración](./use-cases/requeueLostGrades/collaboration.svg) |
+| UC-010 | [Eliminar el historial antiguo](./use-cases/purgeHistory/README.md) | [colaboración](./use-cases/purgeHistory/collaboration.svg) |
+| UC-011 | [Llevar la configuración en una copia de seguridad del curso](./use-cases/carryConfigurationInBackup/README.md) | [colaboración](./use-cases/carryConfigurationInBackup/collaboration.svg) |
+| UC-012 | [Exportar o eliminar datos personales](./use-cases/managePersonalData/README.md) | [colaboración](./use-cases/managePersonalData/collaboration.svg) |

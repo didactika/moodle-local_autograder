@@ -21,6 +21,16 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+## [1.2.0-m400] - 2026-11-12
+
+Autograder is offered only for the activities that take the work of students, and its screens follow the Didactika design system.
+
+### Changed
+
+- The activity types that Autograder can be used with are found from what each activity plugin declares, not from the list of every gradeable type: the type must have a grade and either declare the purpose "assessment" or define the capability `mod/<type>:grade`. A plugin of the site that declares one of them is offered with no change here. Today they are assignments, forums, lessons, quizzes and workshops.
+- The upgrade takes the types that no longer qualify off the ones the site allows and cancels the grading still pending for them. The configuration of their activities stays saved and no grade that was given is changed.
+- The page of the activity types, the section of the activity settings, the grading of a rubric or a guide and the preference of a teacher use the tokens of the Didactika design system: chips to filter the types, a card for the list, what Autograder reads for each type and the same height, radius and ring of focus as the rest of the screens of Didactika.
+
 ## [1.1.0-m400] - 2026-10-19
 
 First release of the Moodle 4.0 to 5.2 line, on `MOODLE_400_STABLE`. The Moodle 5.3 line is on `main` (1.1.0-m503).

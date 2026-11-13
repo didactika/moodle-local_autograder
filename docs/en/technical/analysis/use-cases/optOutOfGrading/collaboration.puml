@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "Teacher" as user <<actor>>
+class "Preference page" as screen <<boundary>>
+class "Grader picker" as picker <<control>>
+class "Site policy" as policy <<entity>>
+class "Opt-out" as optout <<entity>>
+
+user --> screen : 1: opens the preference
+screen --> policy : 2: is opting out allowed?
+user --> screen : 3: saves the option
+screen --> optout : 4: stores the preference
+picker --> optout : 5: reads it when choosing who signs
+
+@enduml

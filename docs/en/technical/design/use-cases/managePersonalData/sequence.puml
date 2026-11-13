@@ -1,0 +1,22 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+actor "Administrator" as actor
+participant "Data request" as request
+participant "provider" as provider
+database "local_autograder_*" as tables
+
+actor -> request : approves
+request -> provider : get_contexts_for_userid(userid)
+alt export
+  request -> provider : export_user_data(contexts)
+  provider -> tables : read decisions and log
+  request -> provider : export_user_preferences(userid)
+else erase
+  request -> provider : delete_data_for_user(contexts)
+  provider -> tables : delete decisions, log and tasks
+end
+
+@enduml

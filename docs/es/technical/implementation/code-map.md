@@ -14,7 +14,8 @@ sourceOfTruth: code
 | Registro de calificación | tabla | `db/install.xml` (`local_autograder_grade_log`) | sí |
 | Guardar la configuración | método | `classes/local/config/config_repository.php:101` | sí |
 | Sección del formulario de la actividad | clase | `classes/form/autograder_section.php` | sí |
-| Tipos de actividad habilitados | método | `classes/local/config/eligibility.php:108` | sí |
+| Tipos de actividad habilitados | método | `classes/local/config/eligibility.php:111` | sí |
+| Regla de los tipos de actividad | métodos | `classes/local/config/eligibility.php:182`, `:211`, `:236` | sí |
 | Planificar una decisión | método | `classes/local/decision/decision_planner.php:62` | sí |
 | Fecha de vencimiento | método | `classes/local/decision/due_date_calculator.php` | sí |
 | Ciclo de vida de la decisión | métodos | `classes/local/decision/decision_repository.php:207`, `:413`, `:440` | sí |

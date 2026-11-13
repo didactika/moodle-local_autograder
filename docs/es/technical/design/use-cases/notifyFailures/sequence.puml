@@ -1,0 +1,20 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+skinparam responseMessageBelowArrow true
+
+participant "Cron" as cron
+participant "notify_failures" as task
+database "local_autograder_decision" as table
+participant "Moodle messaging" as messaging
+
+cron -> task : execute()
+task -> task : notifyfailures and lastnotified
+task -> table : the failures between the last run and now
+task -> task : group by activity, find the recipients
+loop each teacher
+  task -> messaging : message_send(failuredigest)
+end
+task -> task : set lastnotified
+
+@enduml

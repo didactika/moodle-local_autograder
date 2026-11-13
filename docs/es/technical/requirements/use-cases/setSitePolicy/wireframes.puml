@@ -1,0 +1,15 @@
+@startsalt
+{
+  {* Site administration | Plugins | Autograder | Teachers }
+  ==
+  Teachers
+  --
+  {
+    Teaching roles | ^Automatic: any role that can grade^
+    Teacher selection | ^Lowest user ID^
+    Fallback grader | "Search for a user..."
+    [ ] Allow teachers to opt out
+    [Save changes]
+  }
+}
+@endsalt

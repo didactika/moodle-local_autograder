@@ -38,7 +38,7 @@ La posición vertical de una entidad expresa su importancia para el objetivo del
 | Grader | 2 | El docente a cuyo nombre se registra una calificación, o el calificador de reserva del sitio. | usuario de Moodle | Es el `user` de Moodle, no una tabla del plugin. |
 | GradeLog | 3 | La traza de auditoría de cada intento de calificación, separada de la decisión. | `outcome`, `message`, `graderid`, `gradevalue` | |
 | DueDate | 3 | El momento en que vence una decisión: la fecha base más el tiempo de espera. | `baselineduedate`, `duedatereason`, `scheduledgradetime` | Es un conjunto de columnas de la decisión. |
-| ActivityType | 4 | Una clase de actividad que puede usar Autograder. | el nombre del tipo | Es un ajuste del sitio, no una tabla. |
+| ActivityType | 4 | Una clase de actividad que puede usar Autograder: la que recibe el trabajo de los estudiantes y tiene una calificación que otorga un docente. | el nombre del tipo | Los tipos que el sitio permite son un ajuste del sitio, no una tabla; los tipos que cumplen la regla se calculan a partir de los plugins instalados. |
 | SitePolicy | 4 | Los ajustes del sitio: roles de docente, selección del docente, calificador de reserva, notificaciones e historial. | `teacher_source_mode`, `tiebreak`, `fallback_grader` | Son ajustes del plugin. |
 | OptOut | 4 | La preferencia de un docente de que no se registren calificaciones a su nombre. | preferencia de usuario | Es una preferencia de usuario, no una tabla. |
 
@@ -55,6 +55,14 @@ La posición vertical de una entidad expresa su importancia para el objetivo del
 | RN-007 | Desactivar Autograder en una actividad, o el tipo de la actividad en el sitio, cancela las calificaciones que siguen pendientes. | Configuration, ActivityType | `cancel_module`, `eligibility::set_module_type_enabled` |
 | RN-008 | Un cuestionario que se califica solo conserva su propia calificación: Autograder solo califica mientras una pregunta espera corrección manual y devuelve el libro de calificaciones después. | Decision | `observer::hand_back` |
 | RN-009 | Las decisiones terminadas y las entradas del registro más antiguas que el ajuste de retención se eliminan a diario. | Decision, GradeLog | `purge_history` |
+| RN-010 | Un tipo de actividad cumple la regla cuando tiene calificación y, además, declara el propósito «evaluación» o define la capacidad `mod/<tipo>:grade`. Un tipo que deja de cumplirla se retira de los habilitados y se cancela lo que estaba pendiente para él. | ActivityType | `eligibility::is_module_type_supported`, `eligibility::withdraw_unsupported_types` |
+| RN-011 | Un docente que se excluyó nunca es elegido para firmar una calificación, pero solo mientras el sitio permita la exclusión. | OptOut, Grader | `grader_picker::usable` |
+| RN-012 | Cada fallo se informa una vez, agrupado por actividad, a las personas matriculadas en el curso que pueden configurar Autograder en la actividad. | Decision, Grader | `notify_failures::execute` |
+| RN-013 | Una decisión pendiente que venció y no tiene tarea detrás se pone de nuevo en cola; un sitio sano no encuentra ninguna. | Decision | `reconcile_pending::execute`, `decision_repository::orphaned_pending` |
+| RN-014 | La configuración viaja en una copia de seguridad del curso y las decisiones y el registro no. Se restaura activada solo donde hay con qué calificar, y los estudiantes se deciden de nuevo. | Configuration, Decision | `restore_local_autograder_plugin::after_restore_module` |
+| RN-015 | Las decisiones y el registro de un usuario pueden exportarse y eliminarse mediante la API de privacidad; eliminar una actividad completa elimina también su configuración. | Decision, GradeLog, Configuration | `privacy\provider` |
+| RN-016 | Los administradores del sitio y los usuarios sin un rol que pueda calificar nunca son elegidos para firmar una calificación ni como calificador de reserva. | SitePolicy, Grader | `grader_picker::must_never_grade`, `fallback_grader_setting` |
+| RN-017 | El resultado de una rúbrica o de una pauta de calificación se usa solo mientras sigue coincidiendo con la definición: cada criterio respondido y cada respuesta una que la definición ofrece. | Configuration | `advanced_grading::filling_is_current` |
 
 ## Ciclos de vida
 

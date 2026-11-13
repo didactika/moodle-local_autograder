@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "System" as user <<actor>>
+class "Purge task" as task <<control>>
+class "Decision store" as decisions <<control>>
+class "Log store" as log <<control>>
+class "Decision and grade log" as data <<entity>>
+
+user --> task : 1: the task runs
+task --> decisions : 2: purge_settled_before(date)
+task --> log : 3: purge_before(date)
+decisions --> data : 4: deletes
+log --> data : 5: deletes
+
+@enduml

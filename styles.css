@@ -1,31 +1,261 @@
-/* Limit these rules to autograder's own pages and activity settings section. */
-.local-autograder-table-scroll {
-    max-width: 100%;
-    overflow-x: auto;
-    /* stylelint-disable-next-line csstree/validator */
-    contain: inline-size;
+/* The styles of the page of the activity types and of the forms of Autograder, with the tokens of the Didactika design system.
+   Every colour comes from the theme and ends in the colour that Boost has. */
+/* Generated from styles.scss. Edit the SCSS component sources and rebuild. */
+/* Moodle 4.0 and later cores disagree on decimal formatting; use the current leading-zero style. */
+/* stylelint-disable number-leading-zero */
+
+/*
+ * The tokens of the Didactika design system, scoped to the screens of the plugin. Every colour comes from the theme and ends in
+ * the colour that Boost has, so a theme changes the plugin by changing its own colours. The colour modes of Moodle 5 change them
+ * too. The names that start with lag are the ones of the field of the grader, which are the same tokens.
+ */
+
+.lag,
+.lag-picker {
+    --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
+    --dd-success: var(--bs-success, var(--success, #357a32));
+    --dd-danger: var(--bs-danger, var(--danger, #ca3120));
+    --dd-ink: var(--bs-body-color, #212529);
+    --dd-surface: var(--bs-body-bg, #fff);
+    --dd-muted: var(--bs-secondary-color, #6c757d);
+    --dd-hairline: var(--bs-border-color, #dee2e6);
+    --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-line-hover: color-mix(in srgb, var(--dd-ink) 62%, var(--dd-surface));
+    --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
+    --dd-surface-3: color-mix(in srgb, var(--dd-ink) 9%, var(--dd-surface));
+    --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-primary-soft: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-surface));
+    --dd-primary-ink: color-mix(in srgb, var(--dd-primary) 78%, var(--dd-ink));
+    --dd-radius: 0.625rem;
+    --dd-radius-sm: 0.5rem;
+    --dd-radius-lg: 0.75rem;
+    --dd-h: 2.25rem;
+    --dd-table-h: 34rem;
+    --dd-ease: 140ms cubic-bezier(0.2, 0, 0, 1);
+    --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
+    --dd-shadow-md: 0 14px 34px -12px rgb(15 23 42 / 30%), 0 2px 6px rgb(15 23 42 / 8%);
+    --lag-text: var(--dd-ink);
+    --lag-surface: var(--dd-surface);
+    --lag-border: var(--dd-hairline);
+    --lag-border-strong: var(--dd-line);
+    --lag-muted: var(--dd-muted);
+    --lag-accent: var(--dd-primary);
+    --lag-accent-soft: var(--dd-primary-soft);
+    --lag-accent-ring: var(--dd-ring);
+    --lag-hover: var(--dd-surface-2);
+    --lag-faint: color-mix(in srgb, var(--dd-ink) 3%, var(--dd-surface));
+    color: var(--dd-ink);
 }
 
-.local-autograder-table-scroll:focus-visible {
-    outline: 2px solid var(--primary, #0f6cbf);
-    outline-offset: 2px;
+.lag {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    color: var(--dd-ink);
 }
 
-#local-autograder-modules {
-    width: 100%;
+.lag .card {
+    overflow: hidden;
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    background: var(--dd-surface);
+    box-shadow: none;
 }
 
-#local-autograder-modules td {
+.lag .table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--dd-hairline);
+}
+
+.lag .input-group {
+    flex: 1 1 14rem;
+    width: auto;
+    max-width: 24rem;
+}
+
+.lag .table {
+    --bs-table-bg: transparent;
+    margin-bottom: 0;
+    color: var(--dd-ink);
+    font-size: 0.9375rem;
+}
+
+.lag .table th,
+.lag .table td {
+    padding: 0.75rem 1rem;
+    border-color: var(--dd-hairline);
     vertical-align: middle;
-    overflow-wrap: anywhere;
 }
 
-#local-autograder-modules td:last-child {
-    width: 5rem;
+.lag .table thead th {
+    border-top: 0;
+    border-bottom: 1px solid var(--dd-line);
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
-#local-autograder-modules form {
+.lag .table tbody tr:hover > * {
+    background-color: color-mix(in srgb, var(--dd-primary) 5%, var(--dd-surface));
+}
+
+.lag .activityiconcontainer {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
     margin: 0;
+    padding: 0;
+    border-radius: 0.75rem;
+    background-color: var(--dd-surface-3);
+}
+
+.lag .activityiconcontainer .activityicon {
+    width: 1.375rem;
+    height: 1.375rem;
+}
+
+.lag .dd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lag .dd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    min-height: 2rem;
+    padding: 0.1875rem 0.75rem;
+    border: 1px solid var(--dd-line);
+    border-radius: 999px;
+    background: var(--dd-surface);
+    color: var(--dd-ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background-color var(--dd-ease), border-color var(--dd-ease), color var(--dd-ease);
+}
+
+.lag .dd-chip:hover {
+    border-color: var(--dd-line-hover);
+    background: var(--dd-surface-2);
+}
+
+.lag .dd-chip:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+
+.lag .dd-chip[aria-pressed=true] {
+    border-color: var(--dd-primary);
+    background: var(--dd-primary-soft);
+    color: var(--dd-primary-ink);
+    font-weight: 600;
+}
+
+.lag .dd-chip[aria-pressed=true] .dd-chip-count {
+    background: var(--dd-primary);
+    color: #fff;
+}
+
+.lag .dd-chip-count {
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--dd-surface-3);
+    color: var(--dd-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.lag .form-switch .form-check-input {
+    cursor: pointer;
+}
+
+.lag .table-responsive[data-region=tablewrap] {
+    block-size: var(--dd-table-h);
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* stylelint-disable-next-line csstree/validator */
+    scrollbar-gutter: stable;
+}
+
+.lag .table-responsive[data-region=tablewrap] thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background-color: var(--dd-surface);
+}
+
+.lag .dd-empty {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.5rem;
+    min-block-size: 100%;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.lag .dd-tile {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 1rem;
+    background-color: var(--dd-primary-soft);
+    color: var(--dd-primary-ink);
+    font-size: 1.5rem;
+}
+
+.lag .dd-tile .icon {
+    margin: 0;
+    color: inherit;
+    font-size: inherit;
+}
+
+.lag .dd-empty-text {
+    max-width: 28rem;
+    margin: 0;
+    color: var(--dd-muted);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+}
+
+.lag .table-foot {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--dd-hairline);
+}
+
+#id_autogradersection,
+#page-local-autograder-advanced,
+#page-local-autograder-optout {
+    --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
+    --dd-ink: var(--bs-body-color, #212529);
+    --dd-surface: var(--bs-body-bg, #fff);
+    --dd-muted: var(--bs-secondary-color, #6c757d);
+    --dd-hairline: var(--bs-border-color, #dee2e6);
+    --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
+    --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
+    --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-radius-sm: 0.5rem;
+    --dd-radius-lg: 0.75rem;
+    --dd-h: 2.25rem;
+    --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
 }
 
 #id_autogradersection .felement,
@@ -34,18 +264,61 @@
     min-width: 0;
 }
 
-#id_autogradersection input[type="text"],
-#id_autogradersection select {
+#id_autogradersection input[type=text],
+#id_autogradersection input[type=number],
+#id_autogradersection select,
+#page-local-autograder-advanced input[type=text],
+#page-local-autograder-advanced input[type=number],
+#page-local-autograder-advanced select,
+#page-local-autograder-optout input[type=text],
+#page-local-autograder-optout input[type=number],
+#page-local-autograder-optout select {
     max-width: 100%;
+    min-height: var(--dd-h);
+    border-color: var(--dd-line);
+    border-radius: var(--dd-radius-sm);
+}
+
+#id_autogradersection input[type=text]:focus,
+#id_autogradersection input[type=number]:focus,
+#id_autogradersection select:focus,
+#page-local-autograder-advanced input[type=text]:focus,
+#page-local-autograder-advanced input[type=number]:focus,
+#page-local-autograder-advanced select:focus,
+#page-local-autograder-optout input[type=text]:focus,
+#page-local-autograder-optout input[type=number]:focus,
+#page-local-autograder-optout select:focus {
+    border-color: var(--dd-primary);
+    box-shadow: 0 0 0 0.2rem var(--dd-ring);
 }
 
 #id_autogradersection .form-static,
+#page-local-autograder-advanced .form-static,
+#page-local-autograder-optout .form-static {
+    overflow-wrap: anywhere;
+}
+
+#id_autogradersection .fcontainer {
+    padding: 1rem 1.25rem 0.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#id_autogradersection .alert {
+    border-radius: var(--dd-radius-sm);
+}
+
+#page-local-autograder-advanced {
+    /* Core rubrics need space for their levels; scroll only the grading field, keeping the page heading and the save and cancel
+     buttons within the viewport. */
+}
+
 #page-local-autograder-advanced p {
     overflow-wrap: anywhere;
 }
 
-/* Core rubrics need space for their levels; scroll only the grading field,
-   keeping the page heading and the save/cancel buttons within the viewport. */
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
     /* stylelint-disable-next-line csstree/validator */
@@ -62,36 +335,128 @@
     min-width: 8rem;
 }
 
+#page-local-autograder-advanced .mform {
+    max-width: 100%;
+    padding: 1.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#page-local-autograder-advanced .mform .btn {
+    min-height: var(--dd-h);
+    border-radius: var(--dd-radius-sm);
+}
+
+#page-local-autograder-optout .mform {
+    max-width: 100%;
+    padding: 1.25rem;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius-lg);
+    box-shadow: var(--dd-shadow-sm);
+}
+
+#page-local-autograder-optout .mform .btn {
+    min-height: var(--dd-h);
+    border-radius: var(--dd-radius-sm);
+}
+
 @media (max-width: 767.98px) {
-    #id_autogradersection input[type="text"],
+
+    #id_autogradersection input[type=text],
     #id_autogradersection select {
         width: 100%;
-        min-height: 2.75rem;
     }
 
     #page-local-autograder-advanced .mform .btn,
     #page-local-autograder-optout .mform .btn {
-        min-height: 2.75rem;
         white-space: normal;
     }
 }
 
-/* Match the report's control spacing while retaining Moodle form layouts. */
-#page-local-autograder-modules .btn,
-#page-local-autograder-advanced .mform .btn,
-#page-local-autograder-optout .mform .btn,
-#id_autogradersection input[type="text"],
-#id_autogradersection select {
-    min-height: 2.75rem;
-    border-radius: 0.375rem;
+@media (max-width: 767.98px) {
+
+    .lag {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lag .table-responsive .table th,
+    .lag .table-responsive .table td {
+        white-space: nowrap;
+    }
+
+    .lag .table-responsive .table th:first-child,
+    .lag .table-responsive .table td:first-child {
+        position: sticky;
+        inset-inline-start: 0;
+        z-index: 1;
+        background-color: var(--dd-surface);
+        box-shadow: inset -1px 0 0 var(--dd-hairline, rgba(0, 0, 0, 0.08));
+    }
+
+    .lag .table-responsive .table thead th:first-child {
+        z-index: 2;
+    }
+
+    .lag .table-responsive .table td:first-child {
+        white-space: normal;
+    }
+
+    .lag .nav-tabs,
+    .lag .dd-chips {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    .lag .nav-tabs .nav-link,
+    .lag .dd-chip {
+        flex: none;
+        white-space: nowrap;
+    }
 }
 
-#local-autograder-modules th,
-#local-autograder-modules td {
-    padding: 0.75rem;
+/* Bootstrap 4 names the colour of a badge badge-secondary, and what the template of this line writes. */
+.lag .badge.badge-secondary {
+    padding: 0.4em 0.65em;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--dd-muted) 18%, var(--dd-surface));
+    color: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
 }
 
-#page-local-autograder-advanced .mform,
-#page-local-autograder-optout .mform {
-    max-width: 100%;
+.lag .btn-group .btn.active:not(:disabled):not(.disabled) {
+    border-color: var(--dd-ink);
+    background: var(--dd-ink);
+    color: var(--dd-surface);
+}
+
+.lag .btn-group .btn.active .badge.badge-secondary {
+    background-color: color-mix(in srgb, var(--dd-surface) 25%, var(--dd-ink));
+    color: var(--dd-surface);
+}
+
+.lag .lag-type-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lag .table-toolbar .input-group .form-control {
+    border-left: 1px solid var(--dd-line);
+}
+
+.lag .table td form {
+    margin: 0;
+}
+
+.lag .table td .custom-switch {
+    display: inline-block;
+    margin: 0;
+}
+
+.lag [data-region="empty"][hidden] {
+    display: none;
 }

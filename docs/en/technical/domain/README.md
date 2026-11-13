@@ -38,7 +38,7 @@ The vertical position of an entity expresses its importance to the project objec
 | Grader | 2 | The teacher in whose name a grade is recorded, or the fallback grader of the site. | Moodle user | It is Moodle's `user`, not a table of the plugin. |
 | GradeLog | 3 | The audit trail of each grading attempt, kept apart from the decision. | `outcome`, `message`, `graderid`, `gradevalue` | |
 | DueDate | 3 | The moment a decision is due: the baseline date plus the waiting time. | `baselineduedate`, `duedatereason`, `scheduledgradetime` | It is a set of columns of the decision. |
-| ActivityType | 4 | A kind of activity that may use Autograder. | the type name | It is a site setting, not a table. |
+| ActivityType | 4 | A kind of activity that may use Autograder: one that takes the work of students and has a grade that a teacher gives. | the type name | The types the site allows are a site setting, not a table; the types that qualify are worked out from the installed plugins. |
 | SitePolicy | 4 | The site settings: teaching roles, teacher selection, fallback grader, notifications and history. | `teacher_source_mode`, `tiebreak`, `fallback_grader` | They are plugin settings. |
 | OptOut | 4 | The preference of a teacher not to have grades recorded in their name. | user preference | It is a user preference, not a table. |
 
@@ -55,6 +55,14 @@ The vertical position of an entity expresses its importance to the project objec
 | RN-007 | Turning Autograder off in an activity, or the type of the activity off on the site, cancels the grades still pending. | Configuration, ActivityType | `cancel_module`, `eligibility::set_module_type_enabled` |
 | RN-008 | A quiz that grades itself keeps its own grade: Autograder only grades while a question waits to be marked by hand and gives the gradebook back afterwards. | Decision | `observer::hand_back` |
 | RN-009 | Finished decisions and log entries older than the retention setting are deleted daily. | Decision, GradeLog | `purge_history` |
+| RN-010 | An activity type qualifies when it has a grade and either declares the purpose "assessment" or defines the capability `mod/<type>:grade`. A type that stops qualifying is withdrawn from the enabled ones and what was pending for it is cancelled. | ActivityType | `eligibility::is_module_type_supported`, `eligibility::withdraw_unsupported_types` |
+| RN-011 | A teacher who opted out is never chosen to sign a grade, but only while the site allows opting out. | OptOut, Grader | `grader_picker::usable` |
+| RN-012 | Each failure is reported once, grouped by activity, to the people enrolled in the course who can configure Autograder in the activity. | Decision, Grader | `notify_failures::execute` |
+| RN-013 | A pending decision that is due and has no task behind it is queued again; a healthy site finds none. | Decision | `reconcile_pending::execute`, `decision_repository::orphaned_pending` |
+| RN-014 | The configuration travels in a course backup and the decisions and the log do not. It is restored switched on only where there is something to grade with, and the students are decided again. | Configuration, Decision | `restore_local_autograder_plugin::after_restore_module` |
+| RN-015 | The decisions and the log of a user can be exported and erased through the privacy API; erasing a whole activity also removes its configuration. | Decision, GradeLog, Configuration | `privacy\provider` |
+| RN-016 | Site administrators and users without a role that can grade are never chosen to sign a grade, nor as the fallback grader. | SitePolicy, Grader | `grader_picker::must_never_grade`, `fallback_grader_setting` |
+| RN-017 | The result of a rubric or a marking guide is used only while it still matches the definition: every criterion answered and every answer one that the definition offers. | Configuration | `advanced_grading::filling_is_current` |
 
 ## Lifecycles
 

@@ -1,0 +1,22 @@
+@startuml
+!theme plain
+skinparam linetype polyline
+hide empty description
+
+state "notifyFailures" as notifyFailures {
+  state " " as Reading
+  state " " as Grouping
+  state " " as Sending
+
+  [*] --> Reading : The task runs
+  Reading --> [*] : System does nothing, the notices are off
+  Reading --> Grouping : System finds the failures since the last run
+  Grouping --> Sending : System finds the teachers of each activity
+  Sending --> [*] : System sends one summary to each teacher and remembers the instant
+
+  note on link
+    System: finds, groups, sends
+  end note
+}
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!theme plain
+hide empty members
+skinparam linetype polyline
+top to bottom direction
+
+class "System" as user <<actor>>
+class "Failure task" as task <<control>>
+class "Site setting" as setting <<entity>>
+class "Decision" as decision <<entity>>
+class "Message" as message <<boundary>>
+
+user --> task : 1: the task runs
+task --> setting : 2: reads the point of the last run
+task --> decision : 3: finds the failures since then
+task --> message : 4: sends one summary to each teacher
+task --> setting : 5: remembers the instant
+
+@enduml
