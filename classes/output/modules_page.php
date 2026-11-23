@@ -109,6 +109,8 @@ class modules_page implements react_component_renderable, \renderable {
         $strings = get_string_manager()->load_component_strings('local_autograder', current_language());
         // The icon of the empty state, drawn with the icon map of the theme.
         $strings['pix:a/search'] = $OUTPUT->pix_icon('a/search', '', 'core');
+        $strings['pix:e/cancel'] = $OUTPUT->pix_icon('e/cancel', '', 'core');
+        $strings['core_clear'] = get_string('clear');
         foreach ($strings as $name => $value) {
             $strings[$name] = preg_replace(['/\{\$a->([a-z]+)\}/', '/\{\$a\}/'], ['{$1}', '{n}'], $value);
         }

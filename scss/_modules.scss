@@ -1,0 +1,71 @@
+// This file is part of Moodle - https://moodle.org/
+// Moodle is free software under the GNU General Public License, version 3 or later.
+
+// What the page of the activity types adds to the sheets of the design system that it shares with the other plugins.
+// @copyright 2026 Didactika.org
+// @author Hector Arrechea <hectorlazaroarrechea@gmail.com>
+// @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
+.lag {
+    // The icon of each type is the one Moodle draws on its course page, with the colour of its purpose, in a tile.
+    & .activityiconcontainer {
+        display: inline-grid;
+        flex: none;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        margin: 0;
+        padding: 0;
+        border-radius: 0.75rem;
+        background-color: var(--dd-surface-3);
+
+        & .activityicon {
+            width: 1.375rem;
+            height: 1.375rem;
+        }
+    }
+
+    & .form-switch .form-check-input {
+        cursor: pointer;
+    }
+}
+
+// Narrow screens: the cells keep one line and the table scrolls sideways inside its box, with its first column fixed so each row
+// keeps its name in view.
+@media (max-width: 767.98px) {
+    .lag {
+        // The column of the page is never wider than the screen.
+        grid-template-columns: minmax(0, 1fr);
+
+        & .table-responsive .table {
+            & th,
+            & td {
+                white-space: nowrap;
+            }
+
+            & th:first-child,
+            & td:first-child {
+                position: sticky;
+                inset-inline-start: 0;
+                z-index: 1;
+                background-color: var(--dd-surface);
+                box-shadow: inset -1px 0 0 var(--dd-hairline);
+            }
+
+            & thead th:first-child {
+                z-index: 2;
+            }
+
+            // The name of a type and what Autograder reads of it wrap, so the switch of each type stays in view.
+            & td:first-child {
+                white-space: normal;
+            }
+        }
+
+        // The segmented control keeps one row that scrolls sideways when it does not fit.
+        & .btn-group {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+    }
+}

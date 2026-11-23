@@ -6,14 +6,14 @@
  * and the colour that Moodle gives its purpose, what Autograder reads in it and a switch that saves the moment it is flipped.
  *
  * Mounted by core/react_autoinit from the data-react-component that the page writes. It is written with the classes of Bootstrap
- * and Moodle (card, table, form-switch, activityiconcontainer) and the chips of the design system (dd-chips); the styles only adjust them inside the page.
+ * and Moodle (card, table, form-switch, activityiconcontainer) and the segmented control of Bootstrap (btn-group with btn-check); the styles only adjust them inside the page.
  *
  * @module     local_autograder/Modules
  * @copyright  2026 Didactika.org
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {useId, useMemo, useState, useLayoutEffect, useRef} from 'react';
+import {Fragment, useId, useMemo, useState, useLayoutEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import {createText} from './engine/text';
 import {useFitHeight} from './hooks/useFitHeight';
@@ -69,20 +69,26 @@ export default function Modules({types, strings}: ModulesProps) {
 
     return <div className="lag">
         <p className="text-muted mb-0">{text('modules:lead')}</p>
-        <div className="dd-chips" role="group" aria-label={text('settings:modulestab')}>
-            {(['all', 'on', 'off'] as Filter[]).map((name) => <button
-                key={name}
-                type="button"
-                className="dd-chip"
-                aria-pressed={filter === name}
-                onClick={() => setFilter(name)}
-            >
-                {text(`modules:filter_${name}`)} <span className="dd-chip-count">{counts[name]}</span>
-            </button>)}
-        </div>
+        <div className="d-flex"><div className="btn-group" role="group" aria-label={text('settings:modulestab')}>
+            {(['all', 'on', 'off'] as Filter[]).map((name) => <Fragment key={name}>
+                <input
+                    type="radio"
+                    className="btn-check"
+                    name={`${searchId}-filter`}
+                    id={`${searchId}-filter-${name}`}
+                    autoComplete="off"
+                    checked={filter === name}
+                    onChange={() => setFilter(name)}
+                />
+                <label className="btn btn-outline-primary" htmlFor={`${searchId}-filter-${name}`}>
+                    {text(`modules:filter_${name}`)} <span className="badge rounded-pill text-bg-secondary ms-1">{counts[name]}</span>
+                </label>
+            </Fragment>)}
+        </div></div>
         <div className="card">
-            {types.length >= SEARCH_FROM && <div className="table-toolbar">
-                <div className="input-group">
+            {types.length >= SEARCH_FROM && <div className="d-flex align-items-center gap-3 px-3 py-2 border-bottom" data-region="filters">
+                <div className="position-relative d-flex align-items-center" role="search">
+                    <span className="d-inline-flex" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
                     <label className="visually-hidden sr-only" htmlFor={searchId}>{text('modules:search')}</label>
                     <input
                         id={searchId}
@@ -93,12 +99,16 @@ export default function Modules({types, strings}: ModulesProps) {
                         autoComplete="off"
                         onChange={(event) => setQuery(event.target.value)}
                     />
+                    {query !== '' && <button type="button" className="btn btn-link btn-icon btn-sm" data-action="clear-search"
+                        title={text('core_clear')} aria-label={text('core_clear')} onClick={() => setQuery('')}>
+                        <span className="d-inline-flex" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:e/cancel')}} />
+                    </button>}
                 </div>
             </div>}
             <div ref={fitbox} className="table-responsive" data-region="tablewrap">
-                {shown.length === 0 && <div className="dd-empty" data-region="empty" role="status">
-                    <span className="dd-tile" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
-                    <p className="dd-empty-text">{text('modules:empty')}</p>
+                {shown.length === 0 && <div className="d-flex flex-column align-items-center gap-2 px-4 py-5 text-center" data-region="empty" role="status">
+                    <span className="icon-box" aria-hidden="true" dangerouslySetInnerHTML={{__html: text('pix:a/search')}} />
+                    <p className="text-muted mb-0">{text('modules:empty')}</p>
                 </div>}
                 {shown.length > 0 && <table className="table" ref={table}>
                     <caption className="visually-hidden sr-only">{text('settings:modulestab')}</caption>
@@ -146,7 +156,7 @@ export default function Modules({types, strings}: ModulesProps) {
                     </tbody>
                 </table>}
             </div>
-            <div className="table-foot text-muted small">{text('modules:count', types.length)}</div>
+            <div className="px-3 py-2 border-top text-muted small" data-region="pager">{text('modules:count', types.length)}</div>
         </div>
         <p className="small text-muted mb-0">{text('modules:intro')}</p>
     </div>;

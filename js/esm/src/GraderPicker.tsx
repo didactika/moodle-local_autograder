@@ -72,23 +72,23 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
         setQuery('');
     };
 
-    return <span className="lag dd-menu dd-select-filter" ref={root}>
+    return <span className="lag-field dropdown d-inline-flex" ref={root}>
         <input type="hidden" name={name} value={chosen?.id ?? 0} />
         <button
             type="button"
-            className={`form-select dd-select${chosen ? ' dd-select-set border-primary' : ''}`}
+            className={`form-select${chosen ? ' border-primary' : ''}`}
             aria-haspopup="listbox"
             aria-expanded={open}
             onClick={() => setOpen(!open)}
         >
             {chosen ? chosen.name : strings.none}
         </button>
-        {chosen && <button type="button" className="dd-select-clear" title={strings.clear} aria-label={strings.clear}
+        {chosen && <button type="button" className="btn btn-link p-0" data-menu-clear title={strings.clear} aria-label={strings.clear}
             onClick={() => pick(null)}>
             <i className="icon fa-solid fa-xmark" aria-hidden="true" />
         </button>}
-        {open && <div className="dd-select-menu" role="listbox" aria-busy={loading} aria-label={strings.placeholder}>
-            <div className="dd-menu-form">
+        {open && <div className="dropdown-menu show" role="listbox" aria-busy={loading} aria-label={strings.placeholder}>
+            <div className="px-2 pt-1 pb-2">
                 <input
                     type="search"
                     className="form-control form-control-sm"

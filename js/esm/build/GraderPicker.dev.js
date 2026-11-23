@@ -63,7 +63,7 @@ function GraderPicker({ name, current, currentname, strings }) {
     setOpen(false);
     setQuery("");
   }, "pick");
-  return /* @__PURE__ */ jsxDEV("span", { className: "lag dd-menu dd-select-filter", ref: root, children: [
+  return /* @__PURE__ */ jsxDEV("span", { className: "lag-field dropdown d-inline-flex", ref: root, children: [
     /* @__PURE__ */ jsxDEV("input", { type: "hidden", name, value: chosen?.id ?? 0 }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
       lineNumber: 76,
@@ -73,7 +73,7 @@ function GraderPicker({ name, current, currentname, strings }) {
       "button",
       {
         type: "button",
-        className: `form-select dd-select${chosen ? " dd-select-set border-primary" : ""}`,
+        className: `form-select${chosen ? " border-primary" : ""}`,
         "aria-haspopup": "listbox",
         "aria-expanded": open,
         onClick: () => setOpen(!open),
@@ -92,7 +92,8 @@ function GraderPicker({ name, current, currentname, strings }) {
       "button",
       {
         type: "button",
-        className: "dd-select-clear",
+        className: "btn btn-link p-0",
+        "data-menu-clear": true,
         title: strings.clear,
         "aria-label": strings.clear,
         onClick: () => pick(null),
@@ -111,8 +112,8 @@ function GraderPicker({ name, current, currentname, strings }) {
       },
       this
     ),
-    open && /* @__PURE__ */ jsxDEV("div", { className: "dd-select-menu", role: "listbox", "aria-busy": loading, "aria-label": strings.placeholder, children: [
-      /* @__PURE__ */ jsxDEV("div", { className: "dd-menu-form", children: /* @__PURE__ */ jsxDEV(
+    open && /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu show", role: "listbox", "aria-busy": loading, "aria-label": strings.placeholder, children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "px-2 pt-1 pb-2", children: /* @__PURE__ */ jsxDEV(
         "input",
         {
           type: "search",
