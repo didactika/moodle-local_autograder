@@ -31,10 +31,10 @@ Feature: The pages of Autograder
     When I navigate to "Plugins > Local plugins > Autograder" in site administration
     And I click on "Teachers" "link" in the ".nav-tabs" "css_element"
     And I wait for the autograder page
-    And I click on "None" "button" in the "span.lag.dd-menu" "css_element"
-    And I set the field with xpath "//span[contains(@class, 'dd-menu')]//input[@type='search']" to "Marina"
-    And I click on "Marina Castro" "button" in the "span.lag.dd-menu .dd-select-menu" "css_element"
+    And I click on "None" "button" in the "span.lag-field" "css_element"
+    And I set the field with xpath "//span[contains(@class, 'lag-field')]//input[@type='search']" to "Marina"
+    And I click on "Marina Castro" "button" in the "span.lag-field .dropdown-menu" "css_element"
     And I press "Save changes"
     Then I should see "Changes saved"
     And I click on "Teachers" "link" in the ".nav-tabs" "css_element"
-    And I should see "Marina Castro" in the "span.lag.dd-menu" "css_element"
+    And I should see "Marina Castro" in the "span.lag-field" "css_element"

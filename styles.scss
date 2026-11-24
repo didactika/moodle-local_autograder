@@ -7,6 +7,9 @@
 // @author Hector Arrechea <hectorlazaroarrechea@gmail.com>
 // @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 
+// Every rule is written once for the pages and the field of the plugin, so Sass joins long lines of selectors in styles.css.
+/* stylelint-disable max-line-length */
+
 // The pieces of the Didactika design system (https://moodle-design.didactika.org/), under the class lag of the page and lag-field
 // of the field of the fallback grader.
 $lag-modal: '.lag-field';
