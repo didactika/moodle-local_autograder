@@ -1221,9 +1221,22 @@
 }
 
 .lag-field > .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 2px;
     z-index: 1060;
     max-height: 18rem;
     overflow: auto;
+}
+
+.lag-field {
+    position: relative;
+}
+
+.lag-field.dropup > .dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 2px);
 }
 
 .lag .btn.btn:focus:not(:focus-visible),
