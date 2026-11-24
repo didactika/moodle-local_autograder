@@ -436,8 +436,10 @@
 .lag [role=search] > [data-action=clear-search].btn-link.btn-icon,
 .lag-field [role=search] > [data-action=clear-search].btn-link.btn-icon {
     position: absolute;
-    top: 50%;
+    top: 0;
+    bottom: 0;
     right: 0.375rem;
+    margin-block: auto;
     width: 1.5rem;
     min-width: 0;
     height: 1.5rem;
@@ -447,7 +449,16 @@
     color: var(--dd-muted);
     font-size: 0.75rem;
     cursor: pointer;
-    transform: translateY(-50%);
+    transform: none;
+}
+
+.lag [role=search] > [data-action=clear-search].btn-link.btn-icon:hover,
+.lag [role=search] > [data-action=clear-search].btn-link.btn-icon:focus,
+.lag [role=search] > [data-action=clear-search].btn-link.btn-icon:active,
+.lag-field [role=search] > [data-action=clear-search].btn-link.btn-icon:hover,
+.lag-field [role=search] > [data-action=clear-search].btn-link.btn-icon:focus,
+.lag-field [role=search] > [data-action=clear-search].btn-link.btn-icon:active {
+    transform: none;
 }
 
 .lag [role=search] > [data-action=clear-search].btn-link.btn-icon:hover,
