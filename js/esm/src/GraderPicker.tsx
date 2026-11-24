@@ -13,7 +13,7 @@
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {useDebounced} from './hooks/useDebounced';
 import {searchGraders} from './services/api';
 import type {Grader, GraderPickerProps} from './types';
@@ -28,6 +28,7 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
     const root = useRef<HTMLDivElement>(null);
     const [chosen, setChosen] = useState<Grader | null>(current > 0 ? {id: current, name: currentname} : null);
     const [open, setOpen] = useState(false);
+    const [up, setUp] = useState(false);
     const [query, setQuery] = useState('');
     const typed = useDebounced(query.trim(), 250);
     const [found, setFound] = useState<Grader[]>([]);
@@ -66,13 +67,22 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
         return () => document.removeEventListener('pointerdown', outside, true);
     }, []);
 
+    // The menu opens above the field when the window has no room below it and more above.
+    useLayoutEffect(() => {
+        if (open && root.current) {
+            const box = root.current.getBoundingClientRect();
+            const below = window.innerHeight - box.bottom;
+            setUp(below < 18 * 16 && box.top > below);
+        }
+    }, [open]);
+
     const pick = (user: Grader | null): void => {
         setChosen(user);
         setOpen(false);
         setQuery('');
     };
 
-    return <span className="lag-field dropdown d-inline-flex" ref={root}>
+    return <span className={`lag-field ${up ? 'dropup' : 'dropdown'} d-inline-flex`} ref={root}>
         <input type="hidden" name={name} value={chosen?.id ?? 0} />
         <button
             type="button"

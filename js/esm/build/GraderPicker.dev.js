@@ -16,13 +16,14 @@ import { jsxDEV } from "react/jsx-dev-runtime";
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDebounced } from "./hooks/useDebounced";
 import { searchGraders } from "./services/api";
 function GraderPicker({ name, current, currentname, strings }) {
   const root = useRef(null);
   const [chosen, setChosen] = useState(current > 0 ? { id: current, name: currentname } : null);
   const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
   const [query, setQuery] = useState("");
   const typed = useDebounced(query.trim(), 250);
   const [found, setFound] = useState([]);
@@ -58,15 +59,22 @@ function GraderPicker({ name, current, currentname, strings }) {
     document.addEventListener("pointerdown", outside, true);
     return () => document.removeEventListener("pointerdown", outside, true);
   }, []);
+  useLayoutEffect(() => {
+    if (open && root.current) {
+      const box = root.current.getBoundingClientRect();
+      const below = window.innerHeight - box.bottom;
+      setUp(below < 18 * 16 && box.top > below);
+    }
+  }, [open]);
   const pick = /* @__PURE__ */ __name((user) => {
     setChosen(user);
     setOpen(false);
     setQuery("");
   }, "pick");
-  return /* @__PURE__ */ jsxDEV("span", { className: "lag-field dropdown d-inline-flex", ref: root, children: [
+  return /* @__PURE__ */ jsxDEV("span", { className: `lag-field ${up ? "dropup" : "dropdown"} d-inline-flex`, ref: root, children: [
     /* @__PURE__ */ jsxDEV("input", { type: "hidden", name, value: chosen?.id ?? 0 }, void 0, false, {
       fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-      lineNumber: 76,
+      lineNumber: 86,
       columnNumber: 9
     }, this),
     /* @__PURE__ */ jsxDEV(
@@ -83,7 +91,7 @@ function GraderPicker({ name, current, currentname, strings }) {
       false,
       {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 77,
+        lineNumber: 87,
         columnNumber: 9
       },
       this
@@ -99,7 +107,7 @@ function GraderPicker({ name, current, currentname, strings }) {
         onClick: () => pick(null),
         children: /* @__PURE__ */ jsxDEV("i", { className: "icon fa-solid fa-xmark", "aria-hidden": "true" }, void 0, false, {
           fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-          lineNumber: 88,
+          lineNumber: 98,
           columnNumber: 13
         }, this)
       },
@@ -107,7 +115,7 @@ function GraderPicker({ name, current, currentname, strings }) {
       false,
       {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 86,
+        lineNumber: 96,
         columnNumber: 20
       },
       this
@@ -133,13 +141,13 @@ function GraderPicker({ name, current, currentname, strings }) {
         false,
         {
           fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-          lineNumber: 92,
+          lineNumber: 102,
           columnNumber: 17
         },
         this
       ) }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 91,
+        lineNumber: 101,
         columnNumber: 13
       }, this),
       found.map((user) => /* @__PURE__ */ jsxDEV(
@@ -156,29 +164,29 @@ function GraderPicker({ name, current, currentname, strings }) {
         false,
         {
           fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-          lineNumber: 108,
+          lineNumber: 118,
           columnNumber: 34
         },
         this
       )),
       loading && /* @__PURE__ */ jsxDEV("span", { className: "dropdown-item disabled", role: "status", children: strings.loading }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 116,
+        lineNumber: 126,
         columnNumber: 25
       }, this),
       !loading && found.length === 0 && /* @__PURE__ */ jsxDEV("span", { className: "dropdown-item disabled", role: "status", children: strings.nomatches }, void 0, false, {
         fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-        lineNumber: 117,
+        lineNumber: 127,
         columnNumber: 48
       }, this)
     ] }, void 0, true, {
       fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-      lineNumber: 90,
+      lineNumber: 100,
       columnNumber: 18
     }, this)
   ] }, void 0, true, {
     fileName: "public/local/autograder/js/esm/src/GraderPicker.tsx",
-    lineNumber: 75,
+    lineNumber: 85,
     columnNumber: 12
   }, this);
 }

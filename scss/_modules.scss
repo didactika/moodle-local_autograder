@@ -72,7 +72,21 @@
 
 // The menu of the fallback grader opens over the footer buttons that Moodle fixes at the bottom of the page.
 .lag-field > .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 2px;
     z-index: 1060;
     max-height: 18rem;
     overflow: auto;
+}
+
+// Above the field when the window has no room below it, held by its foot so it stays next to the field.
+.lag-field {
+    position: relative;
+}
+
+.lag-field.dropup > .dropdown-menu {
+    top: auto;
+    bottom: calc(100% + 2px);
 }
