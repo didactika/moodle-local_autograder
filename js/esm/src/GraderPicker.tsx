@@ -13,7 +13,7 @@
  * @author     Hector Arrechea <hectorlazaroarrechea@gmail.com>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {useDebounced} from './hooks/useDebounced';
 import {searchGraders} from './services/api';
 import type {Grader, GraderPickerProps} from './types';
@@ -28,6 +28,7 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
     const root = useRef<HTMLDivElement>(null);
     const [chosen, setChosen] = useState<Grader | null>(current > 0 ? {id: current, name: currentname} : null);
     const [open, setOpen] = useState(false);
+    const [up, setUp] = useState(false);
     const [query, setQuery] = useState('');
     const typed = useDebounced(query.trim(), 250);
     const [found, setFound] = useState<Grader[]>([]);
@@ -66,50 +67,64 @@ export default function GraderPicker({name, current, currentname, strings}: Grad
         return () => document.removeEventListener('pointerdown', outside, true);
     }, []);
 
+    // The menu opens above the field when the window has no room below it and more above.
+    useLayoutEffect(() => {
+        if (open && root.current) {
+            const box = root.current.getBoundingClientRect();
+            const below = window.innerHeight - box.bottom;
+            setUp(below < 18 * 16 && box.top > below);
+        }
+    }, [open]);
+
     const pick = (user: Grader | null): void => {
         setChosen(user);
         setOpen(false);
         setQuery('');
     };
 
-    return <div className="lag lag-picker" ref={root}>
+    return <span className={`lag-field ${up ? 'dropup' : 'dropdown'} d-inline-flex`} ref={root}>
         <input type="hidden" name={name} value={chosen?.id ?? 0} />
-        <div className="lag-picker-box">
-            <button
+        <button
+            type="button"
+            className={`form-select${chosen ? ' border-primary' : ''}`}
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+        >
+            {chosen ? chosen.name : strings.none}
+        </button>
+        {chosen && <button type="button" className="btn btn-link p-0" data-menu-clear title={strings.clear} aria-label={strings.clear}
+            onClick={() => pick(null)}>
+            <i className="icon fa-solid fa-xmark" aria-hidden="true" />
+        </button>}
+        {open && <div className="dropdown-menu show" role="listbox" aria-busy={loading} aria-label={strings.placeholder}>
+            <div className="px-2 pt-1 pb-2">
+                <input
+                    type="search"
+                    className="form-control form-control-sm"
+                    value={query}
+                    placeholder={strings.placeholder}
+                    aria-label={strings.placeholder}
+                    autoComplete="off"
+                    onChange={(event) => setQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                        // A search box inside the form must not submit the settings page.
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                        }
+                    }}
+                />
+            </div>
+            {found.map((user) => <button
+                key={user.id}
                 type="button"
-                className="lag-picker-button"
-                aria-haspopup="listbox"
-                aria-expanded={open}
-                onClick={() => setOpen(!open)}
-            >
-                {chosen ? chosen.name : strings.none}
-            </button>
-            {chosen && <button type="button" className="lag-picker-clear" aria-label={strings.clear} onClick={() => pick(null)}>
-                <i className="fa-solid fa-xmark" aria-hidden="true" />
-            </button>}
-        </div>
-        {open && <div className="lag-picker-panel">
-            <input
-                type="search"
-                className="lag-picker-field"
-                value={query}
-                placeholder={strings.placeholder}
-                aria-label={strings.placeholder}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={(event) => {
-                    // A search box inside the form must not submit the settings page.
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                    }
-                }}
-            />
-            <ul className="lag-picker-list" role="listbox" aria-busy={loading}>
-                {found.map((user) => <li key={user.id} role="option" aria-selected={chosen?.id === user.id}>
-                    <button type="button" className="lag-picker-option" onClick={() => pick(user)}>{user.name}</button>
-                </li>)}
-            </ul>
-            {loading && <p className="lag-picker-status" role="status">{strings.loading}</p>}
-            {!loading && found.length === 0 && <p className="lag-picker-status" role="status">{strings.nomatches}</p>}
+                role="option"
+                className="dropdown-item"
+                aria-selected={chosen?.id === user.id}
+                onClick={() => pick(user)}
+            >{user.name}</button>)}
+            {loading && <span className="dropdown-item disabled" role="status">{strings.loading}</span>}
+            {!loading && found.length === 0 && <span className="dropdown-item disabled" role="status">{strings.nomatches}</span>}
         </div>}
-    </div>;
+    </span>;
 }

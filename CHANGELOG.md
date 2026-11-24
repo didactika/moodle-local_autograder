@@ -21,6 +21,19 @@ its own $plugin->release line -- no need to reconcile entries across branches.
 
 ## [Unreleased]
 
+## [1.3.0-m503] - 2026-11-24
+
+### Fixed
+
+- The button that clears a search field no longer moves when the pointer is over it: it is centred with auto margins and keeps its place whatever the theme does to a button on hover.
+
+### Changed
+
+- The page of the activity types and the field of the fallback grader are drawn only with the classes of Bootstrap and of Moodle, restyled inside the plugin, so a theme restyles them with Bootstrap.
+- The filter of the page of the activity types is a segmented control of Bootstrap, with the number of types in each state.
+- The search field empties with a small button of its own instead of the cross the browser draws.
+- The menu of the fallback grader is a dropdown of Bootstrap, with the cross that takes it back to no grader.
+
 ## [1.2.0-m503] - 2026-11-12
 
 Autograder is offered only for the activities that take the work of students, and its screens follow the Didactika design system.
