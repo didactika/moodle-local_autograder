@@ -26,6 +26,9 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import {init as fitTables} from 'local_autograder/fit_tables';
+import {init as initSearchClear} from 'local_autograder/search_clear';
+
 /**
  * Shows the rows that match the chip that is active and what was typed, and the empty message when none does.
  *
@@ -92,6 +95,9 @@ const keepColumns = (table) => {
 };
 
 export const init = (selector) => {
+    // The box of the table takes the height the window leaves it.
+    fitTables();
+    initSearchClear();
     const page = document.querySelector(selector);
 
     if (!page) {
@@ -118,6 +124,7 @@ export const init = (selector) => {
         page.querySelectorAll('[data-filter]').forEach((other) => {
             const on = other === chip;
             other.setAttribute('aria-pressed', on ? 'true' : 'false');
+            other.classList.toggle('active', on);
         });
         apply(page);
     });
