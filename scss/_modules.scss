@@ -69,3 +69,10 @@
         }
     }
 }
+
+// The menu of the fallback grader opens over the footer buttons that Moodle fixes at the bottom of the page.
+.lag-field > .dropdown-menu {
+    z-index: 1060;
+    max-height: 18rem;
+    overflow: auto;
+}

@@ -1220,6 +1220,12 @@
     }
 }
 
+.lag-field > .dropdown-menu {
+    z-index: 1060;
+    max-height: 18rem;
+    overflow: auto;
+}
+
 .lag .btn.btn:focus:not(:focus-visible),
 .lag .btn.btn:active:focus:not(:focus-visible),
 .lag .page-link.page-link:focus:not(:focus-visible),
