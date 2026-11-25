@@ -1392,7 +1392,8 @@
 
 #id_autogradersection,
 #page-local-autograder-advanced,
-#page-local-autograder-optout {
+#page-local-autograder-optout,
+#page-admin-setting-local_autograder_settings {
     --dd-primary: var(--bs-primary, var(--primary, #0f6cbf));
     --dd-ink: var(--bs-body-color, #212529);
     --dd-surface: var(--bs-body-bg, #fff);
@@ -1401,18 +1402,26 @@
     --dd-line: color-mix(in srgb, var(--dd-ink) 42%, var(--dd-surface));
     --dd-surface-2: color-mix(in srgb, var(--dd-ink) 4%, var(--dd-surface));
     --dd-ring: color-mix(in srgb, var(--dd-primary) 30%, transparent);
+    --dd-line-hover: color-mix(in srgb, var(--dd-ink) 62%, var(--dd-surface));
+    --dd-ease: 140ms cubic-bezier(0.2, 0, 0, 1);
+    --dd-radius: 0.625rem;
     --dd-radius-sm: 0.5rem;
+    --dd-primary-soft: color-mix(in srgb, var(--dd-primary) 10%, var(--dd-surface));
+    --dd-primary-ink: color-mix(in srgb, var(--dd-primary) 78%, var(--dd-ink));
+    --dd-shadow-md: 0 14px 34px -12px rgb(15 23 42 / 30%), 0 2px 6px rgb(15 23 42 / 8%);
+    --dd-check: url([[pix:local_autograder|mark_check]]);
+    --dd-dot: url([[pix:local_autograder|mark_dot]]);
+    --dd-dash: url([[pix:local_autograder|mark_dash]]);
     --dd-radius-lg: 0.75rem;
     --dd-h: 2.25rem;
     --dd-shadow-sm: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
 }
-
 #id_autogradersection .felement,
 #page-local-autograder-advanced .felement,
-#page-local-autograder-optout .felement {
+#page-local-autograder-optout .felement,
+#page-admin-setting-local_autograder_settings .felement {
     min-width: 0;
 }
-
 #id_autogradersection input[type=text],
 #id_autogradersection input[type=number],
 #id_autogradersection select,
@@ -1421,13 +1430,15 @@
 #page-local-autograder-advanced select,
 #page-local-autograder-optout input[type=text],
 #page-local-autograder-optout input[type=number],
-#page-local-autograder-optout select {
+#page-local-autograder-optout select,
+#page-admin-setting-local_autograder_settings input[type=text],
+#page-admin-setting-local_autograder_settings input[type=number],
+#page-admin-setting-local_autograder_settings select {
     max-width: 100%;
     min-height: var(--dd-h);
     border-color: var(--dd-line);
     border-radius: var(--dd-radius-sm);
 }
-
 #id_autogradersection input[type=text]:focus,
 #id_autogradersection input[type=number]:focus,
 #id_autogradersection select:focus,
@@ -1436,14 +1447,17 @@
 #page-local-autograder-advanced select:focus,
 #page-local-autograder-optout input[type=text]:focus,
 #page-local-autograder-optout input[type=number]:focus,
-#page-local-autograder-optout select:focus {
+#page-local-autograder-optout select:focus,
+#page-admin-setting-local_autograder_settings input[type=text]:focus,
+#page-admin-setting-local_autograder_settings input[type=number]:focus,
+#page-admin-setting-local_autograder_settings select:focus {
     border-color: var(--dd-primary);
     box-shadow: 0 0 0 0.2rem var(--dd-ring);
 }
-
 #id_autogradersection .form-static,
 #page-local-autograder-advanced .form-static,
-#page-local-autograder-optout .form-static {
+#page-local-autograder-optout .form-static,
+#page-admin-setting-local_autograder_settings .form-static {
     overflow-wrap: anywhere;
 }
 
@@ -1454,36 +1468,30 @@
     border-radius: var(--dd-radius-lg);
     box-shadow: var(--dd-shadow-sm);
 }
-
 #id_autogradersection .alert {
     border-radius: var(--dd-radius-sm);
 }
 
 #page-local-autograder-advanced {
     /* Core rubrics need space for their levels; scroll only the grading field, keeping the page heading and the save and cancel
-     buttons within the viewport. */
+          buttons within the viewport. */
 }
-
 #page-local-autograder-advanced p {
     overflow-wrap: anywhere;
 }
-
 #page-local-autograder-advanced #fitem_id_advancedgrading .felement {
     overflow-x: auto;
     /* stylelint-disable-next-line csstree/validator */
     contain: inline-size;
 }
-
 #page-local-autograder-advanced .gradingform_rubric,
 #page-local-autograder-advanced .gradingform_guide {
     width: 100%;
     min-width: 0;
 }
-
 #page-local-autograder-advanced .gradingform_rubric .criterion .levels .level {
     min-width: 8rem;
 }
-
 #page-local-autograder-advanced .mform {
     max-width: 100%;
     padding: 1.25rem;
@@ -1492,7 +1500,6 @@
     border-radius: var(--dd-radius-lg);
     box-shadow: var(--dd-shadow-sm);
 }
-
 #page-local-autograder-advanced .mform .btn {
     min-height: var(--dd-h);
     border-radius: var(--dd-radius-sm);
@@ -1506,19 +1513,347 @@
     border-radius: var(--dd-radius-lg);
     box-shadow: var(--dd-shadow-sm);
 }
-
 #page-local-autograder-optout .mform .btn {
     min-height: var(--dd-h);
     border-radius: var(--dd-radius-sm);
 }
 
-@media (max-width: 767.98px) {
+#id_autogradersection :is(.form-control, .form-select, .custom-select):not([type=file]),
+#page-local-autograder-advanced .mform :is(.form-control, .form-select, .custom-select):not([type=file]),
+#page-local-autograder-optout .mform :is(.form-control, .form-select, .custom-select):not([type=file]),
+#page-admin-setting-local_autograder_settings #adminsettings :is(.form-control, .form-select, .custom-select):not([type=file]) {
+    min-height: var(--dd-h);
+    border-color: var(--dd-line);
+    border-radius: var(--dd-radius-sm);
+    background-color: var(--dd-surface);
+    box-shadow: none;
+    color: var(--dd-ink);
+    font-size: 0.9375rem;
+    transition: border-color var(--dd-ease), box-shadow var(--dd-ease);
+}
+#id_autogradersection :is(.form-control, .form-select, .custom-select):not([type=file]):hover:not(:disabled):not([readonly]),
+#page-local-autograder-advanced .mform :is(.form-control, .form-select, .custom-select):not([type=file]):hover:not(:disabled):not([readonly]),
+#page-local-autograder-optout .mform :is(.form-control, .form-select, .custom-select):not([type=file]):hover:not(:disabled):not([readonly]),
+#page-admin-setting-local_autograder_settings #adminsettings :is(.form-control, .form-select, .custom-select):not([type=file]):hover:not(:disabled):not([readonly]) {
+    border-color: var(--dd-line-hover);
+}
+#id_autogradersection :is(.form-control, .form-select, .custom-select):not([type=file]):focus,
+#id_autogradersection :is(.form-control, .form-select, .custom-select):not([type=file])[aria-expanded=true],
+#page-local-autograder-advanced .mform :is(.form-control, .form-select, .custom-select):not([type=file]):focus,
+#page-local-autograder-advanced .mform :is(.form-control, .form-select, .custom-select):not([type=file])[aria-expanded=true],
+#page-local-autograder-optout .mform :is(.form-control, .form-select, .custom-select):not([type=file]):focus,
+#page-local-autograder-optout .mform :is(.form-control, .form-select, .custom-select):not([type=file])[aria-expanded=true],
+#page-admin-setting-local_autograder_settings #adminsettings :is(.form-control, .form-select, .custom-select):not([type=file]):focus,
+#page-admin-setting-local_autograder_settings #adminsettings :is(.form-control, .form-select, .custom-select):not([type=file])[aria-expanded=true] {
+    border-color: var(--dd-primary);
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+#id_autogradersection :is(.form-control, .form-select, .custom-select):not([type=file])::placeholder,
+#page-local-autograder-advanced .mform :is(.form-control, .form-select, .custom-select):not([type=file])::placeholder,
+#page-local-autograder-optout .mform :is(.form-control, .form-select, .custom-select):not([type=file])::placeholder,
+#page-admin-setting-local_autograder_settings #adminsettings :is(.form-control, .form-select, .custom-select):not([type=file])::placeholder {
+    color: var(--dd-muted);
+}
+#id_autogradersection select:is(.form-select, .custom-select),
+#page-local-autograder-advanced .mform select:is(.form-select, .custom-select),
+#page-local-autograder-optout .mform select:is(.form-select, .custom-select),
+#page-admin-setting-local_autograder_settings #adminsettings select:is(.form-select, .custom-select) {
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+#id_autogradersection textarea.form-control,
+#page-local-autograder-advanced .mform textarea.form-control,
+#page-local-autograder-optout .mform textarea.form-control,
+#page-admin-setting-local_autograder_settings #adminsettings textarea.form-control {
+    padding: 0.625rem 0.75rem;
+    line-height: 1.5;
+}
+#id_autogradersection fieldset,
+#page-local-autograder-advanced .mform fieldset,
+#page-local-autograder-optout .mform fieldset,
+#page-admin-setting-local_autograder_settings #adminsettings fieldset {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--dd-hairline);
+}
+#id_autogradersection legend,
+#id_autogradersection .ftoggler .fheader,
+#page-local-autograder-advanced .mform legend,
+#page-local-autograder-advanced .mform .ftoggler .fheader,
+#page-local-autograder-optout .mform legend,
+#page-local-autograder-optout .mform .ftoggler .fheader,
+#page-admin-setting-local_autograder_settings #adminsettings legend,
+#page-admin-setting-local_autograder_settings #adminsettings .ftoggler .fheader {
+    color: var(--dd-ink);
+    font-weight: 700;
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]),
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]),
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]),
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]) {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: 0.1875rem;
+    border: 1.5px solid var(--dd-line);
+    border-radius: 0.3rem;
+    background-color: var(--dd-surface);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    cursor: pointer;
+    appearance: none;
+    transition: background-color var(--dd-ease), border-color var(--dd-ease), box-shadow var(--dd-ease);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox])[type=radio],
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox])[type=radio],
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox])[type=radio],
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox])[type=radio] {
+    border-radius: 50%;
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):hover:not(:disabled),
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):hover:not(:disabled),
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):hover:not(:disabled),
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):hover:not(:disabled) {
+    border-color: var(--dd-line-hover);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus,
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus,
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus,
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus {
+    outline: 0;
+    box-shadow: none;
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus-visible,
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus-visible,
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus-visible,
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):focus-visible {
+    box-shadow: 0 0 0 3px var(--dd-ring);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked,
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate,
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked,
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate,
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked,
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate,
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked,
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate {
+    border-color: var(--dd-primary);
+    background-color: var(--dd-primary);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=checkbox],
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=checkbox],
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=checkbox],
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=checkbox] {
+    background-image: var(--dd-check);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate[type=checkbox],
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate[type=checkbox],
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate[type=checkbox],
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):indeterminate[type=checkbox] {
+    background-image: var(--dd-dash);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=radio],
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=radio],
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=radio],
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):checked[type=radio] {
+    background-image: var(--dd-dot);
+}
+#id_autogradersection :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):disabled,
+#page-local-autograder-advanced .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):disabled,
+#page-local-autograder-optout .mform :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):disabled,
+#page-admin-setting-local_autograder_settings #adminsettings :is(:not(.form-switch) > .form-check-input, .form-checkbox > input[type=checkbox]):disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+#id_autogradersection .form-checkbox > input[type=checkbox],
+#page-local-autograder-advanced .mform .form-checkbox > input[type=checkbox],
+#page-local-autograder-optout .mform .form-checkbox > input[type=checkbox],
+#page-admin-setting-local_autograder_settings #adminsettings .form-checkbox > input[type=checkbox] {
+    margin: 0 0.5rem 0 0;
+    vertical-align: middle;
+}
+#id_autogradersection .form-check-label,
+#page-local-autograder-advanced .mform .form-check-label,
+#page-local-autograder-optout .mform .form-check-label,
+#page-admin-setting-local_autograder_settings #adminsettings .form-check-label {
+    color: var(--dd-ink);
+    cursor: pointer;
+}
+#id_autogradersection .form-check:not(.form-switch):not(.form-check-inline),
+#page-local-autograder-advanced .mform .form-check:not(.form-switch):not(.form-check-inline),
+#page-local-autograder-optout .mform .form-check:not(.form-switch):not(.form-check-inline),
+#page-admin-setting-local_autograder_settings #adminsettings .form-check:not(.form-switch):not(.form-check-inline) {
+    padding-left: 1.75rem;
+}
+#id_autogradersection .form-check:not(.form-switch):not(.form-check-inline) > .form-check-input,
+#page-local-autograder-advanced .mform .form-check:not(.form-switch):not(.form-check-inline) > .form-check-input,
+#page-local-autograder-optout .mform .form-check:not(.form-switch):not(.form-check-inline) > .form-check-input,
+#page-admin-setting-local_autograder_settings #adminsettings .form-check:not(.form-switch):not(.form-check-inline) > .form-check-input {
+    margin-left: -1.75rem;
+}
+#id_autogradersection .form-check:not(.form-switch):not(.form-check-inline).d-flex,
+#page-local-autograder-advanced .mform .form-check:not(.form-switch):not(.form-check-inline).d-flex,
+#page-local-autograder-optout .mform .form-check:not(.form-switch):not(.form-check-inline).d-flex,
+#page-admin-setting-local_autograder_settings #adminsettings .form-check:not(.form-switch):not(.form-check-inline).d-flex {
+    gap: 0.5rem;
+    padding-left: 0;
+}
+#id_autogradersection .form-check:not(.form-switch):not(.form-check-inline).d-flex > .form-check-input,
+#page-local-autograder-advanced .mform .form-check:not(.form-switch):not(.form-check-inline).d-flex > .form-check-input,
+#page-local-autograder-optout .mform .form-check:not(.form-switch):not(.form-check-inline).d-flex > .form-check-input,
+#page-admin-setting-local_autograder_settings #adminsettings .form-check:not(.form-switch):not(.form-check-inline).d-flex > .form-check-input {
+    position: static;
+    margin-left: 0;
+}
+#id_autogradersection .form-autocomplete-selection,
+#page-local-autograder-advanced .mform .form-autocomplete-selection,
+#page-local-autograder-optout .mform .form-autocomplete-selection,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-selection {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 0;
+    margin-bottom: 0.5rem;
+}
+#id_autogradersection .form-autocomplete-selection > span:not([role=option]),
+#page-local-autograder-advanced .mform .form-autocomplete-selection > span:not([role=option]),
+#page-local-autograder-optout .mform .form-autocomplete-selection > span:not([role=option]),
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-selection > span:not([role=option]) {
+    /* stylelint-disable-next-line declaration-no-important */
+    margin: 0 !important;
+    color: var(--dd-muted);
+    font-size: 0.875rem;
+}
+#id_autogradersection .form-autocomplete-selection > [role=option],
+#page-local-autograder-advanced .mform .form-autocomplete-selection > [role=option],
+#page-local-autograder-optout .mform .form-autocomplete-selection > [role=option],
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-selection > [role=option] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    /* stylelint-disable-next-line declaration-no-important */
+    margin: 0 !important;
+    padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+    border-radius: 999px;
+    /* stylelint-disable-next-line declaration-no-important */
+    background-color: var(--dd-primary-soft) !important;
+    /* stylelint-disable-next-line declaration-no-important */
+    color: var(--dd-primary-ink) !important;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+#id_autogradersection .form-autocomplete-selection > [role=option][data-active-selection=true],
+#page-local-autograder-advanced .mform .form-autocomplete-selection > [role=option][data-active-selection=true],
+#page-local-autograder-optout .mform .form-autocomplete-selection > [role=option][data-active-selection=true],
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-selection > [role=option][data-active-selection=true] {
+    box-shadow: none;
+}
+#id_autogradersection .form-autocomplete-selection:focus-visible > [role=option][data-active-selection=true],
+#page-local-autograder-advanced .mform .form-autocomplete-selection:focus-visible > [role=option][data-active-selection=true],
+#page-local-autograder-optout .mform .form-autocomplete-selection:focus-visible > [role=option][data-active-selection=true],
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-selection:focus-visible > [role=option][data-active-selection=true] {
+    box-shadow: 0 0 0 2px var(--dd-ring);
+}
+#id_autogradersection .form-autocomplete-input > .form-control,
+#page-local-autograder-advanced .mform .form-autocomplete-input > .form-control,
+#page-local-autograder-optout .mform .form-autocomplete-input > .form-control,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-input > .form-control {
+    min-width: 14rem;
+    padding-right: 2.5rem;
+}
+#id_autogradersection .form-autocomplete-downarrow,
+#page-local-autograder-advanced .mform .form-autocomplete-downarrow,
+#page-local-autograder-optout .mform .form-autocomplete-downarrow,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-downarrow {
+    /* stylelint-disable-next-line declaration-no-important */
+    top: 50% !important;
+    /* stylelint-disable-next-line declaration-no-important */
+    right: 1rem !important;
+    width: 0.5rem;
+    height: 0.5rem;
+    /* stylelint-disable-next-line declaration-no-important */
+    padding: 0 !important;
+    border-right: 2px solid var(--dd-muted);
+    border-bottom: 2px solid var(--dd-muted);
+    color: transparent;
+    font-size: 0;
+    transform: translateY(-70%) rotate(45deg);
+    cursor: pointer;
+}
+#id_autogradersection .form-autocomplete-suggestions,
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions,
+#page-local-autograder-optout .mform .form-autocomplete-suggestions,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions {
+    z-index: 1060;
+    min-width: 14rem;
+    max-height: 17rem;
+    margin-top: 2px;
+    padding: 0.25rem;
+    border: 1px solid var(--dd-hairline);
+    border-radius: var(--dd-radius);
+    background-color: var(--dd-surface);
+    box-shadow: var(--dd-shadow-md);
+    list-style: none;
+}
+#id_autogradersection .form-autocomplete-suggestions > li,
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions > li,
+#page-local-autograder-optout .mform .form-autocomplete-suggestions > li,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions > li {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--dd-ink);
+    cursor: pointer;
+}
+#id_autogradersection .form-autocomplete-suggestions > li + li,
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions > li + li,
+#page-local-autograder-optout .mform .form-autocomplete-suggestions > li + li,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions > li + li {
+    margin-top: 2px;
+}
+#id_autogradersection .form-autocomplete-suggestions > li:hover,
+#id_autogradersection .form-autocomplete-suggestions > li[aria-selected=true],
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions > li:hover,
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions > li[aria-selected=true],
+#page-local-autograder-optout .mform .form-autocomplete-suggestions > li:hover,
+#page-local-autograder-optout .mform .form-autocomplete-suggestions > li[aria-selected=true],
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions > li:hover,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions > li[aria-selected=true] {
+    outline: 0;
+    box-shadow: none;
+    background-color: var(--dd-surface-2);
+    color: var(--dd-ink);
+    font-weight: inherit;
+}
+#id_autogradersection .form-autocomplete-suggestions > li:empty,
+#page-local-autograder-advanced .mform .form-autocomplete-suggestions > li:empty,
+#page-local-autograder-optout .mform .form-autocomplete-suggestions > li:empty,
+#page-admin-setting-local_autograder_settings #adminsettings .form-autocomplete-suggestions > li:empty {
+    display: none;
+}
+#id_autogradersection .filepicker-filelist,
+#id_autogradersection .fp-content-center,
+#id_autogradersection .dndupload-target,
+#page-local-autograder-advanced .mform .filepicker-filelist,
+#page-local-autograder-advanced .mform .fp-content-center,
+#page-local-autograder-advanced .mform .dndupload-target,
+#page-local-autograder-optout .mform .filepicker-filelist,
+#page-local-autograder-optout .mform .fp-content-center,
+#page-local-autograder-optout .mform .dndupload-target,
+#page-admin-setting-local_autograder_settings #adminsettings .filepicker-filelist,
+#page-admin-setting-local_autograder_settings #adminsettings .fp-content-center,
+#page-admin-setting-local_autograder_settings #adminsettings .dndupload-target {
+    border-color: var(--dd-line);
+    border-radius: var(--dd-radius);
+}
 
+@media (max-width: 767.98px) {
     #id_autogradersection input[type=text],
     #id_autogradersection select {
         width: 100%;
     }
-
     #page-local-autograder-advanced .mform .btn,
     #page-local-autograder-optout .mform .btn {
         white-space: normal;
