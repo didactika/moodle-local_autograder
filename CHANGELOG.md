@@ -19,6 +19,12 @@ branch keeps its own CHANGELOG.md history from the point it was cut, same as
 its own $plugin->release line -- no need to reconcile entries across branches.
 -->
 
+## [1.3.1-m503] - 2026-11-25
+
+### Changed
+
+- The forms of the plugin (the settings of an activity, the grading of an advanced method, the preference of a teacher and the settings page) are drawn as the Didactika design system draws its controls: fields, selects, checkboxes, radios and the autocomplete with its tags and menu, all as overrides of Bootstrap and Moodle classes inside the plugin.
+
 ## [Unreleased]
 
 ## [1.3.0-m503] - 2026-11-24
